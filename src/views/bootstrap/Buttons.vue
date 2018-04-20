@@ -2,19 +2,77 @@
     <div class="animated fadeIn">
         <div class="row">
             <div class="col-sm-12">
-                <h2>Buttons</h2>
+                <h4>Buttons</h4>
             </div>
 
             <div class="col-sm-12">
                 <b-card>
-                    <template
-                            v-for="variant in ['primary','secondary','success','outline-success','warning','danger','link']">
-                        <div class="col-md-4 pb-2" v-for="size in ['sm','','lg']" :key="`${variant}_${size}`">
-                            <b-button :size="size" :variant="variant">
-                                {{variant}} {{size}}
+                    <div class="row">
+                        <template
+                                v-for="variant in ['primary','secondary','success','outline-success','warning','danger','link']">
+                            <div class="col-md-4 pb-2" v-for="size in ['sm','','lg']" :key="`${variant}_${size}`">
+                                <b-button :size="size" :variant="variant">
+                                    {{variant}} {{size}}
+                                </b-button>
+                            </div>
+                        </template>
+                    </div>
+                </b-card>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                <h4>Button element type</h4>
+            </div>
+            <div class="col-sm-12">
+                <b-card>
+                    <div>
+                        <b-button>I am a Button</b-button>
+                        <b-button href="#">I am a Link</b-button>
+                    </div>
+                </b-card>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                <h4>Disabled state</h4>
+            </div>
+            <div class="col-sm-12">
+                <b-card>
+                    <div>
+                        <b-button disabled variant="success">Disabled</b-button>
+                        <b-button variant="success">Not Disabled</b-button>
+                    </div>
+                </b-card>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                <h4>Pressed state and toggling</h4>
+            </div>
+            <div class="col-sm-12">
+                <b-card>
+                    <div>
+                        <h5>Pressed and un-pressed state</h5>
+                        <b-button :pressed="true" variant="success">Always Pressed</b-button>
+                        <b-button :pressed="false" variant="success">Not Pressed</b-button>
+
+                        <h5>Toggleable Button</h5>
+                        <b-button :pressed.sync="myToggle" variant="primary">Toggle Me</b-button>
+                        <p>Pressed State: <strong>{{ myToggle }}</strong></p>
+
+                        <h5>In a button group</h5>
+                        <b-button-group size="sm">
+                            <b-button v-for="btn in buttons" :pressed.sync="btn.state" :variant="btn.variant"
+                                      :key="btn.variant">
+                                {{ btn.caption }}
                             </b-button>
-                        </div>
-                    </template>
+                        </b-button-group>
+                        <p>Pressed States: <strong>{{ btnStates }}</strong></p>
+                    </div>
                 </b-card>
             </div>
         </div>
@@ -44,7 +102,7 @@
                     <div class="card-header">
                         <div>Button Group</div>
                     </div>
-                    <div class="card-body">
+                    <div id="buttonGroup" class="card-body">
                         <div class="btn-group" role="group" aria-label="Basic example">
                             <button type="button" class="btn btn-secondary">Left</button>
                             <button type="button" class="btn btn-secondary">Middle</button>
@@ -159,7 +217,7 @@
 
 
 <style>
-    .card-body button {
+    #buttonGroup button {
         margin-bottom: 4px;
     }
 </style>
