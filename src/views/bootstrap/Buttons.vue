@@ -4,6 +4,19 @@
             <div class="col-sm-12">
                 <h2>Buttons</h2>
             </div>
+
+            <div class="col-sm-12">
+                <b-card>
+                    <template
+                            v-for="variant in ['primary','secondary','success','outline-success','warning','danger','link']">
+                        <div class="col-md-4 pb-2" v-for="size in ['sm','','lg']" :key="`${variant}_${size}`">
+                            <b-button :size="size" :variant="variant">
+                                {{variant}} {{size}}
+                            </b-button>
+                        </div>
+                    </template>
+                </b-card>
+            </div>
         </div>
 
         <div class="row">
@@ -66,11 +79,13 @@
                                 <div class="input-group-prepend">
                                     <div class="input-group-text" id="btnGroupAddon">@</div>
                                 </div>
-                                <input type="text" class="form-control" placeholder="Input group example" aria-label="Input group example" aria-describedby="btnGroupAddon">
+                                <input type="text" class="form-control" placeholder="Input group example"
+                                       aria-label="Input group example" aria-describedby="btnGroupAddon">
                             </div>
                         </div>
 
-                        <div class="btn-toolbar justify-content-between" role="toolbar" aria-label="Toolbar with button groups">
+                        <div class="btn-toolbar justify-content-between" role="toolbar"
+                             aria-label="Toolbar with button groups">
                             <div class="btn-group" role="group" aria-label="First group">
                                 <button type="button" class="btn btn-secondary">1</button>
                                 <button type="button" class="btn btn-secondary">2</button>
@@ -81,7 +96,8 @@
                                 <div class="input-group-prepend">
                                     <div class="input-group-text" id="btnGroupAddon2">@</div>
                                 </div>
-                                <input type="text" class="form-control" placeholder="Input group example" aria-label="Input group example" aria-describedby="btnGroupAddon2">
+                                <input type="text" class="form-control" placeholder="Input group example"
+                                       aria-label="Input group example" aria-describedby="btnGroupAddon2">
                             </div>
                         </div>
 
@@ -89,24 +105,28 @@
                             <button type="button" class="btn btn-secondary">Left</button>
                             <button type="button" class="btn btn-secondary">Middle</button>
                             <button type="button" class="btn btn-secondary">Right</button>
-                        </div><br/>
+                        </div>
+                        <br/>
                         <div class="btn-group" role="group" aria-label="Default button group">
                             <button type="button" class="btn btn-secondary">Left</button>
                             <button type="button" class="btn btn-secondary">Middle</button>
                             <button type="button" class="btn btn-secondary">Right</button>
-                        </div><br/>
+                        </div>
+                        <br/>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Small button group">
                             <button type="button" class="btn btn-secondary">Left</button>
                             <button type="button" class="btn btn-secondary">Middle</button>
                             <button type="button" class="btn btn-secondary">Right</button>
-                        </div><br/>
+                        </div>
+                        <br/>
 
                         <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
                             <button type="button" class="btn btn-secondary">1</button>
                             <button type="button" class="btn btn-secondary">2</button>
 
                             <div class="btn-group" role="group">
-                                <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     Dropdown
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -114,7 +134,8 @@
                                     <a class="dropdown-item" href="#">Dropdown link</a>
                                 </div>
                             </div>
-                        </div><br/>
+                        </div>
+                        <br/>
 
                         <div class="btn-group-vertical">
                             <button type="button" class="btn btn-secondary">Left</button>
@@ -128,18 +149,17 @@
     </div>
 
 
-
 </template>
 
 <script>
-    export default {
-      name: 'buttons'
-    }
+  export default {
+    name: 'buttons'
+  }
 </script>
 
 
 <style>
-.card-body button {
-    margin-bottom: 4px;
-}
+    .card-body button {
+        margin-bottom: 4px;
+    }
 </style>

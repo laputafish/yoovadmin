@@ -17,6 +17,7 @@ import Widgets from '@/views/Widgets'
 import Alerts from '@/views/bootstrap/Alerts'
 // import Alerts from '@/views/bootstrap/Alerts'
 import Badge from '@/views/bootstrap/Badge'
+import Breadcrumb from '@/views/bootstrap/Breadcrumb'
 import BootstrapButtons from '@/views/bootstrap/Buttons'
 import Carousel from '@/views/bootstrap/Carousel'
 import Collapse from '@/views/bootstrap/Collapse'
@@ -138,6 +139,11 @@ export default new Router({
               path: 'badge',
               name: 'Badges',
               component: Badge
+            },
+            {
+              path: 'breadcrumb',
+              name: 'Breadcrumb',
+              component: Breadcrumb
             },
             {
               path: 'buttons',

@@ -2690,7 +2690,8 @@ tbody.collapse.show {
 
 .btn .badge {
   position: relative;
-  top: -1px; }
+  top: -1px;
+}
 
 .badge-pill {
   padding-right: 0.6em;
@@ -5813,11 +5814,11 @@ body {
 button {
   cursor: pointer; }
 
-.btn .badge {
-  position: absolute;
-  top: 2px;
-  right: 6px;
-  font-size: 9px; }
+/*.btn .badge {*/
+  /*position: absolute;*/
+  /*top: 2px;*/
+  /*right: 6px;*/
+  /*font-size: 9px; }*/
 
 .btn-transparent {
   color: #fff;

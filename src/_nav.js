@@ -29,6 +29,11 @@ export default {
           icon: 'icon-link'
         },
         {
+          name: 'Breadcrumb',
+          url: '/bootstrap/breadcrumb',
+          icon: 'icon-link'
+        },
+        {
           name: 'Buttons',
           url: '/bootstrap/buttons',
           icon: 'icon-link'

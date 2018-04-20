@@ -12,40 +12,84 @@
           <div slot="header">
             <strong>Link Color</strong>
           </div>
-          <div class="alert alert-success" role="alert">
-            <strong>Well done!</strong> You successfully read <a href="#" class="alert-link">this important alert message</a>.
-          </div>
-          <div class="alert alert-info" role="alert">
-            <strong>Heads up!</strong> This <a href="#" class="alert-link">alert needs your attention</a>, but it's not super important.
-          </div>
-          <div class="alert alert-warning" role="alert">
-            <strong>Warning!</strong> Better check yourself, you're <a href="#" class="alert-link">not looking too good</a>.
-          </div>
-          <div class="alert alert-danger" role="alert">
-            <strong>Oh snap!</strong> <a href="#" class="alert-link">Change a few things up</a> and try submitting again.
-          </div>
-        </b-card>
-
-        <b-card>
-          <div slot="header">
-            <strong>Additional content</strong>
-          </div>
-          <div class="alert alert-success" role="alert">
-            <h4 class="alert-heading">Well done!</h4>
-            <p>Aww yeah, you successfully read this important alert message. This example text is going to run a bit longer so that you can see how spacing within an alert works with this kind of content.</p>
-            <p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p>
+          <div>
+            <b-alert show variant="primary">Primary Alert</b-alert>
+            <b-alert show variant="secondary">Secondary Alert</b-alert>
+            <b-alert show variant="success">
+              <strong>Well done!</strong> You successfully read <a href="#" class="alert-link">this important alert message</a>.
+            </b-alert>
+            <b-alert show variant="info">
+              <strong>Heads up!</strong> This <a href="#" class="alert-link">alert needs your attention</a>, but it's not super important.
+            </b-alert>
+            <b-alert show variant="warning">
+              <strong>Warning!</strong> Better check yourself, you're <a href="#" class="alert-link">not looking too good</a>.
+            </b-alert>
+            <b-alert show variant="danger">
+              <strong>Oh snap!</strong> <a href="#" class="alert-link">Change a few things up</a> and try submitting again.
+            </b-alert>
+            <b-alert show variant="light">Light Alert</b-alert>
+            <b-alert show variant="dark">Dark Alert</b-alert>
           </div>
         </b-card>
 
         <b-card>
           <div slot="header">
-            <strong>Dismissing</strong>
+            <strong>Color of links within alerts</strong>
           </div>
-          <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+          <div>
+            <b-alert show variant="primary">
+              Primary Alert with <a href="#" class="alert-link">an example link</a>.
+            </b-alert>
+            <b-alert show variant="secondary">
+              Secondary Alert with <a href="#" class="alert-link">an example link</a>.
+            </b-alert>
+            <b-alert show variant="success">
+              Success Alert with <a href="#" class="alert-link">an example link</a>.
+            </b-alert>
+            <b-alert show variant="danger">
+              Danger Alert with <a href="#" class="alert-link">an example link</a>.
+            </b-alert>
+            <b-alert show variant="warning">
+              Warning Alert with <a href="#" class="alert-link">an example link</a>.
+            </b-alert>
+            <b-alert show variant="info">
+              Info Alert with <a href="#" class="alert-link">an example link</a>.
+            </b-alert>
+            <b-alert show variant="light">
+              Light Alert with <a href="#" class="alert-link">an example link</a>.
+            </b-alert>
+            <b-alert show variant="dark">
+              Dark Alert with <b-link href="#" class="alert-link">an example link</b-link>.
+            </b-alert>
+          </div>
+        </b-card>
+
+        <b-card>
+          <div slot="header">
+            <strong>Dismissible alerts</strong>
+          </div>
+          <div>
+            <b-alert show dismissible>
+              Dismissible Alert!  Click the close button over there <b>&rArr;</b>
+            </b-alert>
+          </div>
+        </b-card>
+
+        <b-card>
+          <div slot="header">
+            <strong>Auto dismissing alerts</strong>
+          </div>
+          <div>
+            <b-alert :show="dismissCountDown"
+                     dismissible
+                     variant="warning"
+                     @dismissed="dismissCountdown=0"
+                     @dismiss-count-down="countDownChanged">
+              This alert will dismiss after {{dismissCountDown}} seconds...
+            </b-alert>
+            <b-btn @click="showAlert" variant="info" class="m-1">
+              Show alert with count-down timer
+            </b-btn>
           </div>
         </b-card>
 
@@ -56,6 +100,20 @@
 
 <script>
 export default {
-  name: 'linkColor'
+  name: 'linkColor',
+  data () {
+    return {
+      dismissSecs: 5,
+      dismissCountDown: 0
+    }
+  },
+  methods: {
+    countDownChanged (dismissCountDown) {
+      this.dismissCountDown = dismissCountDown
+    },
+    showAlert () {
+      this.dismissCountDown = this.dismissSecs
+    }
+  }
 }
 </script>

@@ -7,40 +7,68 @@
         </div>
         <div class="row">
             <div class="col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title">General</div>
-                        <h1>Example heading <span class="badge badge-secondary">New</span></h1>
-                        <h2>Example heading <span class="badge badge-secondary">New</span></h2>
-                        <h3>Example heading <span class="badge badge-secondary">New</span></h3>
-                        <h4>Example heading <span class="badge badge-secondary">New</span></h4>
-                        <h5>Example heading <span class="badge badge-secondary">New</span></h5>
-                        <h6>Example heading <span class="badge badge-secondary">New</span></h6>
-                    </div>
-                </div>
+                <b-card>
+                    <b-card-body>
+                        <b-card-title>General</b-card-title>
+                        <h1>Example heading <b-badge>New</b-badge></h1>
+                        <h2>Example heading <b-badge>New</b-badge></h2>
+                        <h3>Example heading <b-badge>New</b-badge></h3>
+                        <h4>Example heading <b-badge>New</b-badge></h4>
+                        <h5>Example heading <b-badge>New</b-badge></h5>
+                        <h6>Example heading <b-badge>New</b-badge></h6>
+                    </b-card-body>
+                </b-card>
+                <b-card>
+                    <b-card-body>
+                        <div class="text-center">
+                            <b-button variant="primary">
+                                Notifications <b-badge variant="light">4</b-badge>
+                            </b-button>
+                        </div>
+                    </b-card-body>
+                </b-card>
             </div>
             <div class="col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <span class="badge badge-primary">Primary</span>
-                        <span class="badge badge-secondary">Secondary</span>
-                        <span class="badge badge-success">Success</span>
-                        <span class="badge badge-danger">Danger</span>
-                        <span class="badge badge-warning">Warning</span>
-                        <span class="badge badge-info">Info</span>
-                        <span class="badge badge-light">Light</span>
-                        <span class="badge badge-dark">Dark</span>
+                <b-card>
+                    <b-card-body>
+                        <b-card-title>Contextual variations</b-card-title>
+                        <div>
+                            <b-badge variant="primary">Primary</b-badge>
+                            <b-badge variant="secondary">Secondary</b-badge>
+                            <b-badge variant="success">Success</b-badge>
+                            <b-badge variant="danger">Danger</b-badge>
+                            <b-badge variant="warning">Warning</b-badge>
+                            <b-badge variant="info">Info</b-badge>
+                            <b-badge variant="light">Light</b-badge>
+                            <b-badge variant="dark">Dark</b-badge>
+                        </div>
                         <br/>
-                        <span class="badge badge-pill badge-primary">Primary</span>
-                        <span class="badge badge-pill badge-secondary">Secondary</span>
-                        <span class="badge badge-pill badge-success">Success</span>
-                        <span class="badge badge-pill badge-danger">Danger</span>
-                        <span class="badge badge-pill badge-warning">Warning</span>
-                        <span class="badge badge-pill badge-info">Info</span>
-                        <span class="badge badge-pill badge-light">Light</span>
-                        <span class="badge badge-pill badge-dark">Dark</span>
-                    </div>
-                </div>
+                        <b-card-title>Pill badges</b-card-title>
+                        <div>
+                            <b-badge pill variant="primary">Primary</b-badge>
+                            <b-badge pill variant="secondary">Secondary</b-badge>
+                            <b-badge pill variant="success">Success</b-badge>
+                            <b-badge pill variant="danger">Danger</b-badge>
+                            <b-badge pill variant="warning">Warning</b-badge>
+                            <b-badge pill variant="info">Info</b-badge>
+                            <b-badge pill variant="light">Light</b-badge>
+                            <b-badge pill variant="dark">Dark</b-badge>
+                        </div>
+                        <br/>
+                        <b-card-title>Actionable badges</b-card-title>
+                        <div>
+                            <b-badge href="#" variant="primary">Primary</b-badge>
+                            <b-badge href="#" variant="secondary">Secondary</b-badge>
+                            <b-badge href="#" variant="success">Success</b-badge>
+                            <b-badge href="#" variant="danger">Danger</b-badge>
+                            <b-badge href="#" variant="warning">Warning</b-badge>
+                            <b-badge href="#" variant="info">Info</b-badge>
+                            <b-badge href="#" variant="light">Light</b-badge>
+                            <b-badge href="#" variant="dark">Dark</b-badge>
+                        </div>
+
+                    </b-card-body>
+                </b-card>
             </div>
         </div>
     </div>
