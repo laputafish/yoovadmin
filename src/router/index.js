@@ -48,6 +48,7 @@ import Page404 from '@/views/pages/Page404'
 import Page500 from '@/views/pages/Page500'
 import Login from '@/views/pages/Login'
 import Register from '@/views/pages/Register'
+import ProductMenu from '@/views/pages/ProductMenu'
 
 // Views - header Pages
 import HeaderPage1 from '@/views/headerPages/HeaderPage1'
@@ -287,6 +288,11 @@ export default new Router({
         render (c) { return c('router-view') }
       },
       children: [
+        {
+          path: 'product_menu',
+          name: 'Menu',
+          component: ProductMenu
+        },
         {
           path: '404',
           name: 'Page404',

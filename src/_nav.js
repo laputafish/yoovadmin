@@ -185,6 +185,11 @@ export default {
       icon: 'icon-star',
       children: [
         {
+          name: 'Product Menu',
+          url: '/pages/product_menu',
+          icon: 'icon-menu'
+        },
+        {
           name: 'Login',
           url: '/pages/login',
           icon: 'icon-star'

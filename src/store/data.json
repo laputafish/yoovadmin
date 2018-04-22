@@ -1,0 +1,19 @@
+{
+    "products": [
+      {
+        "id": 1,
+        "name": "核蛋叉燒飯",
+        "alias": "蛋叉飯",
+        "price": 64
+      },
+      {
+        "id": 2,
+        "name": "蜜汁叉燒飯",
+        "alias": "蜜叉飯",
+        "price": 57
+      }
+    ],
+    "attributes": [],
+    "categories": [],
+    "bundles": []
+  }

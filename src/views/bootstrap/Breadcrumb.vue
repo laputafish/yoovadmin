@@ -13,7 +13,7 @@
 
 <script>
   export default {
-    data() {
+    data () {
       return {
         items: [
           {
@@ -28,10 +28,10 @@
           },
           {
             text: 'Google',
-            href: 'http://google.com',
+            href: 'http://google.com'
           }, {
             text: 'to(name)',
-            to: {name: 'home'},
+            to: {name: 'home'}
           }, {
             text: 'Another Story',
             active: true
@@ -40,7 +40,6 @@
       }
     }
   }
-
 </script>
 
 <style>
