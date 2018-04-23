@@ -48,7 +48,9 @@ import Page404 from '@/views/pages/Page404'
 import Page500 from '@/views/pages/Page500'
 import Login from '@/views/pages/Login'
 import Register from '@/views/pages/Register'
-import ProductMenu from '@/views/pages/ProductMenu'
+
+// Main Panel
+import ProductMenu from '@/views/MainPanel/ProductMenu'
 
 // Views - header Pages
 import HeaderPage1 from '@/views/headerPages/HeaderPage1'
@@ -281,9 +283,9 @@ export default new Router({
       ]
     },
     {
-      path: '/pages',
-      redirect: '/pages/p404',
-      name: 'Pages',
+      path: '/main_panel',
+      redirect: '/main_panel/product_menu',
+      name: 'Main Panel',
       component: {
         render (c) { return c('router-view') }
       },
@@ -292,7 +294,17 @@ export default new Router({
           path: 'product_menu',
           name: 'Menu',
           component: ProductMenu
-        },
+        }
+      ]
+    },
+    {
+      path: '/pages',
+      redirect: '/pages/p404',
+      name: 'Pages',
+      component: {
+        render (c) { return c('router-view') }
+      },
+      children: [
         {
           path: '404',
           name: 'Page404',

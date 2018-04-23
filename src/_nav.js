@@ -186,7 +186,7 @@ export default {
       children: [
         {
           name: 'Product Menu',
-          url: '/pages/product_menu',
+          url: '/main_panel/product_menu',
           icon: 'icon-menu'
         },
         {
