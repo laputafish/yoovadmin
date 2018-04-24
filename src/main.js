@@ -1,7 +1,19 @@
+//
+// vue-tree
+// added:
+// babel-plugin-syntax-jsx
+// babel-plugin-transform-vue-jsx
+// babel-helper-vue-jsx-merge-props
+
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import $ from 'jquery'
 import Vue from 'vue'
+// import 'vue-tree-halower/dist/halower-tree.min.css'
+// import VTree from 'vue-tree-halower'
+import LiquorTree from 'liquor-tree'
+
+// import VueDragTree from 'vue-drag-tree'
 import { store } from './store/store'
 import 'bootstrap'
 import BootstrapVue from 'bootstrap-vue/dist/bootstrap-vue.esm'
@@ -25,8 +37,10 @@ window.jQuery = $
 Vue.use(BootstrapVue)
 // Vue.directive('tooltip', VTooltip)
 Vue.use(VTooltip)
+Vue.use(LiquorTree)
+// Vue.use(VTree)
 // Vue.use(Carousel)
-
+// Vue.component('vue-drag-tree', VueDragTree)
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

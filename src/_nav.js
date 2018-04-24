@@ -14,6 +14,11 @@ export default {
       name: 'UI elements'
     },
     {
+      name: 'Drag Drop Tree',
+      url: '/dragdrop_tree',
+      icon: 'icon-share'
+    },
+    {
       name: 'Bootstrap',
       url: '/bootstrap',
       icon: 'icon-settings',

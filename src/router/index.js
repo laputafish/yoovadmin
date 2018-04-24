@@ -41,6 +41,9 @@ import Modals from '@/views/components/Modals'
 import Switches from '@/views/components/Switches'
 import Tables from '@/views/components/Tables'
 
+// Views - DragDropTree
+import DragDropTree from '@/views/components/DragDropTree'
+
 // Views - Icons
 import FontAwesome from '@/views/icons/FontAwesome'
 import SimpleLineIcons from '@/views/icons/SimpleLineIcons'
@@ -80,6 +83,11 @@ export default new Router({
           path: 'dashboard',
           name: 'Dashboard',
           component: Dashboard
+        },
+        {
+          path: 'dragdrop_tree',
+          name: 'Tree',
+          component: DragDropTree
         },
         {
           path: 'charts',
