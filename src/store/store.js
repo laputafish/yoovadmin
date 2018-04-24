@@ -1,16 +1,15 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import data from './data.json'
+import system from './modules/system'
+import actions from './actions'
 
 Vue.use(Vuex)
+const debug = process.env.NODE_ENV !== 'production'
 
 export const store = new Vuex.Store({
-  state: data,
-  getter: {
-    products: (state) => {
-      return state.products
-    }
+  actions,
+  modules: {
+    system
   },
-  mutations: {},
-  actions: {}
+  strict: debug
 })

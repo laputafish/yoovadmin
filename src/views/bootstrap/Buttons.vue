@@ -211,7 +211,24 @@
 
 <script>
   export default {
-    name: 'buttons'
+    data () {
+      return {
+        myToggle: false,
+        buttons: [
+          { variant: 'primary', caption: 'Toggle 1', state: true },
+          { variant: 'danger', caption: 'Toggle 2', state: false },
+          { variant: 'warning', caption: 'Toggle 3', state: true },
+          { variant: 'success', caption: 'No Toggle', state: null },
+          { variant: 'outline-success', caption: 'Toggle 5', state: false },
+          { variant: 'outline-primary', caption: 'Toggle 6', state: false }
+        ]
+      }
+    },
+    computed: {
+      btnStates () {
+        return this.buttons.map(btn => btn.state)
+      }
+    }
   }
 </script>
 

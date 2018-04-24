@@ -1,5 +1,8 @@
 <template>
-  <router-link tag="li" class="nav-item nav-dropdown" :to="url" disabled>
+  <router-link tag="li"
+               class="nav-item nav-dropdown"
+               :to="url"
+               disabled>
     <div class="nav-link nav-dropdown-toggle" @click="handleClick"><i :class="icon"></i> {{name}}</div>
     <ul class="nav-dropdown-items">
       <slot></slot>
@@ -19,6 +22,10 @@ export default {
       default: ''
     },
     icon: {
+      type: String,
+      default: ''
+    },
+    activeMenuName: {
       type: String,
       default: ''
     }

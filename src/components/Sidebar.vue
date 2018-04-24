@@ -47,6 +47,11 @@ import SidebarNavTitle from './SidebarNavTitle'
 
 export default {
   name: 'app-sidebar',
+  data () {
+    return {
+      openedMenuName: ''
+    }
+  },
   props: {
     navItems: {
       type: Array,

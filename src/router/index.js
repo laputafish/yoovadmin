@@ -19,6 +19,8 @@ import Alerts from '@/views/bootstrap/Alerts'
 import Badge from '@/views/bootstrap/Badge'
 import Breadcrumb from '@/views/bootstrap/Breadcrumb'
 import BootstrapButtons from '@/views/bootstrap/Buttons'
+import BootstrapButtonGroup from '@/views/bootstrap/ButtonGroup'
+import BootstrapButtonToolbar from '@/views/bootstrap/ButtonToolbar'
 import Carousel from '@/views/bootstrap/Carousel'
 import Collapse from '@/views/bootstrap/Collapse'
 import Dropdown from '@/views/bootstrap/Dropdown'
@@ -98,12 +100,12 @@ export default new Router({
           children: [
             {
               path: 'login',
-              name: 'Login',
+              name: 'BootstrapLogin',
               component: Login
             },
             {
               path: 'register',
-              name: 'Register',
+              name: 'BootstrapRegister',
               component: Register
             }
           ]
@@ -150,8 +152,18 @@ export default new Router({
             },
             {
               path: 'buttons',
-              name: 'Buttons',
+              name: 'BootstrapButtons',
               component: BootstrapButtons
+            },
+            {
+              path: 'button_group',
+              name: 'Button Group',
+              component: BootstrapButtonGroup
+            },
+            {
+              path: 'button_toolbar',
+              name: 'Button Toolbar',
+              component: BootstrapButtonToolbar
             },
             {
               path: 'carousel',
@@ -170,7 +182,7 @@ export default new Router({
             },
             {
               path: 'forms',
-              name: 'Forms',
+              name: 'BootstrapForms',
               component: BootstrapForms
             },
             {

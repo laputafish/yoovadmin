@@ -9,7 +9,7 @@
             <div class="col-sm-6">
                 <b-card>
                     <b-card-body>
-                        <b-card-title>General</b-card-title>
+                        <p class="card-title"><h3>General</h3></p>
                         <h1>Example heading <b-badge>New</b-badge></h1>
                         <h2>Example heading <b-badge>New</b-badge></h2>
                         <h3>Example heading <b-badge>New</b-badge></h3>
@@ -31,7 +31,7 @@
             <div class="col-sm-6">
                 <b-card>
                     <b-card-body>
-                        <b-card-title>Contextual variations</b-card-title>
+                        <p class="card-title"><h3>Contextual variations</h3></p>
                         <div>
                             <b-badge variant="primary">Primary</b-badge>
                             <b-badge variant="secondary">Secondary</b-badge>
@@ -43,7 +43,8 @@
                             <b-badge variant="dark">Dark</b-badge>
                         </div>
                         <br/>
-                        <b-card-title>Pill badges</b-card-title>
+
+                        <p class="card-title"><h3>Pill badges</h3></p>
                         <div>
                             <b-badge pill variant="primary">Primary</b-badge>
                             <b-badge pill variant="secondary">Secondary</b-badge>
@@ -55,7 +56,8 @@
                             <b-badge pill variant="dark">Dark</b-badge>
                         </div>
                         <br/>
-                        <b-card-title>Actionable badges</b-card-title>
+
+                        <p class="card-title"><h3>Actionable badges</h3></p>
                         <div>
                             <b-badge href="#" variant="primary">Primary</b-badge>
                             <b-badge href="#" variant="secondary">Secondary</b-badge>

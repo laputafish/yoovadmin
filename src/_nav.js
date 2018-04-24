@@ -39,6 +39,16 @@ export default {
           icon: 'icon-link'
         },
         {
+          name: 'Button Group',
+          url: '/bootstrap/button_group',
+          icon: 'icon-link'
+        },
+        {
+          name: 'Button Toolbar',
+          url: '/bootstrap/button_toolbar',
+          icon: 'icon-link'
+        },
+        {
           name: 'Carousel',
           url: '/bootstrap/carousel',
           icon: 'icon-link'
