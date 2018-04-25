@@ -1,23 +1,11 @@
 <template>
-  <div class="animated fadeIn">
-    <div class="row">
-      <div class="col-sm-12">
-        <b-card title="Vue2 DataTable">
-          <div class="card-title">
-            <code>query: {{ query }}</code>
-          </div>
-          <hr/>
-          <b-card-body>
-            <div class="row">
-              <div class="col-sm-12">
-                <datatable v-bind="$data" />
-              </div>
-            </div>
-          </b-card-body>
-        </b-card>
-      </div>
+  <b-card :header="'Vue2DataTable'" class="animated fadeIn">
+    <div class="card-title">
+      <code>query: {{ query }}</code>
     </div>
-  </div>
+    <hr/>
+    <datatable v-bind="$data" />
+  </b-card>
 </template>
 <script>
   import mockData from './_mockData'
