@@ -14,9 +14,41 @@ export default {
       name: 'UI elements'
     },
     {
-      name: 'Drag Drop Tree',
-      url: '/dragdrop_tree',
-      icon: 'icon-share'
+      name: 'Custom',
+      url: '/custom',
+      icon: 'icon-settings',
+      children: [
+        {
+          name: 'Drag Drop Tree',
+          url: '/custom/dragdrop_tree',
+          icon: 'icon-share'
+        },
+        {
+          name: 'Draggable Tree',
+          url: '/custom/draggable_tree',
+          icon: 'icon-share'
+        },
+        {
+          name: 'Vue Drag Tree',
+          url: '/custom/vue_drag_tree',
+          icon: 'icon-share'
+        },
+        {
+          name: 'Sortable Tree',
+          url: '/custom/sortable_tree',
+          icon: 'icon-share'
+        },
+        {
+          name: 'Vue Draggable',
+          url: '/custom/vue_draggable',
+          icon: 'icon-share'
+        },
+        {
+          name: 'Vue2 DataTable',
+          url: '/custom/vue2_datatable',
+          icon: 'icon-share'
+        }
+      ]
     },
     {
       name: 'Bootstrap',

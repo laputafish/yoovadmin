@@ -1,20 +1,65 @@
 {
-    "products": [
-      {
-        "id": 1,
-        "name": "product #1",
-        "alias": "p1",
-        "price": 64
-      },
-      {
-        "id": 2,
-        "name": "product #2",
-        "alias": "p2",
-        "price": 57
-      }
-    ],
-    "activeMenu": "",
-    "attributes": [],
-    "categories": [],
-    "bundles": []
-  }
+  "products": [
+    {
+      "id": 1,
+      "name": "product #1",
+      "alias": "p1",
+      "price": 64
+    },
+    {
+      "id": 2,
+      "name": "product #2",
+      "alias": "p2",
+      "price": 57
+    }
+  ],
+  "activeMenu": "",
+  "attributes": [],
+  "categories": [
+    {
+      "id": 1,
+      "name": "2",
+      "children": [
+        {
+          "id": 2,
+          "name": "2-1"
+        },
+        {
+          "id": 3,
+          "name": "2-2",
+          "children": [
+            {
+              "id": 4,
+              "name": "3-2-1",
+              "children": [
+                {
+                  "id": 5,
+                  "name": "3-2-1-1"
+                },
+                {
+                  "id": 6,
+                  "name": "3-2-1-2"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "3",
+      "children": [
+        {
+          "id": 8,
+          "name": "3-1"
+        },
+        {
+          "id": 9,
+          "name": "3-2"
+        }
+      ]
+    }
+  ],
+  "bundles": []
+}

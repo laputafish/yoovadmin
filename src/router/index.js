@@ -41,8 +41,14 @@ import Modals from '@/views/components/Modals'
 import Switches from '@/views/components/Switches'
 import Tables from '@/views/components/Tables'
 
+// Views - Custom
 // Views - DragDropTree
-import DragDropTree from '@/views/components/DragDropTree'
+import DragDropTree from '@/views/custom/DragDropTree'
+import DraggableTree from '@/views/custom/DraggableTree'
+import VueDragTree from '@/views/custom/VueDragTree'
+import SortableTree from '@/views/custom/SortableTree'
+import VueDraggable from '@/views/custom/VueDraggable'
+import Vue2DataTable from '@/views/custom/Vue2DataTable'
 
 // Views - Icons
 import FontAwesome from '@/views/icons/FontAwesome'
@@ -83,11 +89,6 @@ export default new Router({
           path: 'dashboard',
           name: 'Dashboard',
           component: Dashboard
-        },
-        {
-          path: 'dragdrop_tree',
-          name: 'Tree',
-          component: DragDropTree
         },
         {
           path: 'charts',
@@ -132,6 +133,48 @@ export default new Router({
           path: 'pages/header_page3',
           name: 'HeaderPage3',
           component: HeaderPage3
+        },
+        {
+          path: 'custom',
+          redirect: '/custom/draggable_tree',
+          name: 'Custom',
+          component: {
+            render (c) {
+              return c('router-view')
+            }
+          },
+          children: [
+            {
+              path: 'dragdrop_tree',
+              name: 'Tree',
+              component: DragDropTree
+            },
+            {
+              path: 'draggable_tree',
+              name: 'Draggable Tree',
+              component: DraggableTree
+            },
+            {
+              path: 'vue_drag_tree',
+              name: 'Vue Drag Tree',
+              component: VueDragTree
+            },
+            {
+              path: 'sortable_tree',
+              name: 'Sortable Tree',
+              component: SortableTree
+            },
+            {
+              path: 'vue_draggable',
+              name: 'VueDraggable',
+              component: VueDraggable
+            },
+            {
+              path: 'vue2_datatable',
+              name: 'Vue2DataTable',
+              component: Vue2DataTable
+            }
+          ]
         },
         {
           path: 'bootstrap',

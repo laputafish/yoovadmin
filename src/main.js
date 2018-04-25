@@ -12,8 +12,15 @@ import Vue from 'vue'
 // import 'vue-tree-halower/dist/halower-tree.min.css'
 // import VTree from 'vue-tree-halower'
 import LiquorTree from 'liquor-tree'
+import VueDraggable from 'vue-draggable'
+import Datatable from 'vue2-datatable-component'
+import customLocale from 'vue2-datatable-component/locale/custom'
+
+// import VueDraggableTree from 'vue-draggable-tree'
 
 // import VueDragTree from 'vue-drag-tree'
+import SortableTree from 'vue-sortable-tree'
+
 import { store } from './store/store'
 import 'bootstrap'
 import BootstrapVue from 'bootstrap-vue/dist/bootstrap-vue.esm'
@@ -38,9 +45,12 @@ Vue.use(BootstrapVue)
 // Vue.directive('tooltip', VTooltip)
 Vue.use(VTooltip)
 Vue.use(LiquorTree)
+Vue.use(VueDraggable)
+Vue.use(Datatable, {customLocale})
 // Vue.use(VTree)
 // Vue.use(Carousel)
 // Vue.component('vue-drag-tree', VueDragTree)
+Vue.component(SortableTree.name, SortableTree)
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
