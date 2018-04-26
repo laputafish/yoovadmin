@@ -1,7 +1,7 @@
 <template>
-  <li class="nav-title">
+  <div class="nav-title">
     {{name}}
-  </li>
+  </div>
 </template>
 
 <script>

@@ -4,6 +4,7 @@
       <code>query: {{ query }}</code>
     </div>
     <hr/>
+    <h4>active menu: {{ activeMenu }}</h4>
     <datatable v-bind="$data" />
   </b-card>
 </template>
@@ -23,6 +24,11 @@
         data: [],
         total: 0,
         query: {}
+      }
+    },
+    computed: {
+      activeMenu: function (value) {
+        return this.$store.getters.activeMenu
       }
     },
     watch: {

@@ -43,7 +43,8 @@
     "vue-sortable-tree": "^1.2.1",
     "vue-tree-halower": "^1.5.1",
     "vue2-datatable-component": "^2.2.2",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "vuex-persistedstate": "^2.5.2"
   },
   "devDependencies": {
     "autoprefixer": "^7.2.6",

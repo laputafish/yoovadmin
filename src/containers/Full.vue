@@ -1,8 +1,8 @@
 <template>
-  <div class="app">
+  <div class="wrapper">
     <app-header />
     <div class="app-body">
-      <sidebar :navItems="nav"/>
+      <app-sidebar :navItems="nav"/>
       <main class="main">
         <breadcrumb :list="list"/>
         <div class="container-fluid">
@@ -19,7 +19,7 @@
 import nav from '../_nav'
 import {
   AppHeader as appHeader,
-  AppSidebar as sidebar,
+  AppSidebar as appSidebar,
   AppAside as appAside,
   AppFooter as appFooter} from '../components/index.js'
 import Breadcrumb from '../components/Breadcrumb.vue'
@@ -28,7 +28,7 @@ export default {
   name: 'full',
   components: {
     appHeader,
-    sidebar,
+    appSidebar,
     appAside,
     appFooter,
     breadcrumb: Breadcrumb
@@ -48,3 +48,12 @@ export default {
   }
 }
 </script>
+
+<style>
+  .wrapper {
+    height: 100%;
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+</style>
