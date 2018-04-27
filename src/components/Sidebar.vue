@@ -65,16 +65,19 @@ export default {
     SidebarNavTitle
   },
   methods: {
-    handleClick (e) {
-      e.preventDefault()
-      e.target.parentElement.classList.toggle('open')
-    }
   }
+
 }
 </script>
 
 <style lang="css">
   .nav-link {
     cursor:pointer;
+  }
+  .sidebar .nav .nav-item .nav-link {
+    color: #878b91;
+  }
+  .sidebar {
+    font-size: 0.8rem;
   }
 </style>

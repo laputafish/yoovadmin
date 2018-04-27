@@ -11,7 +11,7 @@ import $ from 'jquery'
 import Vue from 'vue'
 // import 'vue-tree-halower/dist/halower-tree.min.css'
 // import VTree from 'vue-tree-halower'
-import LiquorTree from 'liquor-tree'
+// import LiquorTree from 'liquor-tree'
 import VueDraggable from 'vue-draggable'
 import Datatable from 'vue2-datatable-component'
 import customLocale from 'vue2-datatable-component/locale/custom'
@@ -44,7 +44,7 @@ window.jQuery = $
 Vue.use(BootstrapVue)
 // Vue.directive('tooltip', VTooltip)
 Vue.use(VTooltip)
-Vue.use(LiquorTree)
+// Vue.use(LiquorTree)
 Vue.use(VueDraggable)
 Vue.use(Datatable, {customLocale})
 // Vue.use(VTree)
