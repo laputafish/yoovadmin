@@ -14,7 +14,7 @@ import Vue from 'vue'
 // import LiquorTree from 'liquor-tree'
 import VueDraggable from 'vue-draggable'
 import Datatable from 'vue2-datatable-component'
-import customLocale from 'vue2-datatable-component/locale/custom'
+// import customLocale from 'vue2-datatable-component/locale/custom'
 
 // import VueDraggableTree from 'vue-draggable-tree'
 
@@ -46,7 +46,8 @@ Vue.use(BootstrapVue)
 Vue.use(VTooltip)
 // Vue.use(LiquorTree)
 Vue.use(VueDraggable)
-Vue.use(Datatable, {customLocale})
+Vue.use(Datatable)
+// Vue.use(Datatable, {customLocale})
 // Vue.use(VTree)
 // Vue.use(Carousel)
 // Vue.component('vue-drag-tree', VueDragTree)

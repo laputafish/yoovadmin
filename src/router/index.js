@@ -30,6 +30,13 @@ import Jumbotron from '@/views/bootstrap/Jumbotron'
 import ListGroup from '@/views/bootstrap/ListGroup'
 import Modal from '@/views/bootstrap/Modal'
 
+// Application Modules
+import AppContainer from '@/containers/AppContainer'
+import ProductList from '@/views/products/ProductList'
+import AttributeList from '@/views/attributes/AttributeList'
+import BundleList from '@/views/bundles/BundleList'
+import MenuSectionList from '@/views/menuSections/MenuSectionList'
+
 import VToolTip from '@/views/vueplugins/VToolTip'
 
 // View: /Components
@@ -85,6 +92,34 @@ export default new Router({
       name: 'Home',
       component: Full,
       children: [
+        {
+          path: '/app',
+          redirect: '/app/products',
+          name: 'Home',
+          component: AppContainer,
+          children: [
+            {
+              path: 'products',
+              name: '食品列表',
+              component: ProductList
+            },
+            {
+              path: 'attributes',
+              name: '選項列表',
+              component: AttributeList
+            },
+            {
+              path: 'bundles',
+              name: '套餐列表',
+              component: BundleList
+            },
+            {
+              path: 'menu_sections',
+              name: '菜品分類列表',
+              component: MenuSectionList
+            }
+          ]
+        },
         {
           path: 'dashboard',
           name: 'Dashboard',

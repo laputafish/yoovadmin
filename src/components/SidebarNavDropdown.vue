@@ -3,7 +3,7 @@
                class="nav-item nav-dropdown"
                :to="url"
                disabled>
-    <div class="nav-link nav-dropdown-toggle" @click="handleClick"><i :class="icon"></i>xxxxxx {{name}}</div>
+    <div class="nav-link nav-dropdown-toggle" @click="handleClick"><i :class="icon"></i>{{name}}</div>
     <ul class="nav-dropdown-items">
       <slot></slot>
     </ul>

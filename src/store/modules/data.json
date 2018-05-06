@@ -15,51 +15,47 @@
   ],
   "activeMenu": "",
   "attributes": [],
-  "categories": [
-    {
-      "id": 1,
-      "name": "2",
-      "children": [
-        {
-          "id": 2,
-          "name": "2-1"
-        },
-        {
-          "id": 3,
-          "name": "2-2",
-          "children": [
-            {
-              "id": 4,
-              "name": "3-2-1",
-              "children": [
-                {
-                  "id": 5,
-                  "name": "3-2-1-1"
-                },
-                {
-                  "id": 6,
-                  "name": "3-2-1-2"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": 7,
-      "name": "3",
-      "children": [
-        {
-          "id": 8,
-          "name": "3-1"
-        },
-        {
-          "id": 9,
-          "name": "3-2"
-        }
-      ]
-    }
-  ],
+  "categoryRoot": {
+    "id": 0,
+    "name": "主目錄",
+    "children": [
+	    {
+	      "id": 1,
+	      "name": "飯類",
+	      "children": [
+	        {"id": 2, "name": "燒味飯類"},
+	        {"id": 3, "name": "炒燴飯類"}
+	      ]
+	    },
+	    {
+	      "id": 4,
+	      "name": "粥類"
+	    },
+	    {
+	      "id": 5,
+	      "name": "粉麵",
+	      "children": [
+	        {"id": 6, "name": "炒麵類", "children": [
+	          {"id": 11, "name": "炒麵"},
+	          {"id": 12, "name": "炒米粉"},
+	          {"id": 13, "name": "炒河"}
+	        ]},
+	        {"id": 7, "name": "各式粉麵"}
+	      ]
+	    },
+	    {
+	      "id": 8,
+	      "name": "湯類"
+	    },
+	    {
+	      "id": 9,
+	      "name": "精美小菜"
+	    },
+	    {
+	      "id": 10,
+	      "name": "各式拼盤"
+	    }
+	  ]
+  },
   "bundles": []
 }

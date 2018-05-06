@@ -11,6 +11,37 @@ export default {
     },
     {
       title: true,
+      name: '餐飲'
+    },
+    {
+      name: '食品項目',
+      url: '/app/products',
+      icon: 'icon-settings'
+    },
+    {
+      name: '選項',
+      url: '/app/attributes',
+      icon: 'icon-settings'
+    },
+    {
+      name: '套餐項目',
+      url: '/app/bundles',
+      icon: 'icon-settings'
+    },
+    {
+      name: '餐牌',
+      url: '/app/menus',
+      icon: 'icon-settings',
+      children: [
+        {
+          name: '項目分類',
+          url: '/app/menuGroups',
+          icon: 'icon-share'
+        }
+      ]
+    },
+    {
+      title: true,
       name: 'UI elements'
     },
     {

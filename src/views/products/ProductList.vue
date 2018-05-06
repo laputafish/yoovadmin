@@ -1,35 +1,48 @@
 <template>
-  <div class="animated fadeIn">
-    <div class="row">
-      <div class="col-sm-5">
-        <button @click="consoleData">consoleData</button>
-        <app-tree :nodes="treeData"
-                  @onCommand="commandHandler"></app-tree>
-      </div>
-      <div class="col-sm-7">
-        <h4>sdlfkdsjf</h4>
-      </div>
-    </div>
-    <b-modal id="modal1" ref="itemModalRef" :title="(activeItemId==0 ? 'New' : 'Edit') + ' Item'" @ok="doUpdateItem">
-      <div class="d-block form-group">
-        <label>Name</label>
-        <input v-model="activeItemName" class="form-control"/>
-      </div>
-    </b-modal>
-    <b-modal v-model="showingConfirmationDialog" title="Confirmation" @ok="$emit('ok')"
-             ok-variant="danger">
-      <div class="d-block text-center">
-        Are you sure?
-      </div>
-    </b-modal>
+    <div class="animated fadeIn">
+        <div class="row">
+            <div class="col-sm-5">
+                <button @click="consoleData">consoleData</button>
+                <app-tree :nodes="treeData"
+                          @onCommand="commandHandler"></app-tree>
+            </div>
+            <div class="col-sm-7">
+                <b-card>
+                    <div class="b-card-title">
+                        <strong>{{ activeCategory.name }}</strong>
+                        <small>(5)</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <datatable v-bind="$data">
 
-    <!--<confirmation-dialog v-model="showingConfirmationDialog">-->
-    <!--</confirmation-dialog>-->
-  </div>
+                            </datatable>
+                        </div>
+                    </div>
+                </b-card>
+            </div>
+        </div>
+        <b-modal id="modal1" ref="itemModalRef" :title="(activeItemId==0 ? 'New' : 'Edit') + ' Item'" @ok="doUpdateItem">
+            <div class="d-block form-group">
+                <label>Name</label>
+                <input v-model="activeItemName" class="form-control"/>
+            </div>
+        </b-modal>
+        <b-modal v-model="showingConfirmationDialog" title="Confirmation" @ok="$emit('ok')"
+                 ok-variant="danger">
+            <div class="d-block text-center">
+                Are you sure?
+            </div>
+        </b-modal>
+
+        <!--<confirmation-dialog v-model="showingConfirmationDialog">-->
+        <!--</confirmation-dialog>-->
+    </div>
 </template>
 <script>
   // import ConfirmationDialog from '../shared/dialogs/ConfirmationDialog'
   import AppTree from '@/components/AppTree'
+  import mockData from '../custom/_mockData'
   // import SortableTree from 'vue-sortable-tree'
   export default {
     components: {
@@ -46,12 +59,39 @@
 
         activeItem: null,
         activeItemId: 0,
-        activeItemName: ''
+        activeItemName: '',
+
+        activeCategory: {
+          type: Object,
+          default: null
+        },
+
+        columns: [
+          {title: 'User ID', field: 'uid', sortable: true},
+          {title: 'Username', field: 'name'},
+          {title: 'Age', field: 'age', sortable: true},
+          {title: 'Email', field: 'email'},
+          {title: 'Country', field: 'country'}
+        ],
+        data: [],
+        total: 0,
+        query: {}
       }
     },
     computed: {
       treeData () {
         return this.$store.getters.categoryTree
+      }
+    },
+    watch: {
+      query: {
+        handler (query) {
+          mockData(query).then(({ rows, total }) => {
+            this.data = rows
+            this.total = total
+          })
+        },
+        deep: true
       }
     },
     methods: {
@@ -120,6 +160,9 @@
             break
           case 'delete':
             vm.deleteItem(payload.item)
+            break
+          case 'select':
+            vm.activeCategory = payload
             break
         }
       },
