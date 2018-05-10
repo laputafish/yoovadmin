@@ -1,0 +1,41 @@
+<template>
+  <div class="animated fadeIn">
+    <div class="row">
+      <div class="col-sm-12">
+        <datatable v-bind="$data">
+
+        </datatable>
+      </div>
+    </div>
+  </div>
+
+</template>
+
+<script>
+  // import tdComps from './comps'
+  import Vuex from 'Vuex'
+
+  export default {
+    // components: {
+    //   ...tdComps
+    // },
+    data () {
+      return {
+        columns: [
+          {title: 'Name', field: 'name', sortable: true},
+          {title: 'Capacity', field: 'capacity', sortable: true},
+          {title: 'Location', field: 'location', sortable: false},
+          {title: 'Equipments', field: 'equipments', sortable: false},
+          {title: 'Remark', field: 'remark', sortable: false}
+        ],
+        data: [],
+        total: 0,
+        query: {}
+      }
+    },
+    computed: Vuex.mapState(['meetingRooms', 'loadingMeetingRooms']),
+    mounted () {
+      this.$store.dispatch('GET_MEETING_ROOMS')
+    }
+  }
+</script>

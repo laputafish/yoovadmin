@@ -53,6 +53,16 @@ Vue.use(Datatable)
 // Vue.component('vue-drag-tree', VueDragTree)
 Vue.component(SortableTree.name, SortableTree)
 Vue.config.productionTip = false
+Vue.mixin({
+  methods: {
+    formatCurrency: (number) => number.toFixed(2)
+  }
+})
+// Object.defineProperty(Vue.prototype, '$formatter', new Intl.NumberFormat('en-US', {
+//   style: 'currency',
+//   currency: 'USD',
+//   minimumFractionDigits: 2
+// }))
 
 /* eslint-disable no-new */
 new Vue({

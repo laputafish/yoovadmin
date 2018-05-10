@@ -8,12 +8,26 @@
             </div>
             <div class="col-sm-7">
                 <b-card>
-                    <div class="b-card-title">
+                    <div class="b-card-title" style="position:absolute;">
                         <strong>{{ activeCategory.name }}</strong>
                         <small>(5)</small>
                     </div>
                     <div class="row">
                         <div class="col-sm-12">
+                            <div class="button-group"
+                                 style="position: relative;float: right;margin-left:5px;">
+                                <button type="button"
+                                        @click="newProduct"
+                                        class="btn btn-success">
+                                    <i class="fa fa-fw fa-plus"></i>
+                                </button>
+                                <!--<button type="button" class="btn btn-success">-->
+                                    <!--<i class="fa fa-fw fa-plus"></i>-->
+                                <!--</button>-->
+                                <!--<button type="button" class="btn btn-success">-->
+                                    <!--<i class="fa fa-fw fa-plus"></i>-->
+                                <!--</button>-->
+                            </div>
                             <datatable v-bind="$data">
 
                             </datatable>
@@ -41,11 +55,13 @@
 </template>
 <script>
   // import ConfirmationDialog from '../shared/dialogs/ConfirmationDialog'
+  import tdComps from './comps'
   import AppTree from '@/components/AppTree'
-  import mockData from '../custom/_mockData'
+//  import mockData from '../custom/_mockData'
   // import SortableTree from 'vue-sortable-tree'
   export default {
     components: {
+      ...tdComps,
       appTree: AppTree
     },
     name: 'hello',
@@ -67,11 +83,9 @@
         },
 
         columns: [
-          {title: 'User ID', field: 'uid', sortable: true},
-          {title: 'Username', field: 'name'},
-          {title: 'Age', field: 'age', sortable: true},
-          {title: 'Email', field: 'email'},
-          {title: 'Country', field: 'country'}
+          {title: '#', field: 'id', sortable: true},
+          {title: '名稱', field: 'name', sortable: true},
+          {title: '價格', field: 'price', tdComp: 'TdPrice', sortable: true, tdClass: 'text-right'}
         ],
         data: [],
         total: 0,
@@ -86,15 +100,24 @@
     watch: {
       query: {
         handler (query) {
-          mockData(query).then(({ rows, total }) => {
-            this.data = rows
-            this.total = total
-          })
+          this.reload({categoryId: this.activeCategoryId})
+          // mockData(query).then(({ rows, total }) => {
+          //   this.data = rows
+          //   this.total = total
+          // })
         },
         deep: true
       }
     },
     methods: {
+      reload (options) {
+        let vm = this
+        this.data = this.$store.getters.productsByCategory(options.categoryId)
+        this.total = this.data.length
+        console.log('methods: reload: options: ', options)
+        console.log('methods: reload: data: ', vm.data)
+        console.log('methods: reload: total: ', vm.total)
+      },
       showItem (item) {
         console.log('showItem :: item: ', item)
       },
@@ -162,7 +185,11 @@
             vm.deleteItem(payload.item)
             break
           case 'select':
+            console.log('select :: payload: ', payload)
             vm.activeCategory = payload
+            vm.reload({
+              categoryId: vm.activeCategory.id
+            })
             break
         }
       },
@@ -195,6 +222,9 @@
         vm.showingConfirmationDialog = true
         console.log('deleteItem :: item: ', item)
         console.log('deleteItem :: showingConfirmationDialog = ' + (vm.showingConfirmationDialog ? 'yes' : 'no'))
+      },
+      newProduct () {
+        alert('newProduct')
       }
     }
   }

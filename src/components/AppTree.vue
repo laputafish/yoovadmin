@@ -14,7 +14,7 @@
                     <!--<span>▼</span>-->
                     <span v-else-if="!item['$foldClose'] && item.children && item.children.length"
                           @click="changeState(item)"><i class="fa fa-fw fa-chevron-circle-down"></i></span>
-                    <span @click="select(item)">{{item.name}} #{{item.id}}</span>
+                    <span class="category-title" @click="select(item)">{{item.name}} #{{item.id}}</span>
                     <div class="treenode-toolbar">
                         <button class="btn btn-xs btn-primary"
                                 @click="editItem(item)">
@@ -101,6 +101,9 @@
           command: 'select',
           payload: item
         })
+      },
+      newProduct () {
+        alert('newProduct')
       }
     }
   }
@@ -145,5 +148,8 @@
         margin-top: 1px;
         background-color: white;
         font-size: 18px;
+    }
+    .category-title {
+        cursor: pointer;
     }
 </style>

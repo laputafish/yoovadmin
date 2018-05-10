@@ -57,5 +57,22 @@
 	    }
 	  ]
   },
+	"products": [
+		{"id": 1, "name": "發財三寶飯", "category_id": 2, "price": 90},
+		{"id": 2, "name": "金牌滷味飯", "category_id": 2, "price": 90},
+		{"id": 3, "name": "脆皮燒鴨飯", "category_id": 2, "price": 80},
+		{"id": 4, "name": "花雕油雞飯", "category_id": 2, "price": 80},
+		{"id": 5, "name": "化皮燒肉飯", "category_id": 2, "price": 80},
+		{"id": 6, "name": "蜜汁叉燒飯", "category_id": 2, "price": 80},
+		{"id": 7, "name": "叉燒拼鴨飯", "category_id": 2, "price": 85},
+		{"id": 8, "name": "叉燒拼雞飯", "category_id": 2, "price": 95},
+		{"id": 9, "name": "燒肉拼鴨飯", "category_id": 2, "price": 85},
+		{"id": 10, "name": "燒肉拼雞飯", "category_id": 2, "price": 85},
+		{"id": 11, "name": "油雞拼鴨飯", "category_id": 2, "price": 85},
+		{"id": 12, "name": "蜜汁雞腿飯", "category_id": 2, "price": 85},
+		{"id": 13, "name": "油雞腿飯", "category_id": 2, "price": 85},
+		{"id": 14, "name": "鴨腿飯", "category_id": 2, "price": 100},
+		{"id": 14, "name": "臘味飯", "category_id": 2, "price": 100}
+	],
   "bundles": []
 }

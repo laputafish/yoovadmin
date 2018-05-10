@@ -5,7 +5,6 @@
                 <b-card>
                     <div slot="header">
                         <strong>{{ $route.name }}</strong>
-                        <small>(4)</small>
                     </div>
                     <router-view></router-view>
                 </b-card>

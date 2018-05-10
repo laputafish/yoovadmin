@@ -1,17 +1,28 @@
 import * as types from '../mutation-types'
 import data from './data.json'
+import * as constants from '../constants'
+import axios from 'axios'
 
 const state = {
   ...data,
-  activeMenu: ''
+  activeMenu: '',
+  meetingRooms: [],
+  loadingMeetingRooms: true
 }
 
 const getters = {
-  products: (state) => {
-    return state.products
+  productsByCategory (state) {
+    return (categoryId) => {
+      return state.products.filter((product) => {
+        return product.category_id === categoryId
+      })
+    }
   },
   categoryTree: (state) => {
     return state.categoryRoot
+  },
+  meetingRooms: (state) => {
+    return state.meetingRooms
   }
 }
 
@@ -183,10 +194,30 @@ const mutations = {
       parent.children = []
     }
     parent.children.splice(index, 0, item)
+  },
+  updateMeetingRooms (state, payload) {
+    state.meetingRooms = payload
+    console.log('updateMeetingRooms :: meetingRooms: ', state.meetingRooms)
+  },
+  changeLoadingMeetingRoomsState (state, loading) {
+    state.loadingMeetingRooms = loading
   }
 }
 
 const actions = {
+  [types.SET_MEETING_ROOMS] ({commit, state}, payload) {
+    commit('updateMeetingRooms', payload)
+    commit('changeLoadingMeetingRoomsState', false)
+  },
+
+  [types.GET_MEETING_ROOMS] ({commit, state}, payload) {
+    axios.get(constants.URL + '/meeting_rooms').then((response) => {
+      console.log('GET_MEETING_ROOMS :: data: ', response.data)
+      commit('updateMeetingRooms', response.data)
+      commit('changeLoadingMeetingRoomsState', false)
+    })
+  },
+
   [types.MOVE_PRODUCT_CATEGORY] (context, payload) {
     console.log('system.js actions[types.MOVE_PRODUCT_CATEGORY]')
     // let beforeParent = payload.beforeParent

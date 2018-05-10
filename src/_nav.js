@@ -11,35 +11,54 @@ export default {
     },
     {
       title: true,
-      name: '餐飲'
+      name: 'OA Plugins'
     },
     {
-      name: '食品項目',
-      url: '/app/products',
-      icon: 'icon-settings'
+      name: 'Meetings',
+      url: '/app/meetings',
+      icon: 'icon-speech'
     },
     {
-      name: '選項',
-      url: '/app/attributes',
-      icon: 'icon-settings'
+      name: 'Meeting Room Bookings',
+      url: '/app/meeting_room_bookings',
+      icon: 'icon-calendar'
     },
     {
-      name: '套餐項目',
-      url: '/app/bundles',
-      icon: 'icon-settings'
+      name: 'Meeting Rooms',
+      url: '/app/meeting_rooms',
+      icon: 'icon-direction'
     },
-    {
-      name: '餐牌',
-      url: '/app/menus',
-      icon: 'icon-settings',
-      children: [
-        {
-          name: '項目分類',
-          url: '/app/menuGroups',
-          icon: 'icon-share'
-        }
-      ]
-    },
+    // {
+    //   title: true,
+    //   name: '餐飲'
+    // },
+    // {
+    //   name: '食品項目',
+    //   url: '/app/products',
+    //   icon: 'icon-settings'
+    // },
+    // {
+    //   name: '選項',
+    //   url: '/app/attributes',
+    //   icon: 'icon-settings'
+    // },
+    // {
+    //   name: '套餐項目',
+    //   url: '/app/bundles',
+    //   icon: 'icon-settings'
+    // },
+    // {
+    //   name: '餐牌',
+    //   url: '/app/menus',
+    //   icon: 'icon-settings',
+    //   children: [
+    //     {
+    //       name: '項目分類',
+    //       url: '/app/menuGroups',
+    //       icon: 'icon-share'
+    //     }
+    //   ]
+    // },
     {
       title: true,
       name: 'UI elements'
