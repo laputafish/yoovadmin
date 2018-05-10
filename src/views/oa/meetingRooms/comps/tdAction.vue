@@ -1,6 +1,12 @@
 <template>
   <div>
     <button type="button"
+            @click="editItem"
+            class="btn btn-default btn-sm ml-1">
+      <i class="fa fa-fw fa-edit"></i>
+    </button>
+    <button type="button"
+            @click="deleteItem"
             class="btn btn-danger btn-sm">
       <i class="fa fa-fw fa-close"></i>
     </button>
@@ -8,7 +14,19 @@
 </template>
 
 <script>
+  import { EventBus } from '@/event-bus.js'
+
   export default {
-    props: ['row', 'nested']
+    props: ['row', 'nested'],
+    methods: {
+      editItem () {
+        console.log('tdAction :: editItem')
+        EventBus.$emit('edit_meeting_room', {room: this.row})
+      },
+      deleteItem () {
+        console.log('tdAction :: deleteItem')
+        EventBus.$emit('delete_meeting_room', {room: this.row})
+      }
+    }
   }
 </script>

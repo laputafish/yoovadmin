@@ -201,10 +201,38 @@ const mutations = {
   },
   changeLoadingMeetingRoomsState (state, loading) {
     state.loadingMeetingRooms = loading
+  },
+  createMeetingRoom (state, payload) {
+
+  },
+  updateMeetingRoom (state, payload) {
+
   }
 }
 
 const actions = {
+  [types.CREATE_MEETING_ROOM] ({commit, dispatch}, payload) {
+    let meetingRoom = payload.meetingRoom
+    let url = constants.URL + '/meeting_rooms'
+    axios.post(url, meetingRoom).then(function (response) {
+      if (typeof payload.callback === 'function') {
+        payload.callback()
+      }
+  //    dispatch('GET_MEETING_ROOMS')
+    })
+  },
+
+  [types.UPDATE_MEETING_ROOM] ({commit, dispatch}, payload) {
+    let meetingRoom = payload.meetingRoom
+    let url = constants.URL + '/meeting_rooms/' + meetingRoom.id
+    axios.put(url, meetingRoom).then(function (response) {
+      if (typeof payload.callback === 'function') {
+        payload.callback()
+      }
+//      dispatch('GET_MEETING_ROOMS')
+    })
+  },
+
   [types.SET_MEETING_ROOMS] ({commit, state}, payload) {
     commit('updateMeetingRooms', payload)
     commit('changeLoadingMeetingRoomsState', false)
