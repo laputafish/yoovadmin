@@ -13,6 +13,7 @@ import Vue from 'vue'
 // import VTree from 'vue-tree-halower'
 // import LiquorTree from 'liquor-tree'
 import VueDraggable from 'vue-draggable'
+import VuejsDialog from 'vuejs-dialog'
 import Datatable from 'vue2-datatable-component'
 // import customLocale from 'vue2-datatable-component/locale/custom'
 
@@ -41,6 +42,7 @@ import 'simple-line-icons/scss/simple-line-icons.scss'
 window.$ = $
 window.jQuery = $
 
+Vue.use(VuejsDialog)
 Vue.use(BootstrapVue)
 // Vue.directive('tooltip', VTooltip)
 Vue.use(VTooltip)
@@ -53,6 +55,16 @@ Vue.use(Datatable)
 // Vue.component('vue-drag-tree', VueDragTree)
 Vue.component(SortableTree.name, SortableTree)
 Vue.config.productionTip = false
+Vue.mixin({
+  methods: {
+    formatCurrency: (number) => number.toFixed(2)
+  }
+})
+// Object.defineProperty(Vue.prototype, '$formatter', new Intl.NumberFormat('en-US', {
+//   style: 'currency',
+//   currency: 'USD',
+//   minimumFractionDigits: 2
+// }))
 
 /* eslint-disable no-new */
 new Vue({
@@ -60,5 +72,7 @@ new Vue({
   router,
   store,
   template: '<App/>',
-  components: { App }
+  components: {
+    App
+  }
 })

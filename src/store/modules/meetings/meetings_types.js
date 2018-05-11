@@ -1,0 +1,4 @@
+export const GET_MEETINGS = 'GET_MEETINGS'
+export const SET_MEETINGS = 'SET_MEETINGS'
+export const CREATE_MEETING = 'CREATE_MEETING'
+export const UPDATE_MEETING = 'UPDATE_MEETING'

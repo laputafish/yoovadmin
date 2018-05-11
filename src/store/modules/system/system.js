@@ -1,14 +1,24 @@
-import * as types from '../mutation-types'
-import data from './data.json'
+import * as types from './system_types'
+import data from '../data.json'
+// import * as constants from '../../constants'
+// import axios from 'axios'
 
 const state = {
   ...data,
+  user: null,
   activeMenu: ''
 }
 
 const getters = {
-  products: (state) => {
-    return state.products
+  user (state) {
+    return state.user
+  },
+  productsByCategory (state) {
+    return (categoryId) => {
+      return state.products.filter((product) => {
+        return product.category_id === categoryId
+      })
+    }
   },
   categoryTree: (state) => {
     return state.categoryRoot
@@ -132,6 +142,9 @@ function moveCategory (category, afterParent, beforeParent) {
 }
 
 const mutations = {
+  [types.SET_USER] (state, data) {
+    state.user = data
+  },
   [types.SET_ACTIVE_MENU] (state, data) {
     state.activeMenu = data
   },
@@ -183,10 +196,18 @@ const mutations = {
       parent.children = []
     }
     parent.children.splice(index, 0, item)
+  },
+  setUser (state, payload) {
+    state.user = payload
+    console.log('setUser :: payload: ', payload)
   }
 }
 
 const actions = {
+  [types.SET_USER] ({commit}, payload) {
+    commit('setUser', payload)
+  },
+
   [types.MOVE_PRODUCT_CATEGORY] (context, payload) {
     console.log('system.js actions[types.MOVE_PRODUCT_CATEGORY]')
     // let beforeParent = payload.beforeParent

@@ -39,6 +39,11 @@ import MenuSectionList from '@/views/menuSections/MenuSectionList'
 
 import VToolTip from '@/views/vueplugins/VToolTip'
 
+// OA - Meetings
+import MeetingRoomBookingList from '@/views/oa/meetingRoomBookings/MeetingRoomBookingList'
+import MeetingList from '@/views/oa/meetings/MeetingList'
+import MeetingRoomList from '@/views/oa/meetingRooms/MeetingRoomList'
+
 // View: /Components
 import Buttons from '@/views/components/Buttons'
 import SocialButtons from '@/views/components/SocialButtons'
@@ -98,6 +103,21 @@ export default new Router({
           name: 'Home',
           component: AppContainer,
           children: [
+            {
+              path: 'meeting_rooms',
+              name: 'Meeting Rooms',
+              component: MeetingRoomList
+            },
+            {
+              path: 'meeting_room_bookings',
+              name: 'Meeting Room Bookings',
+              component: MeetingRoomBookingList
+            },
+            {
+              path: 'meetings',
+              name: 'Meetings',
+              component: MeetingList
+            },
             {
               path: 'products',
               name: '食品列表',
