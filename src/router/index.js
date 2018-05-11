@@ -68,7 +68,7 @@ import Login from '@/views/pages/Login'
 import Register from '@/views/pages/Register'
 
 // Main Panel
-import ProductMenu from '@/views/MainPanel/ProductMenu'
+// import ProductMenu from '@/views/MainPanel/ProductMenu'
 
 // Views - header Pages
 import HeaderPage1 from '@/views/headerPages/HeaderPage1'
@@ -386,14 +386,15 @@ export default new Router({
       name: 'Main Panel',
       component: {
         render (c) { return c('router-view') }
-      },
-      children: [
-        {
-          path: 'product_menu',
-          name: 'Menu',
-          component: ProductMenu
-        }
-      ]
+      }
+      // ,
+      // children: [
+      //   {
+      //     path: 'product_menu',
+      //     name: 'Menu',
+      //     component: ProductMenu
+      //   }
+      // ]
     },
     {
       path: '/pages',
