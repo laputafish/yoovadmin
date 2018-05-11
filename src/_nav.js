@@ -19,7 +19,7 @@ export default {
       icon: 'icon-speech'
     },
     {
-      name: 'Meeting Room Bookings',
+      name: 'Room Bookings',
       url: '/app/meeting_room_bookings',
       icon: 'icon-calendar'
     },

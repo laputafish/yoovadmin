@@ -1,16 +1,18 @@
-import * as types from '../mutation-types'
-import data from './data.json'
-import * as constants from '../constants'
-import axios from 'axios'
+import * as types from './system_types'
+import data from '../data.json'
+// import * as constants from '../../constants'
+// import axios from 'axios'
 
 const state = {
   ...data,
-  activeMenu: '',
-  meetingRooms: [],
-  loadingMeetingRooms: true
+  user: null,
+  activeMenu: ''
 }
 
 const getters = {
+  user (state) {
+    return state.user
+  },
   productsByCategory (state) {
     return (categoryId) => {
       return state.products.filter((product) => {
@@ -20,9 +22,6 @@ const getters = {
   },
   categoryTree: (state) => {
     return state.categoryRoot
-  },
-  meetingRooms: (state) => {
-    return state.meetingRooms
   }
 }
 
@@ -143,6 +142,9 @@ function moveCategory (category, afterParent, beforeParent) {
 }
 
 const mutations = {
+  [types.SET_USER] (state, data) {
+    state.user = data
+  },
   [types.SET_ACTIVE_MENU] (state, data) {
     state.activeMenu = data
   },
@@ -195,55 +197,15 @@ const mutations = {
     }
     parent.children.splice(index, 0, item)
   },
-  updateMeetingRooms (state, payload) {
-    state.meetingRooms = payload
-    console.log('updateMeetingRooms :: meetingRooms: ', state.meetingRooms)
-  },
-  changeLoadingMeetingRoomsState (state, loading) {
-    state.loadingMeetingRooms = loading
-  },
-  createMeetingRoom (state, payload) {
-
-  },
-  updateMeetingRoom (state, payload) {
-
+  setUser (state, payload) {
+    state.user = payload
+    console.log('setUser :: payload: ', payload)
   }
 }
 
 const actions = {
-  [types.CREATE_MEETING_ROOM] ({commit, dispatch}, payload) {
-    let meetingRoom = payload.meetingRoom
-    let url = constants.URL + '/meeting_rooms'
-    axios.post(url, meetingRoom).then(function (response) {
-      if (typeof payload.callback === 'function') {
-        payload.callback()
-      }
-  //    dispatch('GET_MEETING_ROOMS')
-    })
-  },
-
-  [types.UPDATE_MEETING_ROOM] ({commit, dispatch}, payload) {
-    let meetingRoom = payload.meetingRoom
-    let url = constants.URL + '/meeting_rooms/' + meetingRoom.id
-    axios.put(url, meetingRoom).then(function (response) {
-      if (typeof payload.callback === 'function') {
-        payload.callback()
-      }
-//      dispatch('GET_MEETING_ROOMS')
-    })
-  },
-
-  [types.SET_MEETING_ROOMS] ({commit, state}, payload) {
-    commit('updateMeetingRooms', payload)
-    commit('changeLoadingMeetingRoomsState', false)
-  },
-
-  [types.GET_MEETING_ROOMS] ({commit, state}, payload) {
-    axios.get(constants.URL + '/meeting_rooms').then((response) => {
-      console.log('GET_MEETING_ROOMS :: data: ', response.data)
-      commit('updateMeetingRooms', response.data)
-      commit('changeLoadingMeetingRoomsState', false)
-    })
+  [types.SET_USER] ({commit}, payload) {
+    commit('setUser', payload)
   },
 
   [types.MOVE_PRODUCT_CATEGORY] (context, payload) {

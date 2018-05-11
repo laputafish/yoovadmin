@@ -62,7 +62,8 @@
           {title: 'Location', field: 'location', sortable: false},
           {title: 'Equipments', field: 'equipments', sortable: false},
           {title: 'Remark', field: 'remark', sortable: false},
-          {title: 'Status', field: 'status', sortable: false},
+          {title: 'Booking(s)', field: 'booking_count', sortable: false, tdClass: 'text-center'},
+          {title: 'Status', tdComp: 'tdStatus', field: 'status', sortable: false},
           {title: 'Action', tdComp: 'tdAction', field: 'action', sortable: false}
         ],
         data: [],
@@ -72,10 +73,10 @@
     },
     computed: {
       meetingRooms () {
-        return this.$state.getters.meetingRooms
+        return this.$store.getters.meetingRooms
       },
       loadingMeetingRooms () {
-        return this.$state.loadingMeetingRooms
+        return this.$store.loadingMeetingRooms
       }
     },
     created () {
@@ -141,8 +142,24 @@
       newItem () {
         this.selectedMeetingRoom = this.initRecord()
       },
+      doDeleteRoom (room) {
+        let vm = this
+        let url = constants.URL + '/meeting_rooms/' + room.id
+        axios.delete(url).then((response) => {
+          vm.refresh()
+        })
+      },
       delete (value) {
-        console.log('MeetingRoomList :: delete :: value: ', value)
+        let vm = this
+        let room = value.room
+        console.log('delete :: value: ', room.name)
+        vm.$dialog.confirm({
+          title: 'Confirmation',
+          body: 'Delete room "' + room.name + '".\nAre you sure?'
+        })
+        .then(() => {
+          vm.doDeleteRoom(room)
+        })
       },
       saveItem () {
         console.log('saveItem :: updatedMeetingRoom: ', this.selectedMeetingRoom)
@@ -170,7 +187,7 @@
       }
     },
     mounted () {
-      this.$store.dispatch('GET_MEETING_ROOMS')
+      this.refresh()
     }
   }
 </script>

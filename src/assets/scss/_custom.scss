@@ -3,15 +3,29 @@
 .modal.show.d-block {
   margin-top: 50px;
 }
-::-webkit-input-placeholder {
-  color:    #777;
+//::-webkit-input-placeholder {
+//  color:    #777;
+//}
+//:-moz-placeholder {
+//  color:    #777;
+//}
+//::-moz-placeholder {
+//  color:    #777;
+//}
+//:-ms-input-placeholder {
+//  color:    #777;
+//}
+
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: rgba(128,128,128,.5) !important;
+  opacity: 1; /* Firefox */
 }
-:-moz-placeholder {
-  color:    #777;
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: rgba(128,128,128,.5) !important;
 }
-::-moz-placeholder {
-  color:    #777;
-}
-:-ms-input-placeholder {
-  color:    #777;
+
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: rgba(128,128,128,.5) !important;
 }

@@ -13,6 +13,7 @@ import Vue from 'vue'
 // import VTree from 'vue-tree-halower'
 // import LiquorTree from 'liquor-tree'
 import VueDraggable from 'vue-draggable'
+import VuejsDialog from 'vuejs-dialog'
 import Datatable from 'vue2-datatable-component'
 // import customLocale from 'vue2-datatable-component/locale/custom'
 
@@ -41,6 +42,7 @@ import 'simple-line-icons/scss/simple-line-icons.scss'
 window.$ = $
 window.jQuery = $
 
+Vue.use(VuejsDialog)
 Vue.use(BootstrapVue)
 // Vue.directive('tooltip', VTooltip)
 Vue.use(VTooltip)

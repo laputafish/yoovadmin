@@ -6,6 +6,8 @@
       <i class="fa fa-fw fa-edit"></i>
     </button>
     <button type="button"
+            v-tooltip="'With ' + row.booking_count + ' booking(s)'"
+            :disabled="row.booking_count>0"
             @click="deleteItem"
             class="btn btn-danger btn-sm">
       <i class="fa fa-fw fa-close"></i>
