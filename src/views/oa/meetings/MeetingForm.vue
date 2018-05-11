@@ -1,60 +1,141 @@
 <template>
   <div class="">
-    <!-- Name -->
+    <!-- Applicant -->
     <div class="form-group row">
-      <label class="col-sm-3 col-form-label">Name</label>
+      <label class="col-sm-3 col-form-label">Applicant</label>
       <div class="col-sm-9">
-        <input type="text" class="form-control" v-model="updatedRecord.name" placeholder="Name"/>
+        <input type="text" disabled
+               :placeholder="record.user_name"
+               class="form-control"
+               />
       </div>
     </div>
 
-    <!-- Capacity -->
+    <!-- Subject -->
     <div class="form-group row">
-      <label class="col-sm-3 col-form-label">Capacity</label>
-      <div class="col-sm-3 col-md-3">
-        <input type="number" class="form-control" v-model="updatedRecord.capacity" placeholder="Capacity"/>
+      <label class="col-sm-3 col-form-label">Subject</label>
+      <div class="col-sm-9">
+        <input type="text" class="form-control" v-model="record.subject" placeholder="Subject"/>
       </div>
     </div>
 
-    <!-- Location -->
+    <!-- Venue -->
     <div class="form-group row">
-      <label class="col-sm-3 col-form-label">Location</label>
+      <label class="col-sm-3 col-form-label">Venue</label>
       <div class="col-sm-9">
-        <input type="text" class="form-control" v-model="updatedRecord.location" placeholder="Location"/>
+        <yoov-radio-toggle
+          class="mb-1"
+          v-model="record.venue_type"
+          :options="[{caption:'Conference Room', value:'conference_room'},{caption:'Others',value:'else'}]"
+          >
+        </yoov-radio-toggle>
+        <yoov-meeting-room-booking
+          v-if="record.venue_type === 'conference_room'"
+          v-model="record.meeting_room_booking">
+        </yoov-meeting-room-booking>
+        <div v-else>
+          <input class="form-control" v-model="record.venue"/>
+        </div>
       </div>
     </div>
 
-    <!-- Equipments -->
+    <!-- Started At Picker -->
     <div class="form-group row">
-      <label class="col-sm-3 col-form-label">Equipments</label>
-      <div class="col-sm-9">
-        <input type="text" class="form-control" v-model="updatedRecord.equipments" placeholder="Equipments"/>
+      <label class="col-sm-3 col-form-label">Started At</label>
+      <div class="col-sm-3 input-group">
+        <date-picker class="vue-start-picker form-control"
+                  input-format="YYYY-MM-DD HH:mm"
+                 v-ref:started-at-picker
+                 v-model="record.started_at"
+                     :config="datePickerConfig"
+                  :on-change="onStartedAtChanged"
+                 placeholder="2018-12-31 13:50:10"/>
       </div>
     </div>
+
+    <!-- Ended At Picker -->
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">Ended At</label>
+      <div class="col-sm-3 input-group">
+        <date-picker class="vue-end-picker form-control"
+                  input-format="YYYY-MM-DD HH:mm"
+                 v-ref:ended-at-picker
+                 v-model="record.ended_at"
+                     :config="datePickerConfig"
+                 :on-change="onEndedAtChanged"
+                 placeholder="2018-12-31 13:50:10"/>
+      </div>
+    </div>
+
+    <!--&lt;!&ndash; Started At &ndash;&gt;-->
+    <!--<div class="form-group row">-->
+      <!--<label class="col-sm-3 col-form-label">Started At</label>-->
+      <!--<div class="col-sm-3 input-group">-->
+        <!--<input type="text" class="form-control" v-model="record.started_at"-->
+               <!--placeholder="2018-12-31 13:50:10"/>-->
+        <!--<div class="input-group-append">-->
+          <!--<button-->
+            <!--@click="selectDateTime('started_at')"-->
+            <!--type="button" class="btn btn-primary">...</button>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
+
+    <!--&lt;!&ndash; Ended At &ndash;&gt;-->
+    <!--<div class="form-group row">-->
+      <!--<label class="col-sm-3 col-form-label">Ended At</label>-->
+      <!--<div class="col-sm-3 input-group">-->
+        <!--<input type="text" class="form-control" v-model="record.ended_at"-->
+               <!--placeholder="2018-12-31 13:50:10"/>-->
+        <!--<div class="input-group-append">-->
+          <!--<button-->
+            <!--@click="selectDateTime('ended_at')"-->
+            <!--type="button" class="btn btn-primary">...</button>-->
+        <!--</div>-->
+      <!--</div>-->
+    <!--</div>-->
 
     <!-- Remark -->
     <div class="form-group row">
       <label class="col-sm-3 col-form-label">Remark</label>
       <div class="col-sm-9">
-        <input type="text" class="form-control" v-model="updatedRecord.remark" placeholder="Remark"/>
+        <input type="text" class="form-control" v-model="record.remark" placeholder="Remark"/>
       </div>
     </div>
 
+    <div class="row">
+      <div class="col-sm-12">
+        {{ record }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+  import YoovRadioToggle from '@/components/YoovRadioToggle'
+  import YoovMeetingRoomBooking from '@/components/YoovMeetingRoomBooking'
+  import datePicker from 'vue-bootstrap-datetimepicker'
+
   export default {
+    components: {
+      'yoov-radio-toggle': YoovRadioToggle,
+      'yoov-meeting-room-booking': YoovMeetingRoomBooking,
+      'date-picker': datePicker
+    },
     props: {
-      'record': {
+      'propRecord': {
         type: Object,
         default () {
           return {
-            name: '',
-            capacity: 0,
-            equipments: '',
             id: 0,
-            location: '',
+            subject: '',
+            venue_type: 'conference_room',
+            venue: '',
+            meeting_room_booking_id: 0,
+            used_id: 0,
+            user_name: '',
+            started_at: '',
+            ended_at: '',
             remark: ''
           }
         }
@@ -62,35 +143,61 @@
     },
     data () {
       return {
-        updatedRecord: {
-          name: '',
-          capacity: 0,
-          equipments: '',
+        datePickerConfig: {
+          format: 'YYYY-MM-DD hh:mm:ss',
+          useCurrent: false,
+          showClear: true,
+          showClose: true
+        },
+        record: {
           id: 0,
-          location: '',
+          subject: '',
+          venue_type: 'conference_room',
+          venue: '',
+          meeting_room_booking_id: 0,
+          used_id: 0,
+          user_name: '',
+          started_at: '',
+          ended_at: '',
           remark: ''
         }
       }
     },
     mounted () {
-      this.updatedRecord.name = this.record.name
-      this.updatedRecord.capacity = this.record.capacity
-      this.updatedRecord.equipments = this.record.equipments
-      this.updatedRecord.id = this.record.id
-      this.updatedRecord.location = this.record.location
-      this.updatedRecord.remark = this.record.remark
-      console.log('mounted :: record: ', this.record)
+      if (this.propRecord) {
+        this.record.id = this.propRecord.id
+        this.record.subject = this.propRecord.subject
+        this.record.venue_type = this.propRecord.venue_type
+        this.record.venue = this.propRecord.venue
+        this.record.meeting_room_booking_id = this.propRecord.meeting_room_booking_id
+        this.record.user_id = this.propRecord.user_id
+        this.record.user_name = this.propRecord.user_name
+        this.record.started_at = this.propRecord.started_at
+        this.record.ended_at = this.propRecord.ended_at
+        this.record.remark = this.propRecord.remark
+      }
+      console.log('mounted :: record: ', this.propRecord)
     },
     watch: {
       // record: function (value) {
       //   console.log('MeetingRoomForm :: watch(record): value: ', value)
-      //   this.updatedRecord = value
+      //   this.record = value
       // },
-      updatedRecord: {
+      record: {
         handler: function (val, oldVal) {
           this.$emit('updated', val)
         },
         deep: true
+      }
+    },
+    methods: {
+      onStartedAtChanged (newStart) {
+        var endedAtPicker = this.$.endedAtPicker.control
+        endedAtPicker.minDate(newStart)
+      },
+      onEndedAtChanged (newEnd) {
+        var startedAtPicker = this.$.startedAtPicker.control
+        startedAtPicker.maxDate(newEnd)
       }
     }
   }

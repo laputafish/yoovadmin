@@ -113,32 +113,38 @@
         console.log('initRecord :: value: ', value)
         return (typeof value === 'undefined')
           ? {
+            id: 0,
             subject: '',
             venue_type: 'conference_room',
             venue: '',
             meeting_room_booking_id: 0,
             used_id: vm.user.id,
+            user_name: vm.user.name,
             started_at: '',
             ended_at: '',
             remark: ''
           }
           : {
+            id: value.id,
             subject: value.subject,
             venue_type: value.venue_type,
             venue: value.venue,
             meeting_room_booking_id: value.meeting_room_booking_id,
             user_id: value.user_id,
+            user_name: value.user_name,
             started_at: value.started_at,
             ended_at: value.ended_at,
             remark: value.remark
           }
       },
       updateSelectedRecord (value) {
+        this.selectedMeeting.id = value.id
         this.selectedMeeting.subject = value.subject
         this.selectedMeeting.venue_type = value.venue_type
         this.selectedMeeting.venue = value.venue
         this.selectedMeeting.meeting_room_booking_id = value.meeting_room_booking_id
         this.selectedMeeting.user_id = value.user_id
+        this.selectedMeeting.user_name = value.user_name
         this.selectedMeeting.started_at = value.started_at
         this.selectedMeeting.ended_at = value.ended_at
         this.selectedMeeting.remark = value.remark
@@ -193,8 +199,14 @@
       }
     },
     mounted () {
-      this.refresh()
-      console.log('*** mounted :: user: ', this.user)
+      if (!this.user) {
+        this.$dialog.alert('Access Denied or Session Timeout. Please login again!')
+        console.log('after alert')
+        this.$router.push({name: 'Login'})
+        console.log('after push login')
+      } else {
+        this.refresh()
+      }
     }
   }
 </script>
