@@ -49,8 +49,8 @@
 </template>
 
 <script>
-  import * as constants from '@/store/constants.json'
-  import axios from 'axios'
+  // import * as constants from '@/store/constants.json'
+  // import axios from 'axios'
 
   export default {
     name: 'Login',
@@ -65,16 +65,26 @@
     methods: {
       login () {
         let vm = this
-        let url = constants.URL + '/auth'
-        axios.post(url, vm.credentials).then(function (response) {
-          let data = response.data
-          if (data.status === 'ok') {
-            vm.$store.dispatch('SET_USER', data.user)
-            vm.$router.push({name: 'Meetings'})
-          } else {
-            vm.$dialog.alert('Access Denied!')
+        vm.$store.dispatch('login', {
+          credentials: vm.credentials,
+          callback: (status) => {
+            if (status === 'ok') {
+              vm.$router.push({name: 'Meetings'})
+            } else {
+              vm.$dialog.alert('Access Denied!')
+            }
           }
         })
+        // let url = constants.apiUrl + '/auth'
+        // axios.post(url, vm.credentials).then(function (response) {
+        //   let data = response.data
+        //   if (data.status === 'ok') {
+        //     vm.$store.dispatch('SET_USER', data.user)
+        //     vm.$router.push({name: 'Meetings'})
+        //   } else {
+        //     vm.$dialog.alert('Access Denied!')
+        //   }
+        // })
       }
     }
 

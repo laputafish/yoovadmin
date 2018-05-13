@@ -15,6 +15,10 @@ import Vue from 'vue'
 import VueDraggable from 'vue-draggable'
 import VuejsDialog from 'vuejs-dialog'
 import Datatable from 'vue2-datatable-component'
+
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+
 // import customLocale from 'vue2-datatable-component/locale/custom'
 
 // import VueDraggableTree from 'vue-draggable-tree'
@@ -48,6 +52,7 @@ Vue.use(BootstrapVue)
 Vue.use(VTooltip)
 // Vue.use(LiquorTree)
 Vue.use(VueDraggable)
+Vue.use(VueAxios, axios)
 Vue.use(Datatable)
 // Vue.use(Datatable, {customLocale})
 // Vue.use(VTree)

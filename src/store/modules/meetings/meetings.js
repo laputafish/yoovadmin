@@ -32,7 +32,7 @@ const mutations = {
 const actions = {
   [types.CREATE_MEETING] ({commit, dispatch}, payload) {
     let meeting = payload.meeting
-    let url = constants.URL + '/meetings'
+    let url = constants.apiUrl + '/meetings'
     axios.post(url, meeting).then(function (response) {
       if (typeof payload.callback === 'function') {
         payload.callback()
@@ -43,7 +43,7 @@ const actions = {
 
   [types.UPDATE_MEETING] ({commit, dispatch}, payload) {
     let meeting = payload.meeting
-    let url = constants.URL + '/meetings/' + meeting.id
+    let url = constants.apiUrl + '/meetings/' + meeting.id
     axios.put(url, meeting).then(function (response) {
       if (typeof payload.callback === 'function') {
         payload.callback()
@@ -58,7 +58,7 @@ const actions = {
   },
 
   [types.GET_MEETINGS] ({commit, state}, payload) {
-    axios.get(constants.URL + '/meetings').then((response) => {
+    axios.get(constants.apiUrl + '/meetings').then((response) => {
       console.log('GET_MEETINGS :: data: ', response.data)
       commit('updateMeetings', response.data)
       commit('changeLoadingMeetingsState', false)

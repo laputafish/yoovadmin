@@ -100,7 +100,7 @@
     methods: {
       refresh (query) {
         let vm = this
-        axios.get(constants.URL + '/meetings').then(function (response) {
+        axios.get(constants.apiUrl + '/meetings').then(function (response) {
           let meetings = response.data
           vm.$store.dispatch('SET_MEETING_ROOMS', meetings)
           vm.data = meetings
@@ -157,7 +157,7 @@
       },
       doDeleteMeeting (meeting) {
         let vm = this
-        let url = constants.URL + '/meetings/' + meeting.id
+        let url = constants.apiUrl + '/meetings/' + meeting.id
         axios.delete(url).then((response) => {
           vm.refresh()
         })
