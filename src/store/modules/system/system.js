@@ -10,6 +10,9 @@ const state = {
 }
 
 const getters = {
+  token (state) {
+    return localStorage.getItem('token')
+  },
   user (state) {
     return state.user
   },
@@ -145,6 +148,9 @@ const mutations = {
   [types.SET_USER] (state, data) {
     state.user = data
   },
+  setToken (state, payload) {
+    localStorage.setItem('token', payload)
+  },
   [types.SET_ACTIVE_MENU] (state, data) {
     state.activeMenu = data
   },
@@ -204,6 +210,10 @@ const mutations = {
 }
 
 const actions = {
+  [types.SET_TOKEN] ({commit}, payload) {
+    commit('setToken', payload)
+  },
+
   [types.SET_USER] ({commit}, payload) {
     commit('setUser', payload)
   },

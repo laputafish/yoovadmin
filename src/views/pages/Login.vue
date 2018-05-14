@@ -45,6 +45,9 @@
         </div>
       </div>
     </div>
+    <div>
+      Token: <input type="text" :value="token" @input="setToken($event.target.value)"/>
+    </div>
   </div>
 </template>
 
@@ -62,7 +65,16 @@
         }
       }
     },
+    computed: {
+      token () {
+        return this.$store.getters.token
+      }
+    },
     methods: {
+      setToken (value) {
+        console.log('setToken :: value:', value)
+        this.$store.dispatch('SET_TOKEN', value)
+      },
       login () {
         let vm = this
         let url = constants.URL + '/auth'
@@ -80,3 +92,4 @@
 
   }
 </script>
+
