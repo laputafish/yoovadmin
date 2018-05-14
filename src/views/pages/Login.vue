@@ -2,6 +2,9 @@
   <div class="app flex-row align-items-center">
     <div class="container">
       <div class="row justify-content-center">
+        <div class="col-sm-12">
+          {{ user }}
+        </div>
         <div class="col-md-8">
           <div class="card-group mb-0">
             <div class="card p-4">
@@ -52,8 +55,8 @@
 </template>
 
 <script>
-  import * as constants from '@/store/constants.json'
-  import axios from 'axios'
+  // import * as constants from '@/store/constants.json'
+  // import axios from 'axios'
 
   export default {
     name: 'Login',
@@ -67,8 +70,30 @@
     },
     computed: {
       token () {
-        return this.$store.getters.token
+        if (this.$store.getters) {
+          return this.$store.getters.token
+        } else {
+          return ''
+        }
+      },
+      user () {
+        return this.$store.getters.user
       }
+    },
+    mounted () {
+      // console.log('mounted')
+      // let vm = this
+      // vm.$store.dispatch('checkToken', {
+      //   callback: function (status) {
+      //     console.log('checkToken')
+      //     if (status) {
+      //       console.log('if status')
+      //       vm.$router.push({name: 'Meetings'})
+      //     } else {
+      //       console.log('if not status')
+      //     }
+      //   }
+      // })
     },
     methods: {
       setToken (value) {
@@ -77,16 +102,29 @@
       },
       login () {
         let vm = this
-        let url = constants.URL + '/auth'
-        axios.post(url, vm.credentials).then(function (response) {
-          let data = response.data
-          if (data.status === 'ok') {
-            vm.$store.dispatch('SET_USER', data.user)
-            vm.$router.push({name: 'Meetings'})
-          } else {
-            vm.$dialog.alert('Access Denied!')
+        vm.$store.dispatch('login', {
+          credentials: vm.credentials,
+          callback: (valid) => {
+            console.log('login callback: status: ', status)
+            console.log('login callback: token: ' + vm.$store.getters.token)
+            if (valid) {
+              vm.$router.push({name: 'Meetings'})
+            } else {
+              vm.$dialog.alert('Access Denied!')
+            }
           }
         })
+        console.log('after dispatch(login)')
+        // let url = constants.apiUrl + '/auth'
+        // axios.post(url, vm.credentials).then(function (response) {
+        //   let data = response.data
+        //   if (data.status === 'ok') {
+        //     vm.$store.dispatch('SET_USER', data.user)
+        //     vm.$router.push({name: 'Meetings'})
+        //   } else {
+        //     vm.$dialog.alert('Access Denied!')
+        //   }
+        // })
       }
     }
 

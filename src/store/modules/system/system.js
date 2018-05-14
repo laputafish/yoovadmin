@@ -1,19 +1,30 @@
+import Cookie from 'cookie'
+import Cookies from 'js-cookie'
 import * as types from './system_types'
 import data from '../data.json'
-// import * as constants from '../../constants'
+import * as constants from '../../constants'
 // import axios from 'axios'
+import Vue from 'vue'
 
 const state = {
   ...data,
+  token: null,
   user: null,
   activeMenu: ''
 }
 
 const getters = {
   token (state) {
-    return localStorage.getItem('token')
+    return state.token
+    // console.log('getters.token')
+    // return localStorage.getItem('token')
+  },
+  loggedIn (state) {
+    console.log('getters.loggedIn')
+    return Boolean(state.user && state.token)
   },
   user (state) {
+    console.log('getters.user')
     return state.user
   },
   productsByCategory (state) {
@@ -28,28 +39,6 @@ const getters = {
   }
 }
 
-// function containsChild (parent, category) {
-//   console.log('containsChild :: parent.name = ' + parent.name)
-//   let result = null
-//   if (parent.children) {
-//     for (var i = 0; i < parent.children.length; i++) {
-//       console.log('containsChild :: parent.children[' + i + ']: ' + parent.children[i].name)
-//       if (parent.children[i].id === category.id) {
-//         result = parent
-//         console.log('*** found')
-//         break
-//       } else {
-//         result = containsChild(parent.children[i], category)
-//         if (result) {
-//           console.log('*** found')
-//           break
-//         }
-//       }
-//     }
-//   }
-//   return result
-// }
-//
 function getCategory (categoryId, categoryNode) {
   if (typeof categoryNode === 'undefined') {
     categoryNode = state.categoryRoot
@@ -110,27 +99,6 @@ function getCategoryParent (categoryId, categoryNode) {
   return result
 }
 
-// function getCategory (categoryId, categories) {
-//   if (typeof categories === 'undefined') {
-//     categories = state.categories
-//   }
-//   let result = null
-//   for (var i = 0; i < categories.length; i++) {
-//     console.log('#' + i + ': ' + categories[i].name)
-//     if (categories[i].id === categoryId) {
-//       result = categories[i]
-//     } else {
-//       if (categories[i].children && categories[i].children.length > 0) {
-//         result = getCategory(categoryId, categories[i].children)
-//       }
-//     }
-//     if (result) {
-//       break
-//     }
-//   }
-//   return result
-// }
-
 function moveCategory (category, afterParent, beforeParent) {
   // remove child from before parent
   console.log('moveCategory: beforeParent: ', beforeParent)
@@ -145,11 +113,20 @@ function moveCategory (category, afterParent, beforeParent) {
 }
 
 const mutations = {
-  [types.SET_USER] (state, data) {
-    state.user = data
+
+  setUser (state, payload) {
+    state.user = payload.user
+    if (typeof payload.callback === 'function') {
+      payload.callback(true)
+    }
   },
-  setToken (state, payload) {
-    localStorage.setItem('token', payload)
+  setToken (state, token) {
+    localStorage.setItem('token', token)
+    state.token = token
+    Vue.axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
+    Vue.axios.defaults.headers.common['Content-Type'] = 'application/json'
+    Vue.axios.defaults.headers.common['Accept'] = 'application/json'
+    console.log('setToken :: localStorage.setItem :: token = ' + token)
   },
   [types.SET_ACTIVE_MENU] (state, data) {
     state.activeMenu = data
@@ -202,19 +179,227 @@ const mutations = {
       parent.children = []
     }
     parent.children.splice(index, 0, item)
-  },
-  setUser (state, payload) {
-    state.user = payload
-    console.log('setUser :: payload: ', payload)
   }
 }
 
 const actions = {
-  [types.SET_TOKEN] ({commit}, payload) {
-    commit('setToken', payload)
+  async checkToken ({ commit, getters, dispatch }, payload) {
+    let token = localStorage.getItem('token')
+    this.token = token
+    dispatch(types.SET_TOKEN, token)
+    console.log('checkToken :: token=' + getters.token)
+    let result = false
+    if (token) {
+      Vue.axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
+      Vue.axios.defaults.headers.common['Content-Type'] = 'application/json'
+      Vue.axios.defaults.headers.common['Accept'] = 'application/json'
+      console.log('getters.token')
+      await dispatch('fetchUser')
+      if (getters.user) {
+        console.log('getters.user')
+        result = true
+      } else {
+        console.log('not getters.user')
+      }
+    } else {
+      console.log('not getters.token')
+    }
+    if (typeof payload.callback === 'function') {
+      console.log('payload.callback === function')
+      payload.callback(result)
+    }
+  },
+
+  [types.SET_TOKEN] ({commit}, token) {
+    commit('setToken', token)
+    if (!token) {
+      Vue.axios.defaults.headers.common['Authorization'] = ''
+      Vue.axios.defaults.headers.common['Content-Type'] = ''
+      Vue.axios.defaults.headers.common['Accept'] = ''
+    }
+  },
+
+  async nuxtServerInit ({dispatch}, {req}) {
+    await dispatch('fetch')
+  },
+
+  // Update token
+  async updateToken ({ commit }, token) {
+    console.log('updateToken starts')
+    // Update token in store's state
+    commit('setToken', token)
+    // Set Authorization token for all axios requests
+    // await axios.this.$axios.setToken(token, '')
+    // Update cookies
+    console.log('updateToken :: process.browser: ', process.browser)
+    if (process.browser) {
+      console.log('with process.browser')
+      // ...Browser
+      if (token) {
+        Cookies.set('ccmsToken', token, { expires: 1 })
+      } else {
+        Cookies.remove('ccmsToken')
+      }
+    } else {
+      console.log('without process.browser')
+      // ...Server
+      let params = {
+        domain: '/'
+      }
+      if (!token) {
+        let expires
+        let date = new Date()
+        expires = date.setDate(date.getDate() + 1)
+        params.expires = new Date(expires)
+      }
+    }
+    Vue.axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
+    Vue.axios.defaults.headers.common['Content-Type'] = 'application/json'
+    Vue.axios.defaults.headers.common['Accept'] = 'application/json'
+    // this.app.context.res.setHeader('Authorization', Cookie.serialize('ccmsToken', token, params))
+    // console.log('Axios: ', this.$axios.defaults.headers.common.Authorization)
+    console.log('updateToken ends')
+  },
+
+  // Fetch Token
+  async fetchToken ({ dispatch }) {
+    let token
+    // Try to extract token from cookies
+    if (!token) {
+      const cookieStr = process.browser ? document.cookie : this.app.context.req.headers.cookie
+      const cookies = Cookie.parse(cookieStr || '') || {}
+      token = cookies['ccmsToken']
+    }
+    if (token) {
+      await dispatch('updateToken', token)
+    }
+    if (process.browser) {
+      console.log('Browser token: ', token)
+    } else {
+      console.log('Server token: ', token)
+    }
+  },
+
+  // Reset
+  async reset ({ dispatch, commit }) {
+    commit('setUser', null)
+    await dispatch('updateToken', null)
+  },
+
+  // Fetch
+//  async fetch ({ getters, state, commit, dispatch }, username = 'admin', {
+  async fetchUser ({ getters, state, commit, dispatch }, callback) {
+    console.log('fetchUser')
+    // let token = getters.token
+    let url = constants.apiUrl + '/user'
+//     console.log('fetch')
+// //    endpoint = 'https://climatecms-api.herokuapp.com/api/user' } = {}) {
+//     // Fetch and update latest token
+//     await dispatch('fetchToken')
+//     // Skip if there is no token set
+//     if (!state.token) {
+//       return
+//     }
+
+    // Try to get user profile
+    try {
+      console.log('fetchUser :: axios.get("' + url + '")')
+      await Vue.axios.get(url).then(function (response) {
+        console.log('fetchUser :: after get: response: ', response)
+        dispatch(types.SET_USER, {
+          user: response.data,
+          callback: callback
+        })
+      })
+    } catch (e) {
+      // Reset store
+      // await dispatch('reset')
+    }
+    console.log('fetchUser ends')
+  },
+
+  async fetch ({ getters, state, commit, dispatch }) {
+    console.log('fetch')
+    let url = constants.apiUrl + '/user'
+//    endpoint = 'https://climatecms-api.herokuapp.com/api/user' } = {}) {
+    // Fetch and update latest token
+    await dispatch('fetchToken')
+    // Skip if there is no token set
+    if (!state.token) {
+      return
+    }
+
+    // Try to get user profile
+    try {
+      await Vue.axios.get(url).then(function (response) {
+        commit('setUser', response.data.user)
+      })
+//      commit('setUser', data)
+    } catch (e) {
+      // Reset store
+      await dispatch('reset')
+    }
+  },
+
+  // Login
+  /*
+          let url = constants.apiUrl + '/auth'
+        axios.post(url, vm.credentials).then(function (response) {
+          let data = response.data
+          if (data.status === 'ok') {
+            vm.$store.dispatch('SET_USER', data.user)
+            vm.$router.push({name: 'Meetings'})
+          } else {
+            vm.$dialog.alert('Access Denied!')
+          }
+        })
+   */
+//  async login ({ dispatch }, { fields, endpoint = 'https://climatecms-api.herokuapp.com/api/login' } = {}) {
+  async login ({ commit, dispatch }, { credentials, callback }) {
+    console.log('login : credentials: ', credentials)
+    try {
+      let url = constants.url + '/oauth/token'
+      let data = {
+        username: credentials.email,
+        password: credentials.password,
+        grant_type: 'password',
+        client_id: constants.CLIENT_ID,
+        client_secret: constants.CLIENT_SECRET
+      }
+      // Send credentials to API
+      await Vue.axios.post(url, data).then(function (response) {
+        console.log('/oauth/token: response: ', response)
+        let data = response.data
+//          commit('setUser', data.user)
+        commit('setToken', data.access_token)
+        // dispatch('updateToken', data.access_token)
+        dispatch('fetchUser', callback)
+//         if (typeof callback === 'function') {
+//           console.log('login :: check callback is function')
+// //          callback(data.status)
+//         }
+      }, function (error) {
+        console.log('/oauth/token error: ', error)
+      })
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        throw new Error('Bad credentials')
+      }
+      throw error
+    }
+  },
+
+  // Logout
+  async logout ({ dispatch, state }) {
+    try {
+      await dispatch('reset')
+    } catch (e) {
+      console.error('Error while logging out', e)
+    }
   },
 
   [types.SET_USER] ({commit}, payload) {
+    console.log('actions :: commit(setUser)')
     commit('setUser', payload)
   },
 

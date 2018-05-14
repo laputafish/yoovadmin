@@ -4,7 +4,12 @@
   </b-dropdown-header>
   <b-dropdown-item v-else>
     <i class="fa" :class="menuItem.icon"></i>
-    {{ menuItem.title }}
+    <router-link v-if="menuItem.link"
+                 class="no-anchor-style"
+                 :to="menuItem.link">{{ menuItem.title }}</router-link>
+    <span v-else href="#" @click="processCommand(menuItem.command)">
+      {{ menuItem.title }}
+    </span>
     <span v-if="menuItem.badgeNo" class="badge" :class="menuItem.badgeClass">{{ menuItem.badgeNo }}</span>
   </b-dropdown-item>
 </template>
@@ -17,6 +22,28 @@ export default {
       type: Object,
       default: null
     }
+  },
+  methods: {
+    processCommand (command) {
+      switch (command) {
+        case 'logout':
+          this.$store.dispatch('SET_TOKEN', null)
+          this.$store.dispatch('SET_USER', {user: null})
+          this.$router.go('login')
+          break
+      }
+    }
   }
 }
 </script>
+
+<style>
+  .no-anchor-style {
+    color: #212529;
+    text-decoration: none;
+  }
+  .no-anchor-style:hover {
+    color: #212529;
+    text-decoration: none;
+  }
+</style>

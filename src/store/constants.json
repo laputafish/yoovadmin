@@ -1,3 +1,6 @@
 {
-  "URL": "http://yoovapi/apiv2"
+	"url": "http://yoovapi",
+  "apiUrl": "http://yoovapi/apiv2",
+  "CLIENT_ID": 2,
+  "CLIENT_SECRET": "XC9wlfaujJt7qC5sqtTzmYo52WjK5AEpa1D7RKLo"
 }

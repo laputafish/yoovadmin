@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- Form -->
     <b-card v-if="selectedMeetingRoom">
       <div slot="header">
         <button type="button"
@@ -21,6 +22,7 @@
       </div>
     </b-card>
 
+    <!-- List -->
     <b-card v-else>
       <div slot="header">
         <strong>Meeting Rooms</strong>
@@ -97,7 +99,7 @@
     methods: {
       refresh (query) {
         let vm = this
-        axios.get(constants.URL + '/meeting_rooms').then(function (response) {
+        axios.get(constants.apiUrl + '/meeting_rooms').then(function (response) {
           vm.$store.dispatch('SET_MEETING_ROOMS', response.data)
           let meetingRooms = response.data
           vm.data = meetingRooms
@@ -144,7 +146,7 @@
       },
       doDeleteRoom (room) {
         let vm = this
-        let url = constants.URL + '/meeting_rooms/' + room.id
+        let url = constants.apiUrl + '/meeting_rooms/' + room.id
         axios.delete(url).then((response) => {
           vm.refresh()
         })
