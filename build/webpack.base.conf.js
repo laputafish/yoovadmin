@@ -82,12 +82,18 @@ module.exports = {
   },
   plugins: [
     new webpack.ProvidePlugin({
-      // jquery
-      $: 'jquery',
+      Vue: ['vue/dist/vue.esm.js', 'default'],
       jQuery: 'jquery',
-      jquery: 'jquery',
-      'window.$': 'jquery',
       'window.jQuery': 'jquery',
+      $: 'jquery',
+      moment: 'moment',
+
+      // // jquery
+      // $: 'jquery',
+      // jQuery: 'jquery',
+      // jquery: 'jquery',
+      // 'window.$': 'jquery',
+      // 'window.jQuery': 'jquery',
       Popper: 'popper.js'
     })
   ]

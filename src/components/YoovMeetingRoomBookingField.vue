@@ -10,10 +10,13 @@
       </div>
     </div>
     <small class="label label-default">{{ meetingRoomBookingPeriod }}</small>
+    <modals-container/>
   </div>
 </template>
 
 <script>
+  import YoovMeetingRoomBookingDialog from '@/dialogs/YoovMeetingRoomBookingDialog'
+
   export default {
     data () {
       return {
@@ -30,6 +33,18 @@
     model: {
       prop: 'meetingRoomBooking',
       event: 'input'
+    },
+    methods: {
+      book () {
+        this.$modal.show(YoovMeetingRoomBookingDialog, {
+        }, {
+          draggable: true,
+          height: 'auto',
+          width: '90%',
+          minWidth: '1200px'
+
+        })
+      }
     },
     props: {
       meetingRoomBooking: {

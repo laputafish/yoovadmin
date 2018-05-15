@@ -12,6 +12,11 @@ import Vue from 'vue'
 // import 'vue-tree-halower/dist/halower-tree.min.css'
 // import VTree from 'vue-tree-halower'
 // import LiquorTree from 'liquor-tree'
+
+// import datePicker from 'vue-bootstrap-datetimepicker'
+// import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
+// import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker-standalone.css'
+import VModal from 'vue-js-modal'
 import VueDraggable from 'vue-draggable'
 import VuejsDialog from 'vuejs-dialog'
 import Datatable from 'vue2-datatable-component'
@@ -46,8 +51,10 @@ import 'simple-line-icons/scss/simple-line-icons.scss'
 window.$ = $
 window.jQuery = $
 
+Vue.use(VModal, {dialog: true, dynamic: true})
 Vue.use(VuejsDialog)
 Vue.use(BootstrapVue)
+// Vue.use(datePicker)
 // Vue.directive('tooltip', VTooltip)
 Vue.use(VTooltip)
 // Vue.use(LiquorTree)
