@@ -38,10 +38,10 @@
       book () {
         this.$modal.show(YoovMeetingRoomBookingDialog, {
         }, {
-          draggable: true,
+//          draggable: true,
           height: 'auto',
           width: '90%',
-          minWidth: '1200px'
+          minWidth: 1200
 
         })
       }

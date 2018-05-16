@@ -23,6 +23,7 @@ import Datatable from 'vue2-datatable-component'
 
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import Moment from 'vue-moment'
 
 // import customLocale from 'vue2-datatable-component/locale/custom'
 
@@ -54,6 +55,8 @@ window.jQuery = $
 Vue.use(VModal, {dialog: true, dynamic: true})
 Vue.use(VuejsDialog)
 Vue.use(BootstrapVue)
+Vue.use(Moment)
+
 // Vue.use(datePicker)
 // Vue.directive('tooltip', VTooltip)
 Vue.use(VTooltip)
