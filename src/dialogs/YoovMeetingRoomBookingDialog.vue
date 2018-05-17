@@ -33,10 +33,14 @@
                   <tr>
                     <td colspan="7" style="width: 100%;">
                       <div class="d-flex flex-row">
-                        <button type="button" class="btn-prev btn btn-sm btn-primary justify-content-start">
+                        <button type="button"
+                                @click="onPrevButtonClicked"
+                                class="btn-prev btn btn-sm btn-primary justify-content-start">
                           <i class="fa fa-fw fa-caret-left"></i>
                         </button>
-                        <button type="button" class="ml-auto btn-next btn btn-sm btn-primary justify-content-end">
+                        <button type="button"
+                                @click="onNextButtonClicked"
+                                class="ml-auto btn-next btn btn-sm btn-primary justify-content-end">
                           <i class="fa fa-fw fa-caret-right"></i>
                         </button>
                       </div>
@@ -56,8 +60,10 @@
                   <tbody>
                     <tr class="schedule-content-row">
                       <td class="schedule-column"
-                        v-for="scheduleItems in weekSchedule">
+                          @click="onColumnClicked(index)"
+                        v-for="(scheduleItems,index) in weekSchedule">
                         <div v-for="item in scheduleItems"
+                             @click.stop="onEventClicked(item)"
                           class="schedule-item-wrapper"
                           :style="getItemStyle(item)">
                           <div class="schedule-item">
@@ -79,13 +85,23 @@
                   variant="primary">Close</b-button>
       </b-card-footer>
     </b-card>
+    <yoov-timeline-selection-dialog v-if="showingTimelineSelectionDialog"
+                                    @close="showingTimelineSelectionDialog = false">
+    </yoov-timeline-selection-dialog>
   </div>
 </template>
 
 <script>
+import YoovTimelineSelectionDialog from '@/dialogs/YoovTimelineSelectionDialog'
+
 export default {
+  components: {
+    'yoov-timeline-selection-dialog': YoovTimelineSelectionDialog
+  },
   data () {
     return {
+      showingTimelineSelectionDialog: false,
+      curentMoment: null,
       selectedRoom: null,
       displayedRangeStart: '2018-05-06',
       displayedRangeEnd: '2018-05-12',
@@ -108,11 +124,13 @@ export default {
         { name: 'Room 205', capacity: 6, equipments: '' }
       ],
       bookings: [
-        {started_at: '2018-05-14 12:00:00', ended_at: '2018-05-14 13:00:00', applicant: 'Peter'},
         {started_at: '2018-05-14 14:00:00', ended_at: '2018-05-14 15:00:00', applicant: 'John'},
+        {started_at: '2018-05-14 12:00:00', ended_at: '2018-05-14 13:00:00', applicant: 'Peter'},
         {started_at: '2018-05-14 18:00:00', ended_at: '2018-05-14 19:00:00', applicant: 'Philip'},
-        {started_at: '2018-05-15 11:00:00', ended_at: '2018-05-15 16:00:00', applicant: 'Raymond'},
+
         {started_at: '2018-05-15 17:00:00', ended_at: '2018-05-15 19:00:00', applicant: 'Mary'},
+        {started_at: '2018-05-15 11:00:00', ended_at: '2018-05-15 16:00:00', applicant: 'Raymond'},
+
         {started_at: '2018-05-13 18:00:00', ended_at: '2018-05-13 19:00:00', applicant: 'Philip'},
         {started_at: '2018-05-13 11:00:00', ended_at: '2018-05-13 16:00:00', applicant: 'Raymond'},
         {started_at: '2018-05-13 17:00:00', ended_at: '2018-05-13 18:00:00', applicant: 'Mary'}
@@ -120,46 +138,56 @@ export default {
     }
   },
   methods: {
+    outputWeekSchedule () {
+      let vm = this
+      let weekdaySchedule
+      let output = ''
+//      console.log('outputWeekSchedule :: weekSchedule.length = ' + vm.weekSchedule.length)
+      for (var i = 0; i < vm.weekSchedule.length; i++) {
+        weekdaySchedule = vm.weekSchedule[i]
+        output = 'Weekday #' + i + ': '
+        for (var j = 0; j < weekdaySchedule.length; j++) {
+          output = output + 'j=' + j + ':hr=' + weekdaySchedule[j].hour + ',tp=' + weekdaySchedule[j].top + '; '
+        }
+//        console.log('outputWeekSchedule: ' + output)
+      }
+    },
+
     setCurrentWeek () {
       let vm = this
-      let moment = vm.$moment()
-      console.log('setCurrentWeek :: moment: ' + moment.format('Y-MM-DD hh:mm:ss'))
- //     let weekday = moment.weekday()
- //     console.log('s1etCurrentWeek :: weekday = ' + weekday)
-      console.log('setCurrentWeek :: displayedWeekdays.length = ' + vm.displayedWeekdays.length)
-      // let weekdayNames = localeData.weekdays()
+      let dummy = null
+      let dummyDay = null
+
+      let displayedWeekdays = []
       for (var i = 0; i < 7; i++) {
-        vm.displayedWeekdays[i] = {
-          'label': moment.day(i).format('ddd'),
-          'date': moment.day(i).format('Y-MM-DD')
-        }
+        dummy = vm.currentMoment.clone()
+        dummyDay = dummy.day(i)
+        displayedWeekdays.push({
+          'label': dummyDay.format('ddd'),
+          'date': dummyDay.format('Y-MM-DD')
+        })
       }
-      let dummy
-      dummy = moment.clone()
+      vm.displayedWeekdays = displayedWeekdays
+      console.log('setCurrentWeek :: displayedWeekdays: ', vm.displayedWeekdays)
+
+      dummy = vm.currentMoment.clone()
       vm.displayedRangeStart = dummy.startOf('week')
-      console.log('setCurrentWeek after displayedRangeStart :: moment: ' + dummy.toString())
-
-      dummy = moment.clone()
+      dummy = vm.currentMoment.clone()
       vm.displayedRangeEnd = dummy.endOf('week')
-      console.log('setCurrentWeek after displayedRangeEnd :: moment: ' + dummy.toString())
-
-      //
-      // console.log('displayedRangeStart :: ' + vm.displayedRangeStart.format('Y-MM-DD HH:mm:ss')) // toString())
-      // console.log('displayedRangeEnd :: ' + vm.displayedRangeEnd.format('Y-MM-DD HH:mm:ss')) // toString())
-      //
-      // console.log('bookings.length = ' + vm.bookings.length)
 
       // reset schedule
       for (var k = 0; k < 7; k++) {
         vm.weekSchedule[k] = []
       }
-      console.log('setCurrentWeek :: weekSchedule: ', vm.weekSchedule)
+      // console.log('setCurrentWeek :: weekSchedule: ', vm.weekSchedule)
 
       let loopBookings = []
       let loopBooking = null
       let loop = 0
       let needle = 0
       // filter bookings
+
+      // console.log('=====> setCurrentWeek:before :: weekSchedule:', vm.weekSchedule)
       for (var j = 0; j < vm.bookings.length; j++) {
         var booking = vm.bookings[j]
         var bookingMoment = vm.$moment(booking.started_at)
@@ -173,8 +201,11 @@ export default {
           loop = loopBookings.length - 1
           needle = -1
           loopBooking = loopBookings[loop]
+          // console.log('sort weekday item: loop=' + loop + ', needle=' + needle)
           while (loop >= 0) {
-            if (booking.startMoment < loopBooking.startMoment) {
+            loopBooking = loopBookings[loop]
+            // console.log('loop: sort weekday item: loop=' + loop + ', needle=' + needle + ' booking.hour=' + booking.hour + '  loopBooking.hour=' + loopBooking.hour)
+            if (parseInt(booking.hour) < parseInt(loopBooking.hour)) {
               needle = loop
             } else {
               break
@@ -186,16 +217,17 @@ export default {
           } else {
             vm.weekSchedule[booking.weekday].splice(needle, 0, booking)
           }
-//        console.log('#' + j + ':loop weekday = ' + booking.weekday)
+          vm.outputWeekSchedule()
         }
       }
+      // console.log('=====> setCurrentWeek:after :: weekSchedule:', vm.weekSchedule)
 
       // adjust top position of schedule item region
-      console.log('setCurrentWeek :: adjust top position')
+      // console.log('setCurrentWeek :: adjust top position')
       vm.setupScheduleSlotByHour()
-      console.log('before sort')
+      // console.log('before sort')
       vm.setScheduleRegionTop()
-      console.log('setCurrentWeek :: scheduleSlotByHour: ', vm.scheduleSlotByHour)
+      // console.log('setCurrentWeek :: scheduleSlotByHour: ', vm.scheduleSlotByHour)
     },
     setupScheduleSlotByHour () {
       let vm = this
@@ -260,22 +292,18 @@ export default {
       return startTime + ' - ' + endTime
     },
     fillBookingInfos () {
-//      console.log('fillBookingInfos')
       let vm = this
       for (var i = 0; i < vm.bookings.length; i++) {
         var bookingStartMoment = vm.$moment(vm.bookings[i].started_at)
         var bookingEndMoment = vm.$moment(vm.bookings[i].ended_at)
-//        console.log('fillBookingInfos :: bookingMoment : ' + bookingMoment.toString())
-
         var bookingStartMomentClone = bookingStartMoment.clone()
         var weekStart = bookingStartMomentClone.startOf('week')
-//        console.log('fillBookingInfos :: weekStart : ' + weekStart.toString())
+
         vm.bookings[i].weekday = Math.floor(bookingStartMoment.diff(weekStart, 'day'))
         vm.bookings[i].hour = bookingStartMoment.get('hour')
         vm.bookings[i].range = vm.getTimeSlotRange(bookingStartMoment, bookingEndMoment)
         vm.bookings[i].startMoment = bookingStartMoment
         vm.bookings[i].endMoment = bookingEndMoment
-//        console.log('#' + i + ': weekday=' + vm.bookings[i].weekday + '   hour=' + vm.bookings[i].hour)
       }
     },
     getItemStyle (item) {
@@ -285,8 +313,9 @@ export default {
       }
     },
     setScheduleRegionTop () {
-      console.log('*** setScheduleRegionTop ***')
       let vm = this
+      console.log('setScheduleRegionTop starts')
+
       let hours = []
       let i
       let j
@@ -295,12 +324,14 @@ export default {
         hours.push(hour)
       }
       hours.sort()
+      console.log('setScheduleRegionTop :: hours: ', hours)
 
       let result = []
       let top = 20
       let step = 20
       let loopHour = 0
       let item = null
+
       for (i = 0; i < hours.length; i++) {
         loopHour = hours[i]
         console.log('hour: ' + loopHour + ' item count = ' + vm.scheduleSlotByHour[loopHour].length)
@@ -317,41 +348,122 @@ export default {
         // })
         top += step
       }
+      vm.outputWeekSchedule()
 
       let items = []
       let overlapped = 0
       for (i = 0; i < 7; i++) {
         items = vm.weekSchedule[i]
-        console.log('extendTopPosition i=' + i + ' items.length=' + items.length)
+        // console.log('setScheduleRegionTop i=' + i + ' items.length=' + items.length)
         for (j = items.length - 1; j > 0; j--) {
-          overlapped = 100 - (items[j - 1] - items[j].top)
-          console.log('extendTopPosition weekday:' + i + ' j=' + j + ' overlapped: ' + overlapped)
+          overlapped = 100 - (items[j].top - items[j - 1].top)
+          // console.log('extendTopPosition weekday:' + i + ' j=' + j + ' overlapped: ' + overlapped)
           if (overlapped > 0) {
             hour = items[j].startMoment.get('hour')
+            // console.log('extend hour=' + hour + ', overlapped=' + overlapped)
             vm.extendTopPosition(hour, overlapped)
+            vm.outputWeekSchedule()
           }
         }
       }
+
+      // check if gap in between two sequential events
+      for (i = 0; i < 7; i++) {
+        items = vm.weekSchedule[i]
+        console.log('checkGapBetween i=' + i + ' items.length=' + items.length)
+        for (j = items.length - 1; j > 0; j--) {
+          overlapped = 100 - (items[j].top - items[j - 1].top)
+
+          let currStartMoment = items[j].startMoment
+          let prevEndMoment = items[j - 1].endMoment
+          console.log('checkGapBetween i=' + i + ',j=' + j + 'curr:' + currStartMoment.get('hour') + ':' + currStartMoment.get('minute') +
+            '   prev:' + prevEndMoment.get('hour') + ':' + prevEndMoment.get('minute'))
+
+          let sequential = currStartMoment.get('hour') === prevEndMoment.get('hour') &&
+            currStartMoment.get('minute') === prevEndMoment.get('minute')
+
+          console.log('checkGapBetween i=' + i + ',j=' + j + ' : sequential = ' + (sequential ? 'yes' : 'no'))
+          if (!sequential && overlapped === 0) {
+            hour = items[j].startMoment.get('hour')
+            console.log('extend hour=' + hour + ', overlapped=' + overlapped)
+            vm.extendTopPosition(hour, 20)
+            vm.outputWeekSchedule()
+          }
+        }
+      }
+
       return result
     },
     extendTopPosition (hour, extendAmount) {
       let vm = this
       for (var loopHour in vm.scheduleSlotByHour) {
-        if (loopHour > hour) {
+        if (loopHour >= hour) {
           for (var i = 0; i < vm.scheduleSlotByHour[loopHour].length; i++) {
             vm.scheduleSlotByHour[loopHour][i].top += extendAmount
           }
         }
       }
+    },
+    newSchedule () {
+      let vm = this
+      vm.showingTimelineSelectionDialog = true
+      // this.$modal.show(YoovTimelineSelectionDialog, {
+      //   startedAt: vm.record.startedAt,
+      //   endedAt: vm.record.endedAt
+      // }, {
+      //   height: 'auto',
+      //   width: '90%',
+      //   minWidth: 1200
+      // })
+    },
+    onColumnClicked (index) {
+//      alert('index = ' + index)
+      this.newSchedule()
+    },
+    onEventClicked (item) {
+//      alert('applicant = ' + item.applicant)
+    },
+    onNextButtonClicked () {
+      let vm = this
+      console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
+      vm.currentMoment = vm.currentMoment.add('days', 7)
+      console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
+      vm.$nextTick(function () {
+        vm.refreshCalendar()
+      })
+    },
+    onPrevButtonClicked () {
+      let vm = this
+      console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
+      vm.currentMoment = vm.currentMoment.add('days', -7)
+      console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
+      vm.$nextTick(function () {
+        vm.refreshCalendar()
+      })
+    },
+    refreshCalendar () {
+      this.$nextTick(function () {
+        this.setCurrentWeek()
+      })
     }
+  },
+  watch: {
+    'displayedWeekdays': {
+      handler () {
+//        alert('watch(displayedWeekdays)')
+      },
+      deep: true
+    }
+  },
+  props: {
+    booking: null
   },
   mounted () {
     let vm = this
-//    console.log('YoovMeetingRoomBookingDialog :: call setCurrentWeek')
-
-    vm.fillBookingInfos()
-    vm.setCurrentWeek()
-    console.log('weekSchedule: ', vm.weekSchedule)
+    vm.currentMoment = vm.$moment()
+    this.fillBookingInfos()
+    vm.refreshCalendar()
+    console.log('YoovMeetingRoomBookingDialog :: mounted :: booking: ', vm.booking)
   },
   computed: {
     timestamp () {
@@ -401,6 +513,10 @@ export default {
   text-align: center;
   line-height: 1;
   padding: 0;
+}
+
+#yoovMeetingRoomBookingDialog .room-schedule-weekday-label-row td span.badge {
+  margin:3px 0;
 }
 
 #yoovMeetingRoomBookingDialog .schedule-table-header {

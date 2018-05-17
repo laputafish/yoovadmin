@@ -36,7 +36,10 @@
     },
     methods: {
       book () {
+        let vm = this
+        console.log('YoovMeetingRoomBookingField :: show(YoovMeetingRoomBookingDialog) :: record: ', vm.record)
         this.$modal.show(YoovMeetingRoomBookingDialog, {
+          booking: vm.record
         }, {
 //          draggable: true,
           height: 'auto',
