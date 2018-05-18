@@ -23,6 +23,7 @@
         record: {
           id: 0,
           user_id: 0,
+          meeting_room_id: 0,
           meeting_room: null,
           started_at: null,
           ended_at: null,
@@ -39,7 +40,13 @@
         let vm = this
         console.log('YoovMeetingRoomBookingField :: show(YoovMeetingRoomBookingDialog) :: record: ', vm.record)
         this.$modal.show(YoovMeetingRoomBookingDialog, {
-          booking: vm.record
+          booking: vm.record,
+          updateBooking: (params) => {
+            vm.record.meeting_room_id = params.meeting_room_id
+            vm.record.meeting_room = params.meeting_room
+            vm.record.started_at = params.started_at
+            vm.record.ended_at = params.ended_at
+          }
         }, {
 //          draggable: true,
           height: 'auto',

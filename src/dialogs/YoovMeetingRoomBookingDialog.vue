@@ -68,7 +68,7 @@
                           :style="getItemStyle(item)">
                           <div class="schedule-item">
                             <span>{{ item.range }}</span><br/>
-                            <span class="badge badge-default"><i class="fa fa-user"></i>&nbsp;{{ item.applicant }}</span>
+                            <span class="badge badge-default"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
                           </div>
                         </div>
                       </td>
@@ -86,6 +86,9 @@
       </b-card-footer>
     </b-card>
     <yoov-timeline-selection-dialog v-if="showingTimelineSelectionDialog"
+                                    :currentMoment="selectedMoment"
+                                    :booking="currentBooking"
+                                    @updateBooking="updateBookingHandler"
                                     @close="showingTimelineSelectionDialog = false">
     </yoov-timeline-selection-dialog>
   </div>
@@ -101,7 +104,7 @@ export default {
   data () {
     return {
       showingTimelineSelectionDialog: false,
-      curentMoment: null,
+      currentMoment: null,
       selectedRoom: null,
       displayedRangeStart: '2018-05-06',
       displayedRangeEnd: '2018-05-12',
@@ -115,29 +118,42 @@ export default {
         [],
         [],
         []
-      ],
-      rooms: [
-        { name: 'Room 201', capacity: 2, equipments: 'sdlfksdjlf jsdljf sdlkf jlsdkj fslkdf sdsd fklsd fsdkf sdfk sdfk dskfsdkfsdk fksd fksdfksd fsd kfksdkf ksdfksd kf sdf' },
-        { name: 'Room 202', capacity: 3, equipments: '' },
-        { name: 'Room 203', capacity: 4, equipments: '' },
-        { name: 'Room 204', capacity: 5, equipments: '' },
-        { name: 'Room 205', capacity: 6, equipments: '' }
-      ],
-      bookings: [
-        {started_at: '2018-05-14 14:00:00', ended_at: '2018-05-14 15:00:00', applicant: 'John'},
-        {started_at: '2018-05-14 12:00:00', ended_at: '2018-05-14 13:00:00', applicant: 'Peter'},
-        {started_at: '2018-05-14 18:00:00', ended_at: '2018-05-14 19:00:00', applicant: 'Philip'},
-
-        {started_at: '2018-05-15 17:00:00', ended_at: '2018-05-15 19:00:00', applicant: 'Mary'},
-        {started_at: '2018-05-15 11:00:00', ended_at: '2018-05-15 16:00:00', applicant: 'Raymond'},
-
-        {started_at: '2018-05-13 18:00:00', ended_at: '2018-05-13 19:00:00', applicant: 'Philip'},
-        {started_at: '2018-05-13 11:00:00', ended_at: '2018-05-13 16:00:00', applicant: 'Raymond'},
-        {started_at: '2018-05-13 17:00:00', ended_at: '2018-05-13 18:00:00', applicant: 'Mary'}
       ]
+      // ,
+      // rooms: [
+      //   { name: 'Room 201', capacity: 2, equipments: 'sdlfksdjlf jsdljf sdlkf jlsdkj fslkdf sdsd fklsd fsdkf sdfk sdfk dskfsdkfsdk fksd fksdfksd fsd kfksdkf ksdfksd kf sdf' },
+      //   { name: 'Room 202', capacity: 3, equipments: '' },
+      //   { name: 'Room 203', capacity: 4, equipments: '' },
+      //   { name: 'Room 204', capacity: 5, equipments: '' },
+      //   { name: 'Room 205', capacity: 6, equipments: '' }
+      // ],
+      // bookings: [
+      //   {started_at: '2018-05-14 14:00:00', ended_at: '2018-05-14 15:00:00', applicant: 'John'},
+      //   {started_at: '2018-05-14 12:00:00', ended_at: '2018-05-14 13:00:00', applicant: 'Peter'},
+      //   {started_at: '2018-05-14 18:00:00', ended_at: '2018-05-14 19:00:00', applicant: 'Philip'},
+      //
+      //   {started_at: '2018-05-15 17:00:00', ended_at: '2018-05-15 19:00:00', applicant: 'Mary'},
+      //   {started_at: '2018-05-15 11:00:00', ended_at: '2018-05-15 16:00:00', applicant: 'Raymond'},
+      //
+      //   {started_at: '2018-05-13 18:00:00', ended_at: '2018-05-13 19:00:00', applicant: 'Philip'},
+      //   {started_at: '2018-05-13 11:00:00', ended_at: '2018-05-13 16:00:00', applicant: 'Raymond'},
+      //   {started_at: '2018-05-13 17:00:00', ended_at: '2018-05-13 18:00:00', applicant: 'Mary'}
+      // ]
     }
   },
   methods: {
+    updateBookingHandler (payload) {
+      // payload.startMoment
+      // payload.endMoment
+      let vm = this
+      vm.$emit('updateBooking', {
+        meeting_room_id: 0,
+        meeting_room: null,
+        started_at: '',
+        ended_at: ''
+      })
+    },
+
     outputWeekSchedule () {
       let vm = this
       let weekdaySchedule
@@ -307,7 +323,7 @@ export default {
       }
     },
     getItemStyle (item) {
-      console.log('getItemStyle: top = ' + item.top)
+    //  console.log('getItemStyle: top = ' + item.top)
       return {
         top: item.top + 'px'
       }
@@ -407,17 +423,11 @@ export default {
     newSchedule () {
       let vm = this
       vm.showingTimelineSelectionDialog = true
-      // this.$modal.show(YoovTimelineSelectionDialog, {
-      //   startedAt: vm.record.startedAt,
-      //   endedAt: vm.record.endedAt
-      // }, {
-      //   height: 'auto',
-      //   width: '90%',
-      //   minWidth: 1200
-      // })
     },
     onColumnClicked (index) {
-//      alert('index = ' + index)
+      let vm = this
+      let clone = vm.currentMoment.clone()
+      vm.selectedMoment = clone.day(index)
       this.newSchedule()
     },
     onEventClicked (item) {
@@ -460,23 +470,59 @@ export default {
   },
   mounted () {
     let vm = this
-    vm.currentMoment = vm.$moment()
-    this.fillBookingInfos()
-    vm.refreshCalendar()
-    console.log('YoovMeetingRoomBookingDialog :: mounted :: booking: ', vm.booking)
+    let promises = [
+      vm.$store.dispatch('GET_MEETING_ROOM_BOOKINGS'),
+      vm.$store.dispatch('GET_MEETING_ROOMS')
+    ]
+    Promise.all(promises).then(function (responses) {
+      vm.currentMoment = vm.$moment()
+      vm.fillBookingInfos()
+      vm.refreshCalendar()
+    })
+    // vm.$store.dispatch('GET_MEETING_ROOM_BOOKINGS', {
+    //   callback: (bookings) => {
+    //     console.log('mounted :: callback :: bookings: ', bookings)
+    //   }
+    // })
+    // let response = vm.$store.dispatch('GET_MEETING_ROOMS', {
+    //   callback: () => {
+    //
+    //   }
+    // })
+    // console.log('mounted :: response: ', response)
+    // vm.$nextTick(function () {
+    //   console.log('mounted: bookings: ', vm.bookings)
+    //   console.log('mounted: rooms: ', vm.rooms)
+    //   vm.currentMoment = vm.$moment()
+    //   vm.fillBookingInfos()
+    //   vm.refreshCalendar()
+    // })
   },
   computed: {
+    currentBooking () {
+      let vm = this
+      var result = {
+        startMoment: null,
+        endMoment: null
+      }
+      if (vm.booking) {
+        result.startMoment = vm.$moment(vm.booking.started_at)
+        result.endMoment = vm.$moment(vm.booking.ended_at)
+      }
+      return result
+    },
+
+    rooms () {
+      return this.$store.getters.meetingRooms
+    },
+    bookings () {
+      return this.$store.getters.meetingRoomBookings
+    },
     timestamp () {
       let vm = this
       vm.$moment.locale('hk')
-      let moment = vm.$moment('2018-5-7 8:22:11')
-
-      console.log('moment: ', moment.format('Y-MM-DD hh:mm:ss'))
-
-      let localeData = vm.$moment.localeData()
-      console.log('first day of week: ' + localeData.firstDayOfWeek())
-
-      console.log('months: ', vm.$moment.months())
+      // let moment = vm.$moment('2018-5-7 8:22:11')
+      // let localeData = vm.$moment.localeData()
       return 'timestamp'
     }
   }

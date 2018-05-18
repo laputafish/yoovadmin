@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import system from './modules/system/system'
 import meetingRooms from './modules/meetingRooms/meetingRooms'
+import meetingRoomBookings from './modules/meetingRoomBookings/meetingRoomBookings'
 import meetings from './modules/meetings/meetings'
 import Cookies from 'js-cookie'
 
@@ -12,6 +13,7 @@ const debug = process.env.NODE_ENV !== 'production'
 export const store = new Vuex.Store({
   modules: {
     system,
+    meetingRoomBookings,
     meetingRooms,
     meetings
   },
