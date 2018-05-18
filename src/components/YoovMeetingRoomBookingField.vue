@@ -10,7 +10,13 @@
       </div>
     </div>
     <small class="label label-default">{{ meetingRoomBookingPeriod }}</small>
-    <modals-container/>
+    <yoov-meeting-room-booking-dialog
+      v-if="showingMeetingRoomBookingDialog"
+      :booking="record"
+      @updateBooking="updateBookingHandler"
+      @close="showingMeetingRoomBookingDialog=false">
+
+    </yoov-meeting-room-booking-dialog>
   </div>
 </template>
 
@@ -18,8 +24,12 @@
   import YoovMeetingRoomBookingDialog from '@/dialogs/YoovMeetingRoomBookingDialog'
 
   export default {
+    components: {
+      'yoov-meeting-room-booking-dialog': YoovMeetingRoomBookingDialog
+    },
     data () {
       return {
+        showingMeetingRoomBookingDialog: false,
         record: {
           id: 0,
           user_id: 0,
@@ -39,21 +49,27 @@
       book () {
         let vm = this
         console.log('YoovMeetingRoomBookingField :: show(YoovMeetingRoomBookingDialog) :: record: ', vm.record)
-        this.$modal.show(YoovMeetingRoomBookingDialog, {
-          booking: vm.record,
-          updateBooking: (params) => {
-            vm.record.meeting_room_id = params.meeting_room_id
-            vm.record.meeting_room = params.meeting_room
-            vm.record.started_at = params.started_at
-            vm.record.ended_at = params.ended_at
-          }
-        }, {
-//          draggable: true,
-          height: 'auto',
-          width: '90%',
-          minWidth: 1200
-
-        })
+        vm.showingMeetingRoomBookingDialog = true
+        // this.$modal.show(YoovMeetingRoomBookingDialog, {
+        //   booking: vm.record,
+        //   updateBooking: (params) => {
+        //     vm.record.meeting_room_id = params.meeting_room_id
+        //     vm.record.meeting_room = params.meeting_room
+        //     vm.record.started_at = params.started_at
+        //     vm.record.ended_at = params.ended_at
+        //   }
+        // }, {
+        //   height: 'auto',
+        //   width: '90%',
+        //   minWidth: 1200
+        // })
+      },
+      updateBookingHandler (params) {
+        let vm = this
+        vm.record.meeting_room_id = params.meeting_room_id
+        vm.record.meeting_room = params.meeting_room
+        vm.record.started_at = params.started_at
+        vm.record.ended_at = params.ended_at
       }
     },
     props: {

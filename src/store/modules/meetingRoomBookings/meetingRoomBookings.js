@@ -1,10 +1,6 @@
 import * as types from './meetingRoomBookings_types'
 import * as constants from '../../constants'
 import axios from 'axios'
-import Vue from 'vue'
-import moment from 'moment'
-
-Vue.use(moment)
 
 const state = {
   meetingRoomBookings: [],
@@ -52,12 +48,17 @@ const actions = {
   async [types.GET_DAY_BOOKINGS] ({commit, dispatch, state}, payload) {
     return new Promise((resolve, reject) => {
       let requestedDayMoment = payload
-      console.log('GET_DAY_BOOKINGS  requestedDayMoment: ' + requestedDayMoment.toString())
+      let ymmdd = requestedDayMoment.format('Y-MM-DD')
+      // console.log('GET_DAY_BOOKINGS  requestedDayMoment :: ymmdd: ' + ymmdd)
+      // console.log('GET_DAY_BOOKINGS  state.meetingRoomBookings.length = ' + state.meetingRoomBookings.length)
+
       let result = []
       for (var i = 0; i < state.meetingRoomBookings.length; i++) {
-        console.log('#' + i + ': started_at=' + state.meetingRoomBookings.started_at)
-        let moment = Vue.moment(state.meetingRoomBookings.started_at)
-        if (moment.diff(requestedDayMoment, 'days') === 0) {
+        // console.log('#' + i + ': meetingRoomBookings[i]: ', state.meetingRoomBookings[i])
+        // console.log('#' + i + ': started_at=' + state.meetingRoomBookings[i].started_at)
+        // console.log('#' + i + ': subsstr(0,8): ' + state.meetingRoomBookings[i].started_at.substr(0, 10))        // let moment = Vue.moment(state.meetingRoomBookings.started_at)
+        if (state.meetingRoomBookings[i].started_at.substr(0, 10) === ymmdd) {
+          // console.log('#' + i + ': push')
           result.push(state.meetingRoomBookings[i])
         }
       }

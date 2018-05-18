@@ -1,105 +1,120 @@
 <template>
-  <div id="yoovMeetingRoomBookingDialog">
-    <b-card no-body
-      header="Meeting Room Booking">
-      <b-card-body class="d-flex flex-column">
-        <div class="row flex-grow-1">
-          <div class="col-sm-3 d-flex flex-column">
-            <th>Meeting Rooms</th>
-            <div class="flex-grow-1" style="overflow-y: scroll;">
-              <table class="table-striped table-hover table-responsive" style="display:table;">
+  <yoov-modal id="yoovMeetingRoomBookingDialog">
+    <div slot="header">
+      <h3 class="dialog-title">
+        Meeting Room Booking
+      </h3>
+    </div>
+    <div slot="body" class="d-flex flex-column">
+      <div class="row flex-grow-1">
+        <div class="col-sm-3 d-flex flex-column">
+          <h4>Meeting Rooms</h4>
+          <div class="flex-grow-1" style="overflow-y: scroll;">
+            <table class="rooms-table table-hover table-responsive" style="display:table;">
+              <tbody>
+              <tr v-for="room in rooms"
+                @click="onRoomSelected(room)">
+                <td class="room-item"
+                    :class="{'bg-primary':selectedRoom===room}">
+                  {{ room.name }}&nbsp;
+                  <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ room.capacity }}</span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-sm-9 d-flex flex-column">
+          <div v-if="selectedRoom">
+            <h5 class="bg-default">{{ selectedRoom.name }}&nbsp;
+              <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ selectedRoom.capacity }}</span>
+            </h5>
+            <b-alert show>{{ selectedRoom.equipments }}</b-alert>
+            <div class="schedule-table-header">
+              <table style="width:100%;">
                 <tbody>
-                <tr v-for="room in rooms"
-                    :class="{'bg-primary':selectedRoom===room}"
-                  @click="selectedRoom = room">
-                  <td>
-                    {{ room.name }}&nbsp;
-                    <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ room.capacity }}</span>
+                <tr>
+                  <td colspan="7" style="width: 100%;">
+                    <div class="d-flex flex-row">
+                      <button type="button"
+                              @click="onPrevButtonClicked"
+                              class="btn-prev btn btn-sm btn-primary justify-content-start">
+                        <i class="fa fa-fw fa-caret-left"></i>
+                      </button>
+                      <button type="button"
+                              @click="onNextButtonClicked"
+                              class="ml-auto btn-next btn btn-sm btn-primary justify-content-end">
+                        <i class="fa fa-fw fa-caret-right"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="room-schedule-weekday-label-row">
+                  <td v-for="weekday in displayedWeekdays">
+                    {{ weekday.label }}<br/>
+                    <span class="badge badge-primary">{{ weekday.date }}</span>
                   </td>
                 </tr>
                 </tbody>
               </table>
             </div>
-          </div>
-          <div class="col-sm-9 d-flex flex-column">
-            <div v-if="selectedRoom">
-              <h5 class="bg-default">{{ selectedRoom.name }}&nbsp;
-                <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ selectedRoom.capacity }}</span>
-              </h5>
-              <b-alert show>{{ selectedRoom.equipments }}</b-alert>
-              <div class="schedule-table-header">
-                <table style="width:100%;">
-                  <tbody>
-                  <tr>
-                    <td colspan="7" style="width: 100%;">
-                      <div class="d-flex flex-row">
-                        <button type="button"
-                                @click="onPrevButtonClicked"
-                                class="btn-prev btn btn-sm btn-primary justify-content-start">
-                          <i class="fa fa-fw fa-caret-left"></i>
-                        </button>
-                        <button type="button"
-                                @click="onNextButtonClicked"
-                                class="ml-auto btn-next btn btn-sm btn-primary justify-content-end">
-                          <i class="fa fa-fw fa-caret-right"></i>
-                        </button>
+            <div class="schedule-content-container">
+              <table style="width:100%;">
+                <tbody>
+                  <tr class="schedule-content-row">
+                    <td class="schedule-column"
+                        @click="onColumnClicked(index)"
+                      v-for="(scheduleItems,index) in weekSchedule">
+                      <div v-for="item in scheduleItems"
+                           :class="{occupied:item.id!=booking.id}"
+                           @click.stop="onEventClicked(item)"
+                        class="schedule-item-wrapper"
+                        :style="getItemStyle(item)">
+                        <div class="schedule-item">
+                          <span>{{ item.range }}</span><br/>
+                          <span class="badge badge-default"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
+                        </div>
                       </div>
                     </td>
                   </tr>
-                  <tr class="room-schedule-weekday-label-row">
-                    <td v-for="weekday in displayedWeekdays">
-                      {{ weekday.label }}<br/>
-                      <span class="badge badge-primary">{{ weekday.date }}</span>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="schedule-content-container">
-                <table style="width:100%;">
-                  <tbody>
-                    <tr class="schedule-content-row">
-                      <td class="schedule-column"
-                          @click="onColumnClicked(index)"
-                        v-for="(scheduleItems,index) in weekSchedule">
-                        <div v-for="item in scheduleItems"
-                             @click.stop="onEventClicked(item)"
-                          class="schedule-item-wrapper"
-                          :style="getItemStyle(item)">
-                          <div class="schedule-item">
-                            <span>{{ item.range }}</span><br/>
-                            <span class="badge badge-default"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </b-card-body>
-      <b-card-footer>
+      </div>
+    </div>
+    <div slot="footer" style="width: 100%;">
+      <div class="pull-right">
         <b-button @click="$emit('close')"
-                  variant="primary">Close</b-button>
-      </b-card-footer>
-    </b-card>
+                  variant="primary"
+            class="btn btn-primary">
+          OK
+        </b-button>
+        <b-button @click="$emit('close')"
+                  variant="primary"
+            class="btn btn-default">
+          Cancel
+        </b-button>
+      </div>
+    </div>
     <yoov-timeline-selection-dialog v-if="showingTimelineSelectionDialog"
                                     :currentMoment="selectedMoment"
                                     :booking="currentBooking"
                                     @updateBooking="updateBookingHandler"
                                     @close="showingTimelineSelectionDialog = false">
     </yoov-timeline-selection-dialog>
-  </div>
+  </yoov-modal>
 </template>
 
 <script>
 import YoovTimelineSelectionDialog from '@/dialogs/YoovTimelineSelectionDialog'
+import YoovModal from '@/components/Modal'
 
 export default {
   components: {
-    'yoov-timeline-selection-dialog': YoovTimelineSelectionDialog
+    'yoov-timeline-selection-dialog': YoovTimelineSelectionDialog,
+    'yoov-modal': YoovModal
   },
   data () {
     return {
@@ -142,6 +157,13 @@ export default {
     }
   },
   methods: {
+    props: {
+      booking: null
+    },
+    onRoomSelected (room) {
+      this.selectedRoom = room
+      this.refreshCalendar()
+    },
     updateBookingHandler (payload) {
       // payload.startMoment
       // payload.endMoment
@@ -169,7 +191,7 @@ export default {
       }
     },
 
-    setCurrentWeek () {
+    setCurrentWeekBookings () {
       let vm = this
       let dummy = null
       let dummyDay = null
@@ -184,7 +206,7 @@ export default {
         })
       }
       vm.displayedWeekdays = displayedWeekdays
-      console.log('setCurrentWeek :: displayedWeekdays: ', vm.displayedWeekdays)
+      console.log('setCurrentWeekBookings :: displayedWeekdays: ', vm.displayedWeekdays)
 
       dummy = vm.currentMoment.clone()
       vm.displayedRangeStart = dummy.startOf('week')
@@ -195,7 +217,7 @@ export default {
       for (var k = 0; k < 7; k++) {
         vm.weekSchedule[k] = []
       }
-      // console.log('setCurrentWeek :: weekSchedule: ', vm.weekSchedule)
+      // console.log('setCurrentWeekBookings :: weekSchedule: ', vm.weekSchedule)
 
       let loopBookings = []
       let loopBooking = null
@@ -203,8 +225,11 @@ export default {
       let needle = 0
       // filter bookings
 
-      // console.log('=====> setCurrentWeek:before :: weekSchedule:', vm.weekSchedule)
+      // console.log('=====> setCurrentWeekBookings:before :: weekSchedule:', vm.weekSchedule)
       for (var j = 0; j < vm.bookings.length; j++) {
+        if (vm.bookings[j].meeting_room_id !== vm.selectedRoom.id) {
+          continue
+        }
         var booking = vm.bookings[j]
         var bookingMoment = vm.$moment(booking.started_at)
 //        console.log('#' + j + ': bookingMoment = ' + bookingMoment.format('Y-MM-DD HH:mm:ss'))
@@ -236,14 +261,14 @@ export default {
           vm.outputWeekSchedule()
         }
       }
-      // console.log('=====> setCurrentWeek:after :: weekSchedule:', vm.weekSchedule)
+      // console.log('=====> setCurrentWeekBookings:after :: weekSchedule:', vm.weekSchedule)
 
       // adjust top position of schedule item region
-      // console.log('setCurrentWeek :: adjust top position')
+      // console.log('setCurrentWeekBookings :: adjust top position')
       vm.setupScheduleSlotByHour()
       // console.log('before sort')
       vm.setScheduleRegionTop()
-      // console.log('setCurrentWeek :: scheduleSlotByHour: ', vm.scheduleSlotByHour)
+      // console.log('setCurrentWeekBookings :: scheduleSlotByHour: ', vm.scheduleSlotByHour)
     },
     setupScheduleSlotByHour () {
       let vm = this
@@ -425,6 +450,7 @@ export default {
       vm.showingTimelineSelectionDialog = true
     },
     onColumnClicked (index) {
+      alert('x')
       let vm = this
       let clone = vm.currentMoment.clone()
       vm.selectedMoment = clone.day(index)
@@ -438,23 +464,25 @@ export default {
       console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
       vm.currentMoment = vm.currentMoment.add('days', 7)
       console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
-      vm.$nextTick(function () {
-        vm.refreshCalendar()
-      })
+      vm.refreshCalendar()
+      // vm.$nextTick(function () {
+      //   vm.refreshCalendar()
+      // })
     },
     onPrevButtonClicked () {
       let vm = this
       console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
       vm.currentMoment = vm.currentMoment.add('days', -7)
       console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
-      vm.$nextTick(function () {
-        vm.refreshCalendar()
-      })
+      vm.refreshCalendar()
+      // vm.$nextTick(function () {
+      //   vm.refreshCalendar()
+      // })
     },
     refreshCalendar () {
-      this.$nextTick(function () {
-        this.setCurrentWeek()
-      })
+      // this.$nextTick(function () {
+      this.setCurrentWeekBookings()
+      // })
     }
   },
   watch: {
@@ -465,9 +493,6 @@ export default {
       deep: true
     }
   },
-  props: {
-    booking: null
-  },
   mounted () {
     let vm = this
     let promises = [
@@ -475,10 +500,16 @@ export default {
       vm.$store.dispatch('GET_MEETING_ROOMS')
     ]
     Promise.all(promises).then(function (responses) {
+      if (vm.rooms.length > 0) {
+        vm.selectedRoom = vm.rooms[0]
+      }
+      console.log('promise.all :: meeting_rooms.length = ' + vm.rooms.length)
       vm.currentMoment = vm.$moment()
       vm.fillBookingInfos()
       vm.refreshCalendar()
     })
+
+
     // vm.$store.dispatch('GET_MEETING_ROOM_BOOKINGS', {
     //   callback: (bookings) => {
     //     console.log('mounted :: callback :: bookings: ', bookings)
@@ -530,11 +561,33 @@ export default {
 </script>
 
 <style>
+#yoovMeetingRoomBookingDialog .modal-container {
+  width: 90%;
+  min-width: 1200px;
+  height: auto;
+}
+
 #yoovMeetingRoomBookingDialog .card {
   margin-bottom: 0;
   min-height: 360px;
 }
 
+#yoovMeetingRoomBookingDialog .rooms-table td.room-item {
+  background-color: white;
+}
+
+#yoovMeetingRoomBookingDialog .rooms-table td.room-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+#yoovMeetingRoomBookingDialog .rooms-table tr:nth-child(2n+1) td.room-item {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+#yoovMeetingRoomBookingDialog .rooms-table td.room-item {
+  padding: 10px;
+  border-radius: 5px;
+}
 #yoovMeetingRoomBookingDialog .card .card-body table tr td {
   cursor: pointer;
 }
@@ -567,23 +620,32 @@ export default {
 
 #yoovMeetingRoomBookingDialog .schedule-table-header {
   width: 100%;
-  padding-right: 10px;
+  padding-right: 20px;
 }
 #yoovMeetingRoomBookingDialog .schedule-item {
   background-color: #fffeba;
   border-radius: 1rem;
   text-align: center;
   height: 100%;
-  width:100%;
+  width: 100%;
+}
+
+#yoovMeetingRoomBookingDialog .schedule-item.occupied {
+  cursor: default;
 }
 
 #yoovMeetingRoomBookingDialog .schedule-content-container {
   overflow-y: scroll;
-  max-height: 500px;
+  max-height: 400px;
 }
 #yoovMeetingRoomBookingDialog .schedule-content-row td {
+  cursor: pointer;
   position: relative;
-  height: 700px;
+  height: 600px;
+}
+
+#yoovMeetingRoomBookingDialog .schedule-content-row td:nth-child(2n+1) {
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 #yoovMeetingRoomBookingDialog .schedule-item-wrapper {
