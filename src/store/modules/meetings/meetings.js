@@ -4,7 +4,8 @@ import axios from 'axios'
 
 const state = {
   meetings: [],
-  loadingMeetings: true
+  loadingMeetings: true,
+  tempMeeting: null
 }
 
 const getters = {
@@ -26,6 +27,9 @@ const mutations = {
   },
   updateMeeting (state, payload) {
 
+  },
+  setTempMeeting (state, payload) {
+    state.tempMeeting = JSON.parse(JSON.stringify(payload))
   }
 }
 
@@ -63,6 +67,17 @@ const actions = {
       commit('updateMeetings', response.data)
       commit('changeLoadingMeetingsState', false)
     })
+  },
+
+  [types.SET_TEMP_MEETING] ({commit, state}, payload) {
+    let result = null
+    for (var i = 0; i < state.meetings.length; i++) {
+      if (state.meetings[i].id === payload) {
+        result = state.meetings[i]
+        break
+      }
+    }
+    commit('setTempMeeting', result)
   },
 
   async [types.DELETE_MEETING] ({commit, state}, meetingId) {

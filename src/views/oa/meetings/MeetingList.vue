@@ -191,9 +191,11 @@
         this.updateSelectedRecord(value)
       },
       edit (value) {
-        console.log('MeetingList.vue :: edit')
-        this.selectedMeeting = this.setRecord(value.meeting)
-        console.log('MeetingList :: edit :: this.selectedMeeting: ', this.selectedMeeting)
+        let vm = this
+        vm.$store.dispatch('SET_TEMP_MEETING', value.meeting.id)
+        // console.log('MeetingList.vue :: edit')
+        // this.selectedMeeting = this.setRecord(value.meeting)
+        // console.log('MeetingList :: edit :: this.selectedMeeting: ', this.selectedMeeting)
         // if (value.meeting.venue_type === 'conference_room') {
         //   this.$store.dispatch('GET_ROOM_BOOKING', value.meeting.id).then(function (response) {
         //     this.selectedMeeting.roomBooking = response

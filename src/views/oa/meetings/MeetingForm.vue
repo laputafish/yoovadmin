@@ -194,6 +194,12 @@
         var startedAtPicker = this.$.startedAtPicker.control
         startedAtPicker.maxDate(newEnd)
       }
+    },
+    computed: {
+      tempMeeting () {
+        let vm = this
+        return vm.$store.getters.tempMeeting
+      }
     }
   }
 </script>
