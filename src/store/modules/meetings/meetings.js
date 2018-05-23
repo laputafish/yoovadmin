@@ -11,13 +11,16 @@ const state = {
 const getters = {
   meetings: (state) => {
     return state.meetings
+  },
+  tempMeeting: (state) => {
+    return state.tempMeeting
   }
 }
 
 const mutations = {
-  updateMeetings (state, payload) {
+  setMeetings (state, payload) {
     state.meetings = payload
-    console.log('updateMeetings :: meetings: ', state.meetings)
+    console.log('setMeetings :: meetings: ', state.meetings)
   },
   changeLoadingMeetingsState (state, loading) {
     state.loadingMeetings = loading
@@ -29,8 +32,16 @@ const mutations = {
 
   },
   setTempMeeting (state, payload) {
+    console.log('setTempMeeting :: payload: ', payload)
     state.tempMeeting = JSON.parse(JSON.stringify(payload))
+  },
+  setTempMeetingStartedAt (state, payload) {
+    state.tempMeeting.started_at = payload
+  },
+  setTempMeetingEndedAt (state, payload) {
+    state.tempMeeting.ended_at = payload
   }
+
 }
 
 const actions = {
@@ -57,26 +68,29 @@ const actions = {
   },
 
   [types.SET_MEETINGS] ({commit, state}, payload) {
-    commit('updateMeetings', payload)
+    commit('setMeetings', payload)
     commit('changeLoadingMeetingsState', false)
   },
 
   [types.GET_MEETINGS] ({commit, state}, payload) {
     axios.get(constants.apiUrl + '/meetings').then((response) => {
       console.log('GET_MEETINGS :: data: ', response.data)
-      commit('updateMeetings', response.data)
+      commit('setMeetings', response.data)
       commit('changeLoadingMeetingsState', false)
     })
   },
 
-  [types.SET_TEMP_MEETING] ({commit, state}, payload) {
+  async [types.SET_TEMP_MEETING] ({commit, state}, payload) {
+    console.log('types.SET_TEMP_MEETING :: payload: ', payload)
+    console.log('types.SET_TEMP_MEETING :: state.meetings: ', state.meetings)
     let result = null
     for (var i = 0; i < state.meetings.length; i++) {
-      if (state.meetings[i].id === payload) {
+      if (state.meetings[i].id === payload.id) {
         result = state.meetings[i]
         break
       }
     }
+    console.log('SET_TEMP_MEETING :: => commit')
     commit('setTempMeeting', result)
   },
 
@@ -84,6 +98,14 @@ const actions = {
     await axios.delete(constants.apiUrl + '/meetings/' + meetingId).then((response) => {
 
     })
+  },
+
+  async [types.SET_TEMP_MEETING_STARTED_AT] ({commit, state}, startedat) {
+    commit('setTempMeetingStartedAt', startedat)
+  },
+
+  async [types.SET_TEMP_MEETING_ENDED_AT] ({commit, state}, endedAt) {
+    commit('setTempMeetingEndedAt', endedAt)
   }
 }
 

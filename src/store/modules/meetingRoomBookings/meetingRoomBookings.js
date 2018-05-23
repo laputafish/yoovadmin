@@ -29,6 +29,41 @@ const mutations = {
   },
   setMeetingRoomBookings (state, payload) {
     state.meetingRoomBookings = payload
+  },
+  removeBooking (state, bookingId) {
+    console.log('meetingRoomBooking.js :: removeBooking :: bookingId = ' + bookingId)
+    for (var i = 0; i < state.meetingRoomBookings.length; i++) {
+      if (state.meetingRoomBookings[i].id === bookingId) {
+        state.meetingRoomBookings.splice(i, 1)
+      }
+    }
+  },
+  updateBooking (state, booking) {
+    /* payload
+      id
+      applicant_id
+      status
+      meeting_room_id
+      meeting_room
+      started_at
+      ended_at
+      remark
+     */
+    let found = false
+    for (var i = 0; i < state.meetingRoomBookings.length; i++) {
+      if (state.meetingRoomBookings[i].id === booking.id) {
+        state.meetingRoomBookings[i].status = 'pending'
+        state.meetingRoomBookings[i].meeting_room_id = booking.meeting_room_id
+        state.meetingRoomBookings[i].meeting_room = booking.meeting_room
+        state.meetingRoomBookings[i].started_at = booking.started_at
+        state.meetingRoomBookings[i].ended_at = booking.ended_at
+        state.meetingRoomBookings[i].remark = booking.remark
+        found = true
+      }
+    }
+    if (!found) {
+      state.meetingRoomBookings.push(booking)
+    }
   }
 }
 
@@ -43,6 +78,11 @@ const actions = {
         }
       }
     })
+  },
+
+  async [types.REMOVE_BOOKING] ({commit, dispatch, state}, payload) {
+    let bookingId = payload
+    commit('removeBooking', bookingId)
   },
 
   async [types.GET_DAY_BOOKINGS] ({commit, dispatch, state}, payload) {
@@ -64,6 +104,10 @@ const actions = {
       }
       resolve(result)
     })
+  },
+
+  async [types.UPDATE_BOOKING] ({commit, dispatch, state}, payload) {
+    commit('updateBooking', payload)
   }
 
 }

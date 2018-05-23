@@ -1,11 +1,11 @@
 <template>
-  <div class="">
+  <div class="" v-if="record">
     <!-- Applicant -->
     <div class="form-group row">
       <label class="col-sm-2 col-form-label">Applicant</label>
       <div class="col-sm-10">
         <input type="text" disabled
-               :placeholder="record.user_name"
+               :placeholder="record.applicant_name"
                class="form-control"
         />
       </div>
@@ -31,7 +31,7 @@
         </yoov-radio-toggle>
         <yoov-meeting-room-booking-field
           v-if="record.venue_type === 'conference_room'"
-          v-model="record.meeting_room_booking">
+          v-model="record.room_booking">
         </yoov-meeting-room-booking-field>
         <div v-else>
           <input class="form-control" v-model="record.venue"/>
@@ -43,7 +43,9 @@
     <div class="form-group row">
       <label class="col-sm-2 col-form-label">Started At</label>
       <div class="col-sm-3 input-group">
-        <datetime format="YYYY-MM-DD H:i:s" v-model="record.started_at"></datetime>
+        <datetime format="YYYY-MM-DD H:i:s"
+                  @input="updateStartedAt"
+                  :value="record.started_at"></datetime>
       </div>
     </div>
 
@@ -51,7 +53,9 @@
     <div class="form-group row">
       <label class="col-sm-2 col-form-label">Ended At</label>
       <div class="col-sm-3 input-group">
-        <datetime format="YYYY-MM-DD H:i:s" v-model="record.ended_at"></datetime>
+        <datetime format="YYYY-MM-DD H:i:s"
+                  @input="updateEndedAt"
+                  :value="record.ended_at"></datetime>
       </div>
     </div>
 
@@ -134,58 +138,73 @@
     },
     data () {
       return {
+        record: null,
         config: {
           format: 'YYYY-MM-DD hh:mm:ss',
           useCurrent: true
-        },
+        }
         // datePickerConfig: {
         //   format: 'YYYY-MM-DD hh:mm:ss',
         //   useCurrent: false,
         //   showClear: true,
         //   showClose: true
         // },
-        record: {
-          id: 0,
-          subject: '',
-          venue_type: 'conference_room',
-          venue: '',
-          meeting_room_booking_id: 0,
-          used_id: 0,
-          user_name: '',
-          started_at: '',
-          ended_at: '',
-          remark: ''
-        }
+        // record: {
+        //   id: 0,
+        //   subject: '',
+        //   venue_type: 'conference_room',
+        //   venue: '',
+        //   meeting_room_booking_id: 0,
+        //   used_id: 0,
+        //   user_name: '',
+        //   started_at: '',
+        //   ended_at: '',
+        //   remark: ''
+        // }
       }
     },
     mounted () {
-      if (this.propRecord) {
-        this.record.id = this.propRecord.id
-        this.record.subject = this.propRecord.subject
-        this.record.venue_type = this.propRecord.venue_type
-        this.record.venue = this.propRecord.venue
-        this.record.meeting_room_booking_id = this.propRecord.meeting_room_booking_id
-        this.record.user_id = this.propRecord.user_id
-        this.record.user_name = this.propRecord.user_name
-        this.record.started_at = this.propRecord.started_at
-        this.record.ended_at = this.propRecord.ended_at
-        this.record.remark = this.propRecord.remark
-      }
-      console.log('mounted :: record: ', this.propRecord)
+      // this.record = this.tempMeeting
+      // if (this.propRecord) {
+      //   this.record.id = this.propRecord.id
+      //   this.record.subject = this.propRecord.subject
+      //   this.record.venue_type = this.propRecord.venue_type
+      //   this.record.venue = this.propRecord.venue
+      //   this.record.meeting_room_booking_id = this.propRecord.meeting_room_booking_id
+      //   this.record.user_id = this.propRecord.user_id
+      //   this.record.user_name = this.propRecord.user_name
+      //   this.record.started_at = this.propRecord.started_at
+      //   this.record.ended_at = this.propRecord.ended_at
+      //   this.record.remark = this.propRecord.remark
+      // }
+      // console.log('mounted :: record: ', this.propRecord)
     },
     watch: {
-      // record: function (value) {
-      //   console.log('MeetingRoomForm :: watch(record): value: ', value)
-      //   this.record = value
-      // },
-      record: {
-        handler: function (val, oldVal) {
-          this.$emit('updated', val)
+      tempMeeting: {
+        handler: function (value) {
+          console.log('watch(tempMeeting): value:', value)
+          this.record = value
         },
         deep: true
       }
+    //   // // record: function (value) {
+    //   // //   console.log('MeetingRoomForm :: watch(record): value: ', value)
+    //   // //   this.record = value
+    //   // // },
+    //   // record: {
+    //   //   handler: function (val, oldVal) {
+    //   //     this.$emit('updated', val)
+    //   //   },
+    //   //   deep: true
+    //   // }
     },
     methods: {
+      updateStartedAt (newValue) {
+        this.$store.dispatch('SET_TEMP_MEETING_STARTED_AT', newValue)
+      },
+      updateEndedAt (newValue) {
+        this.$store.dispatch('SET_TEMP_MEETING_ENDED_AT', newValue)
+      },
       onStartedAtChanged (newStart) {
         var endedAtPicker = this.$.endedAtPicker.control
         endedAtPicker.minDate(newStart)
@@ -195,9 +214,13 @@
         startedAtPicker.maxDate(newEnd)
       }
     },
+
     computed: {
       tempMeeting () {
         let vm = this
+        let tempMeeting = vm.$store.getters.tempMeeting
+        console.log('computed(tempMeeting): tempMeeting: ', tempMeeting)
+        this.record = vm.$store.getters.tempMeeting
         return vm.$store.getters.tempMeeting
       }
     }

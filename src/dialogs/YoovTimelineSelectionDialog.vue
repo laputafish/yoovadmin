@@ -224,6 +224,7 @@
           }
         }
       },
+
       resetSlots () {
         let vm = this
         for (var i = 0; i < vm.slots.length; i++) {
@@ -234,32 +235,13 @@
 
       setSlotStatus (key, booking) {
         let vm = this
-        // console.log('setSlotStatus : bookingStart = ' + booking.startMoment.toString())
-        // console.log('setSlotStatus : bookingEnd = ' + booking.endMoment.toString())
-
         for (var i = 0; i < vm.slots.length; i++) {
-          // let slotLabel = vm.slots[i].label
           let slotStartMoment = vm.slots[i].moment
           let slotEndMoment = slotStartMoment.clone().add(15, 'minutes')
-
-          // console.log('setSlotStatus i=' + i + ': slotStartMoment = ' + slotStartMoment.toString())
-          // console.log('setSlotStatus i=' + i + ': slotEndMoment = ' + slotEndMoment.toString())
-
-          // let bookingStartLabel = booking.startMoment.format('hh:mm a')
-          // let bookingEndLabel = booking.endMoment.format('hh:mm a')
-          // console.log('setSlotStatus(' + key + ') i=' + i + ':: bookingStartLabel: ' + bookingStartLabel)
-          // console.log('setSlotStatus(' + key + ') i=' + i + ':: bookingEndLabel: ' + bookingEndLabel)
-
           if (slotStartMoment.diff(booking.startMoment, 'minute') >= 0 &&
             booking.endMoment.diff(slotEndMoment, 'minute') >= 0) {
-//          if (slotStartMoment >= booking.startMoment && slotEndMoment <= booking.endMoment) {
-//             console.log('setSlotStatus i=' + i + ': ' + key + ' => true')
             vm.slots[i][key] = true
           }
-          // if (slotLabel >= bookingStartLabel && slotLabel < bookingEndLabel) {
-          //   console.log('setSlotStatus(' + key + ') i=' + i + ': label: ' + slotLabel + '  in range')
-          //   vm.slots[i][key] = true
-          // }
         }
       },
 
@@ -280,21 +262,15 @@
         for (var j = 0; j < vm.slots.length; j++) {
           newSlots.push(vm.slots[j])
         }
-
-        // vm.$nextTick(function () {
-        //   vm.slots = newSlots
-        //   console.log('updateTimeSlots: ', vm.slots)
-        // })
-//        vm.$set('slots', vm.slots)
       },
 
       save () {
-        // let vm = this
+        let vm = this
 
-        // vm.$emit('updateBooking', {
-        //   startMoment: vm.startSlotMoment,
-        //   endMoment: vm.endSlotMoment
-        // })
+        vm.$emit('updateBooking', {
+          started_at: vm.startSlotMoment,
+          ended_at: vm.endSlotMoment
+        })
       }
     },
     mounted () {

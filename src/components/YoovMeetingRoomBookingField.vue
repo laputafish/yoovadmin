@@ -12,7 +12,7 @@
     <small class="label label-default">{{ meetingRoomBookingPeriod }}</small>
     <yoov-meeting-room-booking-dialog
       v-if="showingMeetingRoomBookingDialog"
-      :booking="record"
+      :booking="localBooking"
       @updateBooking="updateBookingHandler"
       @close="showingMeetingRoomBookingDialog=false">
     </yoov-meeting-room-booking-dialog>
@@ -42,13 +42,14 @@
         showingTimelineSelectionDialog: false,
         timelineSelectionDialog_booking: null,
         timelineSelectionDialog_currentMoment: null,
-        record: {
+        localBooking: {
           id: 0,
           user_id: 0,
           meeting_room_id: 0,
           meeting_room: null,
           started_at: null,
           ended_at: null,
+          status: 'new',
           remark: ''
         }
       }
@@ -60,15 +61,15 @@
     methods: {
       book () {
         let vm = this
-        console.log('YoovMeetingRoomBookingField :: show(YoovMeetingRoomBookingDialog) :: record: ', vm.record)
+        console.log('YoovMeetingRoomBookingField :: show(YoovMeetingRoomBookingDialog) :: localBooking: ', vm.localBooking)
         vm.showingMeetingRoomBookingDialog = true
         // this.$modal.show(YoovMeetingRoomBookingDialog, {
-        //   booking: vm.record,
+        //   booking: vm.localBooking,
         //   updateBooking: (params) => {
-        //     vm.record.meeting_room_id = params.meeting_room_id
-        //     vm.record.meeting_room = params.meeting_room
-        //     vm.record.started_at = params.started_at
-        //     vm.record.ended_at = params.ended_at
+        //     vm.localBooking.meeting_room_id = params.meeting_room_id
+        //     vm.localBooking.meeting_room = params.meeting_room
+        //     vm.localBooking.started_at = params.started_at
+        //     vm.localBooking.ended_at = params.ended_at
         //   }
         // }, {
         //   height: 'auto',
@@ -78,10 +79,13 @@
       },
       updateBookingHandler (params) {
         let vm = this
-        vm.record.meeting_room_id = params.meeting_room_id
-        vm.record.meeting_room = params.meeting_room
-        vm.record.started_at = params.started_at
-        vm.record.ended_at = params.ended_at
+        let selectedRoom = vm.selectedRoom
+        vm.localBooking.meeting_room_id = selectedRoom.id
+        vm.localBooking.meeting_room = selectedRoom
+        vm.localBooking.started_at = params.started_at
+        vm.localBooking.ended_at = params.ended_at
+        vm.$store.dispatch('UPDATE_BOOKING', vm.localBooking)
+        vm.showingTimelineSelectionDialog = false
       },
       showDialog (params) {
         let vm = this
@@ -111,12 +115,14 @@
     },
     mounted () {
       let vm = this
-      vm.record.id = vm.meetingRoomBooking.id
-      vm.record.user_id = vm.meetingRoomBooking.user_id
-      vm.record.meeting_room = vm.meetingRoomBooking.meeting_room
-      vm.record.started_at = vm.meetingRoomBooking.started_at
-      vm.record.ended = vm.meetingRoomBooking.ended
-      vm.record.remark = vm.meetingRoomBooking.remark
+      vm.localBooking.id = vm.meetingRoomBooking.id
+      vm.localBooking.user_id = vm.meetingRoomBooking.user_id
+      vm.localBooking.meeting_room_id = vm.meetingRoomBooking.meeting_room_id
+      vm.localBooking.meeting_room = vm.meetingRoomBooking.meeting_room
+      vm.localBooking.started_at = vm.meetingRoomBooking.started_at
+      vm.localBooking.ended = vm.meetingRoomBooking.ended_at
+      vm.localBooking.status = vm.meetingRoomBooking.status
+      vm.localBooking.remark = vm.meetingRoomBooking.remark
     },
     created () {
       let vm = this
@@ -126,19 +132,22 @@
       EventBus.$off('showDialog')
     },
     computed: {
+      selectedRoom () {
+        return this.$store.getters.selectedRoom
+      },
       meetingRoomName () {
         let vm = this
         let result = ''
-        if (vm.record.id !== 0) {
-          result = vm.record.meeting_room.name
+        if (vm.localBooking.id !== 0) {
+          result = vm.localBooking.meeting_room.name
         }
         return result
       },
       meetingRoomBookingPeriod () {
         let vm = this
         let result = ''
-        if (vm.record.id !== 0) {
-          result = vm.record.meeting_room.period
+        if (vm.localBooking.id !== 0) {
+          result = vm.localBooking.meeting_room.period
         }
         return result
       }

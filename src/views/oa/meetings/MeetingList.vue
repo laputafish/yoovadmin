@@ -16,8 +16,7 @@
       </div>
       <div class="col-sm-12">
         <meeting-form
-          @updated="updatedHandler"
-          :record="selectedMeeting"></meeting-form>
+          @updated="updatedHandler"></meeting-form>
       </div>
     </b-card>
 
@@ -94,7 +93,7 @@
         let vm = this
         axios.get(constants.apiUrl + '/meetings').then(function (response) {
           let meetings = response.data
-          vm.$store.dispatch('SET_MEETING_ROOMS', meetings)
+          vm.$store.dispatch('SET_MEETINGS', meetings)
           vm.data = meetings
           vm.total = meetings.length
         })
@@ -146,10 +145,6 @@
         this.selectedMeeting.ended_at = value.ended_at
         this.selectedMeeting.remark = value.remark
       },
-      newItem () {
-        console.log('MeetingList.vaue :: newItem')
-        this.selectedMeeting = this.setRecord()
-      },
       doDeleteMeeting (meeting) {
         let vm = this
         vm.$store.dispatch('DELETE_MEETING', meeting.id).then((response) => {
@@ -191,8 +186,12 @@
         this.updateSelectedRecord(value)
       },
       edit (value) {
+        console.log('MeetingList :: edit')
         let vm = this
-        vm.$store.dispatch('SET_TEMP_MEETING', value.meeting.id)
+        vm.$store.dispatch('SET_TEMP_MEETING', value.meeting).then(function (response) {
+          vm.selectedMeeting = vm.$store.getters.tempMeeting
+          console.log('MeetingList :: edit :: selectedMeeting set :: tempMeeting: ')
+        })
         // console.log('MeetingList.vue :: edit')
         // this.selectedMeeting = this.setRecord(value.meeting)
         // console.log('MeetingList :: edit :: this.selectedMeeting: ', this.selectedMeeting)
@@ -201,6 +200,23 @@
         //     this.selectedMeeting.roomBooking = response
         //   })
         // }
+      },
+      newItem () {
+        let vm = this
+        vm.$store.dispatch('SET_TEMP_MEETING', {
+          id: 0,
+          subject: '',
+          venue_type: 'conference_room',
+          venue: '',
+          meeting_room_booking_id: 0,
+          room_booking: null,
+          used_id: vm.user.id,
+          user_name: vm.user.name,
+          started_at: '',
+          ended_at: '',
+          remark: ''
+        })
+        vm.selectedMeeting = vm.$store.getters.tempMeeting
       },
       delete (value) {
         console.log('MeetingList :: delete')
