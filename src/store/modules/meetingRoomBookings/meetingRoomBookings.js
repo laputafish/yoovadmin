@@ -14,10 +14,10 @@ const getters = {
 }
 
 const mutations = {
-  updateMeetingRooms (state, payload) {
-    state.meetingRooms = payload
-    console.log('updateMeetingRooms :: meetingRooms: ', state.meetingRooms)
-  },
+  // updateMeetingRooms (state, payload) {
+  //   state.meetingRooms = payload
+  //   console.log('updateMeetingRooms :: meetingRooms: ', state.meetingRooms)
+  // },
   changeLoadingMeetingRoomsState (state, loading) {
     state.loadingMeetingRooms = loading
   },

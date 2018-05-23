@@ -37,7 +37,9 @@
                    @dblclick.stop="onSlotDblClick(item)"
                    class="timeslot"
                    :class="{selected:item.selected,occupied:item.occupied}"
-                @click="onSlotClicked(item)">{{ item.label }}</div>
+                   @mousedown="onSlotMouseDown(item)"
+                   @mouseup="selecting=false"
+                @mousemove="onSlotMouseMove(item)">{{ item.label }}</div>
             </td>
           </tr>
         </table>
@@ -46,6 +48,7 @@
     <div slot="footer" style="width:100%;">
       <small class="footnote align-self-start">* double-click to reset start point</small>
       <div class="pull-right">
+        booking: {{ booking }}
         <button :disabled="false"
                 class="btn btn-primary"
                 @click="save()">
@@ -62,10 +65,12 @@
 
 <script>
   import YoovModal from '@/components/Modal'
+//  import {EventBus} from '@/event-bus'
 
   export default {
     data () {
       return {
+        selecting: false,
         // list range
         startHour: 7,
         endHour: 23,
@@ -170,7 +175,19 @@
         }
         return result
       },
-      onSlotClicked (item) {
+      onSlotMouseMove (item) {
+        let vm = this
+        if (vm.selecting) {
+          let index = vm.slots.indexOf(item)
+          console.log('onSlotMouseMove: index = ' + index)
+          if (index > 0) {
+            if (vm.slots[index - 1].selected) {
+              item.selected = true
+            }
+          }
+        }
+      },
+      onSlotMouseDown (item) {
         if (!item.occupied) {
           let vm = this
           let index = vm.slots.indexOf(item)
@@ -187,14 +204,23 @@
                 for (i = index; i < firstIndex; i++) {
                   vm.slots[i].selected = true
                 }
+              } else {
+                vm.clearSelection()
+                item.selected = true
               }
             } else if (index > lastIndex) {
               if (vm.getOccupiedCount(lastIndex + 1, index - 1) === 0) {
                 for (i = lastIndex + 1; i <= index; i++) {
                   vm.slots[i].selected = true
                 }
+              } else {
+                vm.clearSelection()
+                item.selected = true
               }
             }
+          }
+          if (item.selected) {
+            vm.selecting = true
           }
         }
       },
@@ -263,11 +289,12 @@
       },
 
       save () {
-        let vm = this
-        vm.$emit('updateBooking', {
-          startMoment: vm.startSlotMoment,
-          endMoment: vm.endSlotMoment
-        })
+        // let vm = this
+
+        // vm.$emit('updateBooking', {
+        //   startMoment: vm.startSlotMoment,
+        //   endMoment: vm.endSlotMoment
+        // })
       }
     },
     mounted () {

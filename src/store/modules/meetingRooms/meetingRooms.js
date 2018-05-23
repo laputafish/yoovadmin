@@ -3,11 +3,15 @@ import * as constants from '../../constants'
 import axios from 'axios'
 
 const state = {
+  selectedRoom: null,
   meetingRooms: [],
   loadingMeetingRooms: true
 }
 
 const getters = {
+  selectedRoom: (state) => {
+    return state.selectedRoom
+  },
   meetingRooms: (state) => {
     return state.meetingRooms
   }
@@ -16,7 +20,12 @@ const getters = {
 const mutations = {
   updateMeetingRooms (state, payload) {
     state.meetingRooms = payload
-    console.log('updateMeetingRooms :: meetingRooms: ', state.meetingRooms)
+    if (state.meetingRooms.length > 0) {
+      console.log('Mutations :: updateMeetingRooms :: meetingRooms.length>0 => set selectedRoom')
+      if (state.selectedRoom === null) {
+        state.selectedRoom = state.meetingRooms[0]
+      }
+    }
   },
   changeLoadingMeetingRoomsState (state, loading) {
     state.loadingMeetingRooms = loading
@@ -26,6 +35,10 @@ const mutations = {
   },
   updateMeetingRoom (state, payload) {
 
+  },
+  selectRoom (state, payload) {
+    console.log('MUTATION :: selectRoom: payload:', payload)
+    state.selectedRoom = payload
   }
 }
 
@@ -63,7 +76,13 @@ const actions = {
       commit('updateMeetingRooms', response.data)
       commit('changeLoadingMeetingRoomsState', false)
     })
+  },
+
+  async [types.SELECT_ROOM] ({commit, dispatch, state}, payload) {
+    console.log('ACTIONS :: SELECT_ROOM: payload:', payload)
+    commit('selectRoom', payload)
   }
+
 }
 
 export default {

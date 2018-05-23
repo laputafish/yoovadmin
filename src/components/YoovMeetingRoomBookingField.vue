@@ -15,21 +15,33 @@
       :booking="record"
       @updateBooking="updateBookingHandler"
       @close="showingMeetingRoomBookingDialog=false">
-
     </yoov-meeting-room-booking-dialog>
+    <yoov-timeline-selection-dialog
+      v-if="showingTimelineSelectionDialog"
+      :currentMoment="timelineSelectionDialog_currentMoment"
+      :booking="timelineSelectionDialog_booking"
+      @close="showingTimelineSelectionDialog=false">
+    </yoov-timeline-selection-dialog>
+
   </div>
 </template>
 
 <script>
   import YoovMeetingRoomBookingDialog from '@/dialogs/YoovMeetingRoomBookingDialog'
+  import YoovTimelineSelectionDialog from '@/dialogs/YoovTimelineSelectionDialog'
+  import {EventBus} from '@/event-bus'
 
   export default {
     components: {
-      'yoov-meeting-room-booking-dialog': YoovMeetingRoomBookingDialog
+      'yoov-meeting-room-booking-dialog': YoovMeetingRoomBookingDialog,
+      'yoov-timeline-selection-dialog': YoovTimelineSelectionDialog
     },
     data () {
       return {
         showingMeetingRoomBookingDialog: false,
+        showingTimelineSelectionDialog: false,
+        timelineSelectionDialog_booking: null,
+        timelineSelectionDialog_currentMoment: null,
         record: {
           id: 0,
           user_id: 0,
@@ -70,6 +82,16 @@
         vm.record.meeting_room = params.meeting_room
         vm.record.started_at = params.started_at
         vm.record.ended_at = params.ended_at
+      },
+      showDialog (params) {
+        let vm = this
+        switch (params.dialog) {
+          case 'timelineSelectionDialog':
+            vm.timelineSelectionDialog_booking = params.booking
+            vm.timelineSelectionDialog_currentMoment = params.currentMoment
+            vm.showingTimelineSelectionDialog = true
+            break
+        }
       }
     },
     props: {
@@ -95,6 +117,13 @@
       vm.record.started_at = vm.meetingRoomBooking.started_at
       vm.record.ended = vm.meetingRoomBooking.ended
       vm.record.remark = vm.meetingRoomBooking.remark
+    },
+    created () {
+      let vm = this
+      EventBus.$on('showDialog', vm.showDialog)
+    },
+    destroyed () {
+      EventBus.$off('showDialog')
     },
     computed: {
       meetingRoomName () {

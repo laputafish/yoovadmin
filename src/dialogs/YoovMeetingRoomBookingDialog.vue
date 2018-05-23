@@ -86,6 +86,7 @@
     </div>
     <div slot="footer" style="width: 100%;">
       <div class="pull-right">
+        selectedRoom: {{ selectedRoom }}
         <b-button @click="$emit('close')"
                   variant="primary"
             class="btn btn-primary">
@@ -98,29 +99,20 @@
         </b-button>
       </div>
     </div>
-    <yoov-timeline-selection-dialog v-if="showingTimelineSelectionDialog"
-                                    :currentMoment="selectedMoment"
-                                    :booking="currentBooking"
-                                    @updateBooking="updateBookingHandler"
-                                    @close="showingTimelineSelectionDialog = false">
-    </yoov-timeline-selection-dialog>
   </yoov-modal>
 </template>
 
 <script>
-import YoovTimelineSelectionDialog from '@/dialogs/YoovTimelineSelectionDialog'
 import YoovModal from '@/components/Modal'
+import {EventBus} from '@/event-bus'
 
 export default {
   components: {
-    'yoov-timeline-selection-dialog': YoovTimelineSelectionDialog,
     'yoov-modal': YoovModal
   },
   data () {
     return {
-      showingTimelineSelectionDialog: false,
       currentMoment: null,
-      selectedRoom: null,
       displayedRangeStart: '2018-05-06',
       displayedRangeEnd: '2018-05-12',
       displayedWeekdays: ['', '', '', '', '', '', ''],
@@ -156,13 +148,18 @@ export default {
       // ]
     }
   },
+  props: {
+    booking: null
+  },
   methods: {
-    props: {
-      booking: null
-    },
     onRoomSelected (room) {
-      this.selectedRoom = room
-      this.refreshCalendar()
+      console.log('onRoomSelected starts')
+      let vm = this
+      vm.$store.dispatch('SELECT_ROOM', room).then(function () {
+        console.log('after dispatch(SELECT_ROOM)')
+        vm.refreshCalendar(room)
+      })
+      console.log('onRoomSelected ends')
     },
     updateBookingHandler (payload) {
       // payload.startMoment
@@ -191,7 +188,7 @@ export default {
       }
     },
 
-    setCurrentWeekBookings () {
+    setCurrentWeekBookings (selectedRoom) {
       let vm = this
       let dummy = null
       let dummyDay = null
@@ -226,8 +223,20 @@ export default {
       // filter bookings
 
       // console.log('=====> setCurrentWeekBookings:before :: weekSchedule:', vm.weekSchedule)
+      console.log('setCurrentWeekBookings :: vm.rooms.length = ' + vm.rooms.length)
+      // if (vm.rooms.length > 0) {
+      //   if (vm.selectedRoom === null) {
+      //     vm.selectedRoom = vm.rooms[0]
+      //   }
+      // } else {
+      //   vm.selectedRoom = null
+      // }
+
+      console.log('setCurrentWeekBookings :: vm.selectedRoom :' + JSON.stringify(selectedRoom))
+
       for (var j = 0; j < vm.bookings.length; j++) {
-        if (vm.bookings[j].meeting_room_id !== vm.selectedRoom.id) {
+        console.log('setCurrentWeekBookings :: vm.bookings[' + j + '].meeting_room_id = ' + vm.bookings[j].meeting_room_id)
+        if (vm.bookings[j].meeting_room_id !== selectedRoom.id) {
           continue
         }
         var booking = vm.bookings[j]
@@ -447,10 +456,18 @@ export default {
     },
     newSchedule () {
       let vm = this
-      vm.showingTimelineSelectionDialog = true
+      console.log('YoovMeetingRoomBookingDialog :: newSchedule => $emit(showDialog)')
+      if (vm.booking.id === 0) {
+        vm.booking.meeting_room_id = vm.selectedRoom.id
+        vm.booking.meeting_room = vm.selectedRoom
+      }
+      EventBus.$emit('showDialog', {
+        dialog: 'timelineSelectionDialog',
+        booking: vm.booking,
+        currentMoment: vm.selectedMoment
+      })
     },
     onColumnClicked (index) {
-      alert('x')
       let vm = this
       let clone = vm.currentMoment.clone()
       vm.selectedMoment = clone.day(index)
@@ -479,10 +496,9 @@ export default {
       //   vm.refreshCalendar()
       // })
     },
-    refreshCalendar () {
-      // this.$nextTick(function () {
-      this.setCurrentWeekBookings()
-      // })
+    refreshCalendar (selectedRoom) {
+      console.log('refreshCalendar :: selectedRoom: ', selectedRoom)
+      this.setCurrentWeekBookings(selectedRoom)
     }
   },
   watch: {
@@ -500,15 +516,11 @@ export default {
       vm.$store.dispatch('GET_MEETING_ROOMS')
     ]
     Promise.all(promises).then(function (responses) {
-      if (vm.rooms.length > 0) {
-        vm.selectedRoom = vm.rooms[0]
-      }
       console.log('promise.all :: meeting_rooms.length = ' + vm.rooms.length)
       vm.currentMoment = vm.$moment()
       vm.fillBookingInfos()
-      vm.refreshCalendar()
+      vm.refreshCalendar(vm.selectedRoom)
     })
-
 
     // vm.$store.dispatch('GET_MEETING_ROOM_BOOKINGS', {
     //   callback: (bookings) => {
@@ -530,6 +542,9 @@ export default {
     // })
   },
   computed: {
+    selectedRoom () {
+      return this.$store.getters.selectedRoom
+    },
     currentBooking () {
       let vm = this
       var result = {
@@ -547,7 +562,9 @@ export default {
       return this.$store.getters.meetingRooms
     },
     bookings () {
-      return this.$store.getters.meetingRoomBookings
+      let result = this.$store.getters.meetingRoomBookings
+      console.log('YoovMeetingRoomBookingDialog :: bookins: ', result)
+      return result
     },
     timestamp () {
       let vm = this
@@ -564,7 +581,7 @@ export default {
 #yoovMeetingRoomBookingDialog .modal-container {
   width: 90%;
   min-width: 1200px;
-  height: auto;
+  height: 710px;
 }
 
 #yoovMeetingRoomBookingDialog .card {
@@ -573,6 +590,7 @@ export default {
 }
 
 #yoovMeetingRoomBookingDialog .rooms-table td.room-item {
+  cursor: pointer;
   background-color: white;
 }
 

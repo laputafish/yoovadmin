@@ -46,7 +46,7 @@
   import axios from 'axios'
   import components from './comps'
   import MeetingForm from './MeetingForm'
-  import { EventBus } from '@/event-bus.js'
+  import {EventBus} from '@/event-bus.js'
 
   export default {
     components: {
@@ -57,13 +57,13 @@
       return {
         selectedMeeting: null,
         columns: [
-          {title: 'Subject', field: 'name', sortable: true},
-          {title: 'Venue', tdComp: 'tdVenue', field: 'venue', sortable: true},
-          {title: 'Applicant', field: 'applicant', sortable: true},
+          {title: 'Subject', field: 'subject', sortable: true},
+          {title: 'Venue', field: 'meeting_venue', sortable: true},
+          {title: 'Applicant', field: 'applicant_name', sortable: true},
           {title: 'Started At', field: 'started_at', sortable: false},
           {title: 'Ended At', field: 'ended_at', sortable: false},
           {title: 'Remark', field: 'remark', sortable: false},
-          {title: 'Status', tdComp: 'tdStatus', field: 'status', sortable: false},
+          {title: 'Status', field: 'status', sortable: false},
           {title: 'Action', tdComp: 'tdAction', field: 'action', sortable: false}
         ],
         data: [],
@@ -81,14 +81,6 @@
       loadingMeetingRooms () {
         return this.$store.loadingMeetingRooms
       }
-    },
-    created () {
-      EventBus.$on('edit_meeting_room', this.edit)
-      EventBus.$on('delete_meeting_room', this.delete)
-    },
-    destroyed () {
-      EventBus.$off('edit_meeting_room')
-      EventBus.$off('delete_meeting_room')
     },
     watch: {
       query: {
@@ -108,16 +100,18 @@
         })
       },
 
-      initRecord (value) {
+      setRecord (value) {
         let vm = this
-        console.log('initRecord :: value: ', value)
-        return (typeof value === 'undefined')
+        console.log('setRecord :: value: ', value)
+        console.log('setRecord :: typeof value = ' + (typeof value))
+        let result = (typeof value === 'undefined')
           ? {
             id: 0,
             subject: '',
             venue_type: 'conference_room',
             venue: '',
             meeting_room_booking_id: 0,
+            room_booking: null,
             used_id: vm.user.id,
             user_name: vm.user.name,
             started_at: '',
@@ -130,12 +124,15 @@
             venue_type: value.venue_type,
             venue: value.venue,
             meeting_room_booking_id: value.meeting_room_booking_id,
+            room_booking: value.room_booking,
             user_id: value.user_id,
-            user_name: value.user_name,
+            user_name: value.applicant_name,
             started_at: value.started_at,
             ended_at: value.ended_at,
             remark: value.remark
           }
+        console.log('setRecord :: result: ', result)
+        return result
       },
       updateSelectedRecord (value) {
         this.selectedMeeting.id = value.id
@@ -149,30 +146,26 @@
         this.selectedMeeting.ended_at = value.ended_at
         this.selectedMeeting.remark = value.remark
       },
-      edit (value) {
-        this.selectedMeeting = this.initRecord(value.meeting)
-      },
       newItem () {
-        this.selectedMeeting = this.initRecord()
+        console.log('MeetingList.vaue :: newItem')
+        this.selectedMeeting = this.setRecord()
       },
       doDeleteMeeting (meeting) {
         let vm = this
-        let url = constants.apiUrl + '/meetings/' + meeting.id
-        axios.delete(url).then((response) => {
-          vm.refresh()
+        vm.$store.dispatch('DELETE_MEETING', meeting.id).then((response) => {
+          if (response.status === 'fails') {
+            vm.$dialog.alert({
+              title: 'Warning',
+              message: response.message
+            })
+          } else {
+            vm.refresh()
+          }
         })
-      },
-      delete (value) {
-        let vm = this
-        let meeting = value.meeting
-        console.log('delete :: value: ', meeting.name)
-        vm.$dialog.confirm({
-          title: 'Confirmation',
-          body: 'Delete meeting "' + meeting.subject + '".\nAre you sure?'
-        })
-          .then(() => {
-            vm.doDeleteMeeting(meeting)
-          })
+        // let url = constants.apiUrl + '/meetings/' + meeting.id
+        // axios.delete(url).then((response) => {
+        //   vm.refresh()
+        // })
       },
       saveItem () {
         if (this.selectedMeeting.id === 0) {
@@ -196,7 +189,41 @@
       },
       updatedHandler (value) {
         this.updateSelectedRecord(value)
+      },
+      edit (value) {
+        console.log('MeetingList.vue :: edit')
+        this.selectedMeeting = this.setRecord(value.meeting)
+        console.log('MeetingList :: edit :: this.selectedMeeting: ', this.selectedMeeting)
+        // if (value.meeting.venue_type === 'conference_room') {
+        //   this.$store.dispatch('GET_ROOM_BOOKING', value.meeting.id).then(function (response) {
+        //     this.selectedMeeting.roomBooking = response
+        //   })
+        // }
+      },
+      delete (value) {
+        console.log('MeetingList :: delete')
+        let vm = this
+        let meeting = value.meeting
+        console.log('delete :: value: ', meeting.name)
+        vm.$dialog.confirm({
+          title: 'Confirmation',
+          body: 'Delete meeting "' + meeting.subject + '".\nAre you sure?'
+        }, {
+          okText: 'Yes',
+          cancelText: 'No'
+        })
+          .then(() => {
+            vm.doDeleteMeeting(meeting)
+          })
       }
+    },
+    created () {
+      EventBus.$on('edit_meeting', this.edit)
+      EventBus.$on('delete_meeting', this.delete)
+    },
+    destroyed () {
+      EventBus.$off('edit_meeting')
+      EventBus.$off('delete_meeting')
     },
     mounted () {
       // if (!this.user) {

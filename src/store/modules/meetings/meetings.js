@@ -63,6 +63,12 @@ const actions = {
       commit('updateMeetings', response.data)
       commit('changeLoadingMeetingsState', false)
     })
+  },
+
+  async [types.DELETE_MEETING] ({commit, state}, meetingId) {
+    await axios.delete(constants.apiUrl + '/meetings/' + meetingId).then((response) => {
+
+    })
   }
 }
 
