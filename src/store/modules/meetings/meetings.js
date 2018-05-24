@@ -45,7 +45,7 @@ const mutations = {
 }
 
 const actions = {
-  [types.CREATE_MEETING] ({commit, dispatch}, payload) {
+  [types.STORE_MEETING] ({commit, dispatch}, payload) {
     let meeting = payload.meeting
     let url = constants.apiUrl + '/meetings'
     axios.post(url, meeting).then(function (response) {

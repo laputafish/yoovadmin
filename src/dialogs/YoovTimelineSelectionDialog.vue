@@ -16,8 +16,8 @@
         </div>
         <div class="align-self-center" style="margin: 0 auto;">
           <div class="flex-grow-1 text-center current-date">
-            <span>{{ currentDay }}</span><br/>
-            <span class="badge badge-default">{{ showingMoment ? showingMoment.format('ddd') : '' }}</span>
+            <span>{{ currentDay }}</span>
+            <div class="weekday-label">{{ showingMoment ? showingMoment.format('ddd') : '' }}</div>
           </div>
         </div>
         <div class="align-self-end">
@@ -44,11 +44,12 @@
           </tr>
         </table>
       </div>
-    </div>
-    <div slot="footer" style="width:100%;">
       <small class="footnote align-self-start">* double-click to reset start point</small>
-      <div class="pull-right">
-        booking: {{ booking }}
+    </div>
+    <div slot="footer" style="width:100%;" class="mt-0 pt-0">
+
+      <div class="text-center">
+        <div v-if="false">booking: {{ booking }}</div>
         <button :disabled="false"
                 class="btn btn-primary"
                 @click="save()">
@@ -74,6 +75,7 @@
         // list range
         startHour: 7,
         endHour: 23,
+        intervals: 15, // minutes
 
         startMoment: null, // list start
         endMoment: null, // list end
@@ -180,7 +182,7 @@
           console.log('onSlotMouseMove: index = ' + index)
           if (index > 0) {
             if (vm.slots[index - 1].selected) {
-              item.selected = true
+              item.selected = !item.occupied
             }
           }
         }
@@ -264,13 +266,30 @@
 
       save () {
         let vm = this
+        let selectionInfo = vm.getSelectionInfo()
+        console.log('save() selectionInfo: ', selectionInfo)
+        console.log('save() slot count = ' + vm.slots.length)
+        let startSlot = vm.slots[selectionInfo.firstIndex]
+        let endSlot = vm.slots[selectionInfo.lastIndex]
+        console.log('save() startSlot: ', startSlot)
+        console.log('save() endSlot: ', endSlot)
 
+        let startMoment = startSlot.moment.clone()
+        console.log('save() startMoment: ', startMoment.toString())
+
+        let endMoment = endSlot.moment.clone()
+        console.log('save() endMoment: ', endMoment.toString())
+
+        let nextStartMoment = endMoment.clone().add(vm.intervals, 'minutes')
+        console.log('save() nextStartMoment: ' + nextStartMoment.toString())
         vm.$emit('onResult', {
           dialog: 'yoovTimelineSelectionDialog',
           payload: {
             mode: vm.mode,
-            startedA: vm.startSlotMoment,
-            endedAt: vm.endSlotMoment
+            startMoment: startMoment,
+            startedAt: startMoment.format('Y-MM-DD HH:mm:ss'),
+            endMoment: endMoment,
+            endedAt: nextStartMoment.format('Y-MM-DD HH:mm:ss')
           }
         })
       }
@@ -378,6 +397,12 @@
   line-height: 1;
 }
 
+#yoovTimelineSelectionDialog .current-date .weekday-label {
+  font-weight: bold;
+  font-size: 14px;
+  padding-top: 4px;
+}
+
 #yoovTimelineSelectionDialog .modal-container {
   width: 560px;
 }
@@ -430,5 +455,9 @@
 
 #yoovTimelineSelectionDialog .footnote {
     margin-left:10px;
+}
+
+#yoovTimelineSelectionDialog .modal-footer button {
+  min-width: 80px;
 }
 </style>

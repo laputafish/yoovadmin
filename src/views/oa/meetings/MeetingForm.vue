@@ -95,7 +95,7 @@
       </div>
     </div>
 
-    <div class="row">
+    <div v-if="false" class="row">
       <div class="col-sm-12">
         {{ record }}
       </div>
@@ -184,6 +184,7 @@
         handler: function (value) {
           console.log('watch(tempMeeting): value:', value)
           this.record = value
+          this.$store.dispatch('UPDATE_WORKING_BOOKING', this.record.room_booking)
         },
         deep: true
       }

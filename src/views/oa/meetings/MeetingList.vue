@@ -79,6 +79,9 @@
       },
       loadingMeetingRooms () {
         return this.$store.loadingMeetingRooms
+      },
+      workingBooking () {
+        return this.$store.getters.workingBooking
       }
     },
     watch: {
@@ -163,9 +166,15 @@
         // })
       },
       saveItem () {
+        let vm = this
+
+        if (vm.selectedMeeting.venue_type === 'conference_room') {
+          vm.selectedMeeting.room_booking = vm.workingBooking
+        }
+
         if (this.selectedMeeting.id === 0) {
           // New
-          this.$store.dispatch('CREATE_MEETING', {
+          this.$store.dispatch('STORE_MEETING', {
             meeting: this.selectedMeeting,
             callback: this.refresh
           })
@@ -190,7 +199,6 @@
         let vm = this
         vm.$store.dispatch('SET_TEMP_MEETING', value.meeting).then(function (response) {
           vm.selectedMeeting = vm.$store.getters.tempMeeting
-          console.log('MeetingList :: edit :: selectedMeeting set :: tempMeeting: ')
         })
         // console.log('MeetingList.vue :: edit')
         // this.selectedMeeting = this.setRecord(value.meeting)
@@ -215,8 +223,9 @@
           started_at: '',
           ended_at: '',
           remark: ''
+        }).then(function () {
+          vm.selectedMeeting = vm.$store.getters.tempMeeting
         })
-        vm.selectedMeeting = vm.$store.getters.tempMeeting
       },
       delete (value) {
         console.log('MeetingList :: delete')

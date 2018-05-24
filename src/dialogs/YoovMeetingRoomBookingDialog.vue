@@ -1,7 +1,7 @@
 <template>
   <yoov-modal id="yoovMeetingRoomBookingDialog"
     :class="{'read-only':booking.status=='approved'||booking.status=='rejected'}">
-    <div slot="header" class="header">
+    <div slot="header" class="header" style="position:relative;">
       <div class="pull-right">
         <span class="badge badge-primary booking-status" v-if="booking.status==='pending'">Pending</span>
         <span class="badge badge-success booking-status" v-else-if="booking.status==='approved'">Approved</span>
@@ -11,6 +11,20 @@
       <h3 class="dialog-title">
         Meeting Room Booking
       </h3>
+      <div v-if="false" class="pull-left" style="margin-top:-5px;position:absolute;left: 0;top:0;margin:0 0 0 320px;font-size:10px;">
+        <table style="width:640px;" id="booking-table" v-if="localBooking">
+          <tr>
+            <td>#</td><td>{{ localBooking.id }}</td>
+            <td>Room ID</td><td>{{ localBooking.meeting_room_id }} ({{ localBooking.meeting_room_name }})</td>
+            <td>Started At</td><td>{{ localBooking.started_at }} (Moment:{{ localBooking.startMoment.toString() }})</td>
+          </tr>
+          <tr>
+            <td>app. ID</td><td>{{ localBooking.applicant_id }}</td>
+            <td>app. Name</td><td>{{ localBooking.applicant_name }}</td>
+            <td>Ended At</td><td>{{ localBooking.ended_at }} (Moment:{{ localBooking.endMoment.toString() }})</td>
+          </tr>
+        </table>
+      </div>
     </div>
     <div slot="body" class="d-flex flex-column">
       <div class="row flex-grow-1">
@@ -70,11 +84,11 @@
                 <tbody>
                   <tr class="schedule-content-row">
                     <td class="schedule-column"
-                        @click="onColumnClicked(index)"
-                      v-for="(scheduleItems,index) in weekSchedule">
+                        @click="onColumnClicked(columnIndex)"
+                      v-for="(scheduleItems,columnIndex) in weekSchedule">
                       <div v-for="item in scheduleItems"
                            :class="getScheduleItemClass(item)"
-                           @click.stop="onEventClicked(item)"
+                           @click.stop="onEventClicked(columnIndex, item)"
                         class="schedule-item-wrapper"
                         :style="getItemStyle(item)">
                         <div class="schedule-item">
@@ -97,17 +111,16 @@
       </div>
     </div>
     <div slot="footer" style="height:40px;width: 100%;position:relative;" class="text-center">
-      <div style="position:absolute;left:0;top:0;text-align:center;width:100%;">selectedRoom: {{ selectedRoom }}
+      <div v-if="false" style="position:absolute;left:0;top:0;text-align:center;width:100%;">selectedRoom: {{ selectedRoom }}
       </div>
       <div style="position:absolute;left:0;top:0;text-align:center;width:100%;">
-        <b-button @click="$emit('close')"
-                  variant="primary"
-            class="btn btn-primary">
+        <b-button @click="update()"
+                  :disabled="disableUpdate()"
+                  variant="primary">
           OK
         </b-button>
         <b-button @click="$emit('close')"
-                  variant="primary"
-            class="btn btn-default">
+                  variant="default">
           Cancel
         </b-button>
       </div>
@@ -125,6 +138,7 @@ export default {
   },
   data () {
     return {
+      localBooking: null,
       currentMoment: null,
       displayedRangeStart: '2018-05-06',
       displayedRangeEnd: '2018-05-12',
@@ -145,6 +159,23 @@ export default {
     booking: null
   },
   methods: {
+    disableUpdate () {
+      let vm = this
+      let result = true
+      if (vm.localBooking && vm.localBooking.started !== null) {
+        result = false
+      }
+      return result
+    },
+    update () {
+      let vm = this
+
+      vm.$emit('updateBooking', {
+        startedAt: vm.localBooking.started_at,
+        endedAt: vm.localBooking.ended_at
+      })
+      vm.$emit('close')
+    },
     getScheduleItemClass (item) {
       let vm = this
       return {
@@ -160,6 +191,9 @@ export default {
       vm.$store.dispatch('SELECT_ROOM', room).then(function () {
         console.log('after dispatch(SELECT_ROOM)')
         vm.refreshCalendar(room)
+        vm.localBooking.meeting_room_id = room.id
+        vm.localBooking.meeting_room_name = room.name
+        vm.localBooking.meeting_room = room
       })
       console.log('onRoomSelected ends')
     },
@@ -280,6 +314,17 @@ export default {
       // console.log('before sort')
       vm.setScheduleRegionTop()
       // console.log('setCurrentWeekBookings :: scheduleSlotByHour: ', vm.scheduleSlotByHour)
+    },
+    showCurrentBookings () {
+      let vm = this
+      for (var i = 0; i < vm.currentBookings.length; i++) {
+        let booking = vm.currentBookings[i]
+        console.log('#' + i + ': id=' + booking.id + ' appId=' + booking.applicant_id +
+          ' (' + booking.applicant_name + ') ' +
+          'room id = ' + booking.meeting_room_id + ' (' + booking.meeting_room_name + ') ' +
+          'started_at=' + booking.started_at + '   ended_at=' + booking.ended_at
+        )
+      }
     },
     setupScheduleSlotByHour () {
       let vm = this
@@ -462,15 +507,24 @@ export default {
         }
       }
     },
-    editSchedule (index, mode) {
+    editSchedule (columnIndex, mode) {
       let vm = this
       let clone = vm.currentMoment.clone()
-      vm.selectedMoment = clone.day(index)
 
       if (vm.booking.id === 0) {
         vm.booking.meeting_room_id = vm.selectedRoom.id
         vm.booking.meeting_room = vm.selectedRoom
       }
+      vm.booking.startMoment = vm.$moment(vm.booking.started_at)
+      vm.booking.endMoment = vm.$moment(vm.booking.ended_at)
+      console.log('editSchedule (mode=' + mode + ') vm.booking: ', vm.booking)
+
+      // if edit mode, get column index of current booking
+      if (mode === 'edit') {
+        columnIndex = vm.booking.startMoment.day()
+      }
+      vm.selectedMoment = clone.day(columnIndex)
+
       EventBus.$emit('showDialog', {
         dialog: 'timelineSelectionDialog',
         booking: vm.booking,
@@ -489,7 +543,7 @@ export default {
           vm.showingConfirmationDialog = false
       }
     },
-    onColumnClicked (index) {
+    onColumnClicked (columnIndex) {
       let vm = this
       console.log('YoovMeetingRoomBookingDialog :: onColumnClicked :: vm.booking: ', vm.booking)
       if (vm.booking.started_at !== null) {
@@ -501,10 +555,10 @@ export default {
             console.log('timeSlotEntryConfirmationDialog :: callback :: action = ' + action)
             switch (action) {
               case 'edit':
-                vm.editSchedule(index, 'edit')
+                vm.editSchedule(columnIndex, 'edit')
                 break
               case 'new':
-                vm.editSchedule(index, 'new')
+                vm.editSchedule(columnIndex, 'new')
                 break
               default:
                 break
@@ -531,11 +585,15 @@ export default {
         //   alert('cancel')
         // })
       } else {
-        this.editSchedule('index', 'new')
+        this.editSchedule(columnIndex, 'new')
       }
     },
-    onEventClicked (item) {
-//      alert('applicant = ' + item.applicant)
+    onEventClicked (columnIndex, item) {
+      let vm = this
+      console.log('onEventClicked (columnIndex=' + columnIndex + ') :: item.id=' + item.id + '    vs vm.booking.id=' + vm.booking.id)
+      if (item.id === vm.booking.id) {
+        vm.editSchedule(columnIndex, 'edit')
+      }
     },
     onNextButtonClicked () {
       let vm = this
@@ -562,28 +620,43 @@ export default {
 //        alert('watch(displayedWeekdays)')
       },
       deep: true
+    },
+    'booking': {
+      handler () {
+        let vm = this
+        vm.localBooking = vm.booking
+        console.log('watch(booking) :: vm.localBooking: ', vm.localBooking)
+        console.log('watch(booking) :: vm.selectedRoom: ', vm.selectedRoom)
+        vm.fillBookingInfos()
+        vm.refreshCalendar(vm.selectedRoom)
+      },
+      deep: true
     }
   },
   mounted () {
     let vm = this
+    vm.showCurrentBookings()
+    vm.localBooking = vm.booking
     let promises = [
       vm.$store.dispatch('GET_MEETING_ROOM_BOOKINGS'),
       vm.$store.dispatch('GET_MEETING_ROOMS')
     ]
     Promise.all(promises).then(function (responses) {
-      console.log('promise.all :: meeting_rooms.length = ' + vm.rooms.length)
-      vm.currentMoment = vm.$moment()
-      let selectedRoom = null
-      for (var i = 0; i < vm.rooms.length; i++) {
-        if (vm.rooms[i].id === vm.booking.meeting_room_id) {
-          selectedRoom = vm.rooms[i]
-          vm.$store.dispatch('SELECT_ROOM', selectedRoom)
-          break
+      vm.$store.dispatch('UPDATE_BOOKING', vm.localBooking).then(function (response) {
+        console.log('promise.all :: meeting_rooms.length = ' + vm.rooms.length)
+        vm.currentMoment = vm.$moment()
+        let selectedRoom = null
+        for (var i = 0; i < vm.rooms.length; i++) {
+          if (vm.rooms[i].id === vm.booking.meeting_room_id) {
+            selectedRoom = vm.rooms[i]
+            vm.$store.dispatch('SELECT_ROOM', selectedRoom)
+            break
+          }
         }
-      }
-      vm.fillBookingInfos()
-      console.log('mounted => refreshCalendar :: selectedRoom: ', selectedRoom)
-      vm.refreshCalendar(selectedRoom)
+        vm.fillBookingInfos()
+        console.log('mounted => refreshCalendar :: selectedRoom: ', selectedRoom)
+        vm.refreshCalendar(selectedRoom)
+      })
     })
 
     // vm.$store.dispatch('GET_MEETING_ROOM_BOOKINGS', {
@@ -609,18 +682,22 @@ export default {
     selectedRoom () {
       return this.$store.getters.selectedRoom
     },
-    currentBooking () {
-      let vm = this
-      var result = {
-        startMoment: null,
-        endMoment: null
-      }
-      if (vm.booking) {
-        result.startMoment = vm.$moment(vm.booking.started_at)
-        result.endMoment = vm.$moment(vm.booking.ended_at)
-      }
-      return result
+    currentBookings () {
+      return this.$store.getters.meetingRoomBookings
     },
+
+    // currentBooking () {
+    //   let vm = this
+    //   var result = {
+    //     startMoment: null,
+    //     endMoment: null
+    //   }
+    //   if (vm.booking) {
+    //     result.startMoment = vm.$moment(vm.booking.started_at)
+    //     result.endMoment = vm.$moment(vm.booking.ended_at)
+    //   }
+    //   return result
+    // },
 
     rooms () {
       return this.$store.getters.meetingRooms
@@ -757,7 +834,7 @@ export default {
 }
 
 #yoovMeetingRoomBookingDialog .schedule-item-wrapper.booking-pending:not(.occupied) .schedule-item {
-  background-color: #fffeba;
+  background-color: yellow; /*#fffeba;*/
 }
 
 #yoovMeetingRoomBookingDialog .schedule-item-wrapper.booking-approved:not(.occupied) .schedule-item {
@@ -793,6 +870,32 @@ export default {
   left: 0;
   padding:2px;
 }
+#booking-table {
+  background-color: white;
+}
 
+#booking-table tr td {
+  white-space: nowrap;
+}
 
+#booking-table tr td:nth-child(2n+1) {
+  text-align: right;
+  min-width: 50px;
+  padding-left: 3px;
+  padding-right: 5px;
+  margin-bottom: 1px;
+  border-bottom: 1px solid white;
+}
+#booking-table tr td:nth-child(2n) {
+  text-align: left;
+  min-wdith: 50px;
+  padding-left: 5px;
+  padding-right: 3px;
+  background-color: yellow;
+  margin-bottom: 1px;
+  border-bottom: 1px solid white;
+}
+#yoovMeetingRoomBookingDialog .modal-footer button {
+  min-width: 80px;
+}
 </style>

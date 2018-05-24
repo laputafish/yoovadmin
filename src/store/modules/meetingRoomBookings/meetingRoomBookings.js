@@ -4,13 +4,28 @@ import axios from 'axios'
 
 const state = {
   meetingRoomBookings: [],
-  loadingMeetingRoomBookings: true
+  loadingMeetingRoomBookings: true,
+  workingBooking: null
 }
 
 const getters = {
   meetingRoomBookings: (state) => {
     return state.meetingRoomBookings
+  },
+  workingBooking: (state) => {
+    return state.workingBooking
   }
+}
+
+const getBooking = (bookings, bookingId) => {
+  let result = null
+  for (var i = 0; i < bookings.length; i++) {
+    if (bookings[i].id === bookingId) {
+      result = bookings[i]
+      break
+    }
+  }
+  return result
 }
 
 const mutations = {
@@ -38,6 +53,14 @@ const mutations = {
       }
     }
   },
+
+  appendBooking (state, booking) {
+    let existingBooking = getBooking(state.meetingRoomBookings, booking.id)
+    if (!existingBooking) {
+      state.meetingRoomBookins.push(booking)
+    }
+  },
+
   updateBooking (state, booking) {
     /* payload
       id
@@ -49,12 +72,16 @@ const mutations = {
       ended_at
       remark
      */
+    console.log('meetingRoomBooking :: updateBooking: booking.id=(' + booking.id + ') booking:', booking)
     let found = false
     for (var i = 0; i < state.meetingRoomBookings.length; i++) {
+      console.log('meetingRoomBooking i=' + i)
       if (state.meetingRoomBookings[i].id === booking.id) {
+        console.log('meetingRoomBooking :: found')
         state.meetingRoomBookings[i].status = 'pending'
         state.meetingRoomBookings[i].meeting_room_id = booking.meeting_room_id
         state.meetingRoomBookings[i].meeting_room = booking.meeting_room
+        state.meetingRoomBookings[i].meeting_room_name = booking.meeting_room.name
         state.meetingRoomBookings[i].started_at = booking.started_at
         state.meetingRoomBookings[i].ended_at = booking.ended_at
         state.meetingRoomBookings[i].remark = booking.remark
@@ -63,6 +90,21 @@ const mutations = {
     }
     if (!found) {
       state.meetingRoomBookings.push(booking)
+    }
+  },
+
+  updateWorkingBooking (state, booking) {
+    if (state.workingBooking === null) {
+      state.workingBooking = booking
+    } else {
+      state.workingBooking.id = booking.id
+      state.workingBooking.status = booking.status
+      state.workingBooking.meeting_room_id = booking.meeting_room_id
+      state.workingBooking.meeting_room = booking.meeting_room
+      state.workingBooking.meeting_room_name = booking.meeting_room_name
+      state.workingBooking.started_at = booking.started_at
+      state.workingBooking.ended_at = booking.ended_at
+      state.workingBooking.remark = booking.remark
     }
   }
 }
@@ -112,6 +154,10 @@ const actions = {
 
   async [types.UPDATE_BOOKING] ({commit, dispatch, state}, payload) {
     commit('updateBooking', payload)
+  },
+
+  async [types.UPDATE_WORKING_BOOKING] ({commit, dispatch, state}, payload) {
+    commit('updateWorkingBooking', payload)
   }
 
 }
