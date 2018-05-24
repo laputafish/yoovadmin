@@ -100,7 +100,7 @@ export default new Router({
         {
           path: '/app',
           redirect: '/app/products',
-          name: 'Home',
+          name: 'Products',
           component: AppContainer,
           children: [
             {
@@ -162,11 +162,11 @@ export default new Router({
             render (c) { return c('router-view') }
           },
           children: [
-            {
-              path: 'login',
-              name: 'BootstrapLogin',
-              component: Login
-            },
+            // {
+            //   path: 'login',
+            //   name: 'BootstrapLogin',
+            //   component: Login
+            // },
             {
               path: 'register',
               name: 'BootstrapRegister',
@@ -417,6 +417,11 @@ export default new Router({
       // ]
     },
     {
+      path: 'login',
+      name: 'Login',
+      component: Login
+    },
+    {
       path: '/pages',
       redirect: '/pages/p404',
       name: 'Pages',
@@ -436,7 +441,7 @@ export default new Router({
         },
         {
           path: 'login',
-          name: 'Login',
+          name: 'PagesLogin',
           component: Login
         },
         {

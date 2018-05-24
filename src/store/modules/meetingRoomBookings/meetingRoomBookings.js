@@ -85,6 +85,10 @@ const actions = {
     commit('removeBooking', bookingId)
   },
 
+  async [types.APPEND_BOOKING] ({commit, dispatch, state}, payload) {
+    commit('appendBooking', payload)
+  },
+
   async [types.GET_DAY_BOOKINGS] ({commit, dispatch, state}, payload) {
     return new Promise((resolve, reject) => {
       let requestedDayMoment = payload

@@ -462,12 +462,11 @@ export default {
         }
       }
     },
-    newSchedule (index) {
+    editSchedule (index, mode) {
       let vm = this
       let clone = vm.currentMoment.clone()
       vm.selectedMoment = clone.day(index)
 
-      console.log('YoovMeetingRoomBookingDialog :: newSchedule => $emit(showDialog)')
       if (vm.booking.id === 0) {
         vm.booking.meeting_room_id = vm.selectedRoom.id
         vm.booking.meeting_room = vm.selectedRoom
@@ -475,31 +474,64 @@ export default {
       EventBus.$emit('showDialog', {
         dialog: 'timelineSelectionDialog',
         booking: vm.booking,
+        mode: mode,
         currentMoment: vm.selectedMoment
       })
     },
+    onTimeSlotActionConfirmed (action) {
+      let vm = this
+      switch (action) {
+        case 'new':
+          break
+        case 'edit':
+          break
+        default:
+          vm.showingConfirmationDialog = false
+      }
+    },
     onColumnClicked (index) {
       let vm = this
+      console.log('YoovMeetingRoomBookingDialog :: onColumnClicked :: vm.booking: ', vm.booking)
       if (vm.booking.started_at !== null) {
-        vm.$dialog.confirm({
-          title: 'Schedule Changed',
-          body: 'Previous selected time slot will be removed. Are you sure?'
-        }, {
-          okText: 'Yes',
-          cancelText: 'No'
-        }).then(function () {
-          console.log('onColumnClicked :: confirm')
-          vm.$store.dispatch('REMOVE_BOOKING', vm.booking.id).then(function (response) {
-            vm.booking.started_at = null
-            vm.booking.ended_at = null
-            vm.refreshCalendar(vm.selectedRoom)
-            vm.newSchedule(index)
-          })
-        }).catch(function () {
-          alert('cancel')
+        console.log('YoovMeetingRoomBookingDialog :: onColumnClicked :: emit(showDialog)')
+        EventBus.$emit('showDialog', {
+          dialog: 'timeSlotEntryConfirmationDialog',
+          booking: vm.booking,
+          callback: function (action) {
+            console.log('timeSlotEntryConfirmationDialog :: callback :: action = ' + action)
+            switch (action) {
+              case 'edit':
+                vm.editSchedule(index, 'edit')
+                break
+              case 'new':
+                vm.editSchedule(index, 'new')
+                break
+              default:
+                break
+            }
+          }
         })
+
+//        vm.showingConfirmationDialog = true
+        // vm.$dialog.confirm({
+        //   title: 'Schedule Changed',
+        //   body: 'Previous selected time slot will be removed. Are you sure?'
+        // }, {
+        //   okText: 'Yes',
+        //   cancelText: 'No'
+        // }).then(function () {
+        //   console.log('onColumnClicked :: confirm')
+        //   vm.$store.dispatch('REMOVE_BOOKING', vm.booking.id).then(function (response) {
+        //     vm.booking.started_at = null
+        //     vm.booking.ended_at = null
+        //     vm.refreshCalendar(vm.selectedRoom)
+        //     vm.newSchedule(index)
+        //   })
+        // }).catch(function () {
+        //   alert('cancel')
+        // })
       } else {
-        this.newSchedule(index)
+        this.editSchedule('index', 'new')
       }
     },
     onEventClicked (item) {

@@ -28,7 +28,7 @@
           </button>
         </div>
       </div>
-      <div class="time-slots">
+      <div ref="timeSlots" class="time-slots">
         <hr style="margin-bottom:5px;"/>
         <table style="width:100%;margin-top:0;">
           <tr>
@@ -87,10 +87,8 @@
     },
     props: {
       currentMoment: null,
-      booking: {
-        startMoment: null,
-        endMoment: null
-      }
+      booking: null,
+      mode: null
     },
     components: {
       'yoov-modal': YoovModal
@@ -267,38 +265,46 @@
       save () {
         let vm = this
 
-        vm.$emit('updateBooking', {
-          started_at: vm.startSlotMoment,
-          ended_at: vm.endSlotMoment
+        vm.$emit('onResult', {
+          dialog: 'yoovTimelineSelectionDialog',
+          payload: {
+            mode: vm.mode,
+            startedA: vm.startSlotMoment,
+            endedAt: vm.endSlotMoment
+          }
         })
       }
     },
     mounted () {
+      console.log('YoovTimelineSelectionDialog :: mounted')
       let vm = this
-      vm.showingMoment = vm.currentMoment
+      vm.$refs.timeSlots.onselectstart = function () { return false }
+      if (vm.currentMoment) {
+        vm.showingMoment = vm.currentMoment
 
-      vm.startMoment = vm.showingMoment.clone()
-      vm.startMoment.set({hour: vm.startHour, minute: 0, second: 0})
+        vm.startMoment = vm.showingMoment.clone()
+        vm.startMoment.set({hour: vm.startHour, minute: 0, second: 0})
 
-      vm.endMoment = vm.showingMoment.clone()
-      vm.endMoment.set({hour: vm.endHour, minute: 0, second: 0})
-      // console.log('mounted :: startMoment: ' + vm.startMoment.toString())
-      // console.log('mounted :: endMoment: ' + vm.endMoment.toString())
+        vm.endMoment = vm.showingMoment.clone()
+        vm.endMoment.set({hour: vm.endHour, minute: 0, second: 0})
+        // console.log('mounted :: startMoment: ' + vm.startMoment.toString())
+        // console.log('mounted :: endMoment: ' + vm.endMoment.toString())
 
-      let loopMoment = vm.startMoment.clone()
-      vm.slots = []
-      while (loopMoment < vm.endMoment) {
-        let moment = loopMoment.clone()
-        // console.log('mounted :: assign to slots: ' + moment.toString())
-        vm.slots.push({
-          moment: moment,
-          label: moment.format('hh:mm a'),
-          selected: false,
-          occupied: false
-        })
-        loopMoment.add('15', 'minutes')
+        let loopMoment = vm.startMoment.clone()
+        vm.slots = []
+        while (loopMoment < vm.endMoment) {
+          let moment = loopMoment.clone()
+          // console.log('mounted :: assign to slots: ' + moment.toString())
+          vm.slots.push({
+            moment: moment,
+            label: moment.format('hh:mm a'),
+            selected: false,
+            occupied: false
+          })
+          loopMoment.add('15', 'minutes')
+        }
+        vm.updateTimeSlots()
       }
-      vm.updateTimeSlots()
     },
     watched: {
       showingMoment: {

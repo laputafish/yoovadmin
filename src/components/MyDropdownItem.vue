@@ -25,11 +25,16 @@ export default {
   },
   methods: {
     processCommand (command) {
+      let vm = this
       switch (command) {
         case 'logout':
-          this.$store.dispatch('SET_TOKEN', null)
-          this.$store.dispatch('SET_USER', {user: null})
-          this.$router.go('login')
+          let promises = [
+            vm.$store.dispatch('SET_TOKEN', null),
+            vm.$store.dispatch('SET_USER', {user: null})
+          ]
+          Promise.all(promises).then(function (response) {
+            vm.$router.push('/pages/login')
+          })
           break
       }
     }
