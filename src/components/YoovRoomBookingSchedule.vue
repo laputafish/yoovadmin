@@ -3,7 +3,8 @@
     <h5 class="bg-default">{{ currentRoom.name }}&nbsp;
       <b-button variant="primary"
                 @click="onTestClicked">Test</b-button>
-      <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ currentRoom.capacity }}</span>
+      <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ currentRoom.capacity }}
+      showingYoovTimelineSelectionModal: {{ showingYoovTimelineSelectionModal}}</span>
     </h5>
     <b-alert show>{{ currentRoom.equipments }}</b-alert>
     <div class="d-flex flex-row">
@@ -57,8 +58,11 @@
       </table>
     </div>
     <yoov-timeline-selection-modal
-      :open="showingYoovtimelineSelectionModal"
-      @close="showingYoovtimelineSelectionModal=false"></yoov-timeline-selection-modal>
+      :currentMoment="currentMoment"
+      :booking="editBooking"
+      :open="showingYoovTimelineSelectionModal"
+      @onResult="onDialogResult"
+      @close="showingYoovTimelineSelectionModal=false"></yoov-timeline-selection-modal>
   </div>
 </template>
 
@@ -72,8 +76,8 @@
     },
     data () {
       return {
-        showingYoovtimelineSelectionModal: false,
-
+        showingYoovTimelineSelectionModal: false,
+        editBooking: null,
         currentMoment: null,
         currentRoom: null,
         displayedRangeStart: '2018-05-06',
@@ -161,11 +165,20 @@
       },
       user () {
         return this.$store.getters.user
+      },
+      bookingTemplate () {
+        return this.$store.getters.bookingTemplate
       }
     },
     methods: {
+      onDialogResult (result) {
+        alert('onDialogResult')
+        // let dialog = result.dialog
+        // let payload = result.payload
+        this.showingYoovTimelineSelectionModal = false
+      },
       onTestClicked () {
-        this.showingYoovtimelineSelectionModal = true
+        this.showingYoovTimelineSelectionModal = true
       },
       onNextButtonClicked () {
         let vm = this
@@ -507,7 +520,30 @@
           }
         }
       },
-      editSchedule (columnIndex, mode) {
+      newSchedule (columnIndex) {
+        let vm = this
+        let cloneMoment = vm.currentMoment.clone()
+        vm.editBooking = vm.bookingTemplate.clone()
+        vm.editBooking.meeting_room_id = vm.defaultRoom.id
+        vm.editBooking.meeting_room = vm.defaultRoom
+        vm.selectedMoment = cloneMoment.day(columnIndex)
+        vm.showingYoovTimelineSelectionModal = true
+      },
+      /*
+        <yoov-timeline-selection-modal
+          :currentMoment="selectedMoment"
+          :booking="booking"
+          :open="showingYoovTimelineSelectionModal"
+          @onResult="onDialogResult"
+          @close="showingYoovTimelineSelectionModal=false">
+        </yoov-timeline-selection-modal>
+      */
+      editSchedule (item) {
+        let vm = this
+        let cloneMoment = vm.currentMoment.clone()
+
+      },
+      editSchedule2 (columnIndex, mode) {
         let vm = this
         let clone = vm.currentMoment.clone()
 
@@ -591,7 +627,7 @@
           //   alert('cancel')
           // })
         } else {
-          this.editSchedule(columnIndex, 'new')
+          this.newSchedule(columnIndex)
         }
       },
       onEventClicked (columnIndex, item) {
@@ -604,7 +640,7 @@
         }
         console.log('onEventClicked (columnIndex=' + columnIndex + ') :: item.id=' + item.id + '    vs vm.booking.id=' + vm.booking.id)
         if (item.id === vm.booking.id) {
-          vm.editSchedule(columnIndex, 'edit')
+          vm.editSchedule(item)
         }
       },
       refreshCalendar (currentRoom) {

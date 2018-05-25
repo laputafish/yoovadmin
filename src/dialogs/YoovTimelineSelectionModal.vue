@@ -1,6 +1,8 @@
 <template>
   <b-modal ref="modalDialog"
            id="yoovTimelineSelectionModal"
+           @ok="onOk"
+           @cancel="onCancel"
            title="Select Timeline">
     <div id="yoovTimelineSelectionDialog">
       <div class="d-flex flex-row">
@@ -43,21 +45,21 @@
       </div>
       <small class="footnote align-self-start">* double-click to reset start point</small>
     </div>
-    <div style="width:100%;" class="mt-0 pt-0">
-      <div class="text-center">
-        <div v-if="false">booking: {{ booking }}</div>
-        <button :disabled="false"
-                class="btn btn-primary"
-                @click="save()">
-          OK
-        </button>
-        <!--<button class="btn btn-default"-->
-                <!--@click="$emit('close')">-->
-          <!--Cancel-->
+    <!--<div style="width:100%;" class="mt-0 pt-0">-->
+      <!--<div class="text-center">-->
+        <!--<div v-if="false">booking: {{ booking }}</div>-->
+        <!--<button :disabled="false"-->
+                <!--class="btn btn-primary"-->
+                <!--@click="save()">-->
+          <!--OK-->
         <!--</button>-->
-        <b-btn class="mt-3" variant="outline-danger" block @click="close">Close Me</b-btn>
-      </div>
-    </div>
+        <!--&lt;!&ndash;<button class="btn btn-default"&ndash;&gt;-->
+                <!--&lt;!&ndash;@click="$emit('close')">&ndash;&gt;-->
+          <!--&lt;!&ndash;Cancel&ndash;&gt;-->
+        <!--&lt;!&ndash;</button>&ndash;&gt;-->
+        <!--<b-btn class="mt-3" variant="outline-danger" block @click="close">Close Me</b-btn>-->
+      <!--</div>-->
+    <!--</div>-->
 
   </b-modal>
 </template>
@@ -95,9 +97,6 @@
       'yoov-modal': YoovModal
     },
     methods: {
-      close () {
-        this.$refs.modalDialog.hide()
-      },
       clearSelection () {
         let vm = this
         for (var i = 0; i < vm.slots.length; i++) {
@@ -266,9 +265,15 @@
         }
       },
 
-      save () {
+      onCancel () {
+        this.$refs.modalDialog.hide()
+        this.$emit('close')
+      },
+
+      onDialogClose () {
         let vm = this
         let selectionInfo = vm.getSelectionInfo()
+
         console.log('save() selectionInfo: ', selectionInfo)
         console.log('save() slot count = ' + vm.slots.length)
         let startSlot = vm.slots[selectionInfo.firstIndex]
@@ -285,7 +290,7 @@
         let nextStartMoment = endMoment.clone().add(vm.intervals, 'minutes')
         console.log('save() nextStartMoment: ' + nextStartMoment.toString())
         vm.$emit('onResult', {
-          dialog: 'yoovTimelineSelectionDialog',
+          dialog: 'yoovTimelineSelectionModal',
           payload: {
             mode: vm.mode,
             startMoment: startMoment,
@@ -294,6 +299,26 @@
             endedAt: nextStartMoment.format('Y-MM-DD HH:mm:ss')
           }
         })
+      },
+
+      onOk () {
+        let vm = this
+        let selectionInfo = vm.getSelectionInfo()
+
+        if ((selectionInfo.selection.length === 0) && (vm.booking.id !== 0)) {
+          vm.$dialog.confirm('No time slots selected! Schedule will be removed. Are you sure?', {
+            okText: 'Yes',
+            cancelText: 'No'
+          })
+          .then(function () {
+            vm.onDialogClose()
+          })
+          .catch(function () {
+            vm.$refs.modalDialog.show()
+          })
+        } else {
+          vm.onDialogClose()
+        }
       }
     },
     mounted () {
@@ -400,33 +425,36 @@
 </script>
 
 <style>
-  #yoovTimelineSelectionDialog .current-date {
+  #yoovTimelineSelectionModal .current-date {
     line-height: 1;
   }
 
-  #yoovTimelineSelectionDialog .current-date .weekday-label {
+  #yoovTimelineSelectionModal .current-date .weekday-label {
     font-weight: bold;
     font-size: 14px;
     padding-top: 4px;
   }
 
-  #yoovTimelineSelectionDialog .modal-container {
+  #yoovTimelineSelectionModal .modal-dialog {
+    max-width: 600px;
+  }
+  #yoovTimelineSelectionModal .modal-container {
     width: 560px;
   }
 
-  #yoovTimelineSelectionDialog .current-date span {
+  #yoovTimelineSelectionModal .current-date span {
     padding: 0;
     margin: 0;
   }
-  #yoovTimelineSelectionDialog .time-slots {
+  #yoovTimelineSelectionModal .time-slots {
 
   }
 
-  #yoovTimelineSelectionDialog .time-slots td {
+  #yoovTimelineSelectionModal .time-slots td {
     vertical-align: top;
   }
 
-  #yoovTimelineSelectionDialog .time-slots td div {
+  #yoovTimelineSelectionModal .time-slots td div {
     min-width:30px;
     padding:0 5px;
     text-align:right;
@@ -436,35 +464,35 @@
     cursor: pointer;
   }
 
-  #yoovTimelineSelectionDialog .time-slots td div.occupied {
+  #yoovTimelineSelectionModal .time-slots td div.occupied {
     cursor: default;
     background-color: darkgray;
     color: white;
   }
 
-  #yoovTimelineSelectionDialog .time-slots td div.occupied:hover {
+  #yoovTimelineSelectionModal .time-slots td div.occupied:hover {
     background-color: darkgray;
     color: white;
   }
 
-  #yoovTimelineSelectionDialog .time-slots td div:hover {
+  #yoovTimelineSelectionModal .time-slots td div:hover {
     background-color: #a2c1cc;
   }
 
-  #yoovTimelineSelectionDialog .time-slots td div.selected {
+  #yoovTimelineSelectionModal .time-slots td div.selected {
     background-color: #28a745;
     color: white;
   }
 
-  #yoovTimelineSelectionDialog .time-slots td div.selected:hover {
+  #yoovTimelineSelectionModal .time-slots td div.selected:hover {
     background-color: #468499;
   }
 
-  #yoovTimelineSelectionDialog .footnote {
+  #yoovTimelineSelectionModal .footnote {
     margin-left:10px;
   }
 
-  #yoovTimelineSelectionDialog .modal-footer button {
+  #yoovTimelineSelectionModal .modal-footer button {
     min-width: 80px;
   }
 </style>

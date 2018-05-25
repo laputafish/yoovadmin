@@ -15,6 +15,20 @@ const getters = {
   },
   workingBooking: (state) => {
     return state.workingBooking
+  },
+  bookingTemplate: (state) => {
+    return {
+      id: 0,
+      applicant_id: 0,
+      applicant_name: '',
+      meeting_room_id: 0,
+      meeting_room: null,
+      meeting_room_name: '',
+      started_at: null,
+      ended_at: null,
+      status: 'new',
+      remark: ''
+    }
   }
 }
 
