@@ -2,15 +2,15 @@
   <yoov-modal id="yoovMeetingRoomBookingDialog"
     :class="{'read-only':booking.status=='approved'||booking.status=='rejected'}">
     <div slot="header" class="header" style="position:relative;">
-      <div class="pull-right">
+      <h3 class="dialog-title d-inline">
+        Meeting Room Booking
+      </h3>
+      <div class="d-inline">
         <span class="badge badge-primary booking-status" v-if="booking.status==='pending'">Pending</span>
         <span class="badge badge-success booking-status" v-else-if="booking.status==='approved'">Approved</span>
         <span class="badge badge-danger booking-status" v-else-if="booking.status==='rejected'">Rejected</span>
         <span class="badge badge-secondary booking-status" v-else>(New)</span>
       </div>
-      <h3 class="dialog-title">
-        Meeting Room Booking
-      </h3>
       <div v-if="false" class="pull-left" style="margin-top:-5px;position:absolute;left: 0;top:0;margin:0 0 0 320px;font-size:10px;">
         <table style="width:640px;" id="booking-table" v-if="localBooking">
           <tr>

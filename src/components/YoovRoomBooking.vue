@@ -10,12 +10,13 @@
     <h3>MMMMSSSSSSSSSSSSSSSSSSSSSSS</h3>
     <b-card-body>
       <yoov-room-booking-schedule
+        :editable="true"
         v-model="booking"
         :defaultRoom="selectedRoom"
         @input="updateBooking">
       </yoov-room-booking-schedule>
     </b-card-body>
-    {{ selectedRoomId }}
+    {{ user }}
   </b-card>
 </template>
 
@@ -41,7 +42,11 @@
     },
     mounted () {
       let vm = this
-      this.$store.dispatch('GET_MEETING_ROOMS').then(function (response) {
+      let promises = [
+        this.$store.dispatch('GET_MEETING_ROOMS'),
+        this.$store.dispatch('GET_MEETING_ROOM_BOOKINGS')
+      ]
+      Promise.all(promises).then(function (response) {
         if (vm.rooms && vm.rooms.length > 0) {
           vm.selectedRoomId = vm.rooms[0].id
         } else {
@@ -65,6 +70,9 @@
       },
       rooms () {
         return this.$store.getters.meetingRooms
+      },
+      user () {
+        return this.$store.getters.user
       }
     },
     methods: {

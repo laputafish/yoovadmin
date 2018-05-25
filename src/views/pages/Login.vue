@@ -102,11 +102,12 @@
       },
       login () {
         let vm = this
+        console.log('Login => vm.$store.dispatch(login)')
         vm.$store.dispatch('login', {
           credentials: vm.credentials,
           callback: (valid) => {
-            console.log('login callback: status: ', status)
-            console.log('login callback: token: ' + vm.$store.getters.token)
+            console.log('Login :: callback: status: ', status)
+            console.log('Login :: callback: token: ' + vm.$store.getters.token)
             if (valid) {
               vm.$router.push({name: 'Meetings'})
             } else {

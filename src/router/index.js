@@ -418,7 +418,7 @@ export default new Router({
       // ]
     },
     {
-      path: 'login',
+      path: '/login',
       name: 'Login',
       component: Login
     },

@@ -17,6 +17,14 @@
     components: {
       'yoov-scanner-box': YoovScannerBox,
       'yoov-room-booking': YoovRoomBooking
+    },
+    computed: {
+      token () {
+        return this.$store.getters.token
+      },
+      user () {
+        return this.$store.getters.user
+      }
     }
   }
 </script>

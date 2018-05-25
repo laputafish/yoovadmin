@@ -39,21 +39,19 @@ export default {
       nav: nav.items
     }
   },
-  mounted () {
-    console.log('mounted')
+  created () {
+    console.log('Full.vue created starts')
     let vm = this
-    vm.$nextTick(function () {
-      vm.$store.dispatch('checkToken', {
-        callback: function (status) {
-          console.log('checkToken :: token = ' + vm.$store.getters.token)
-          if (status) {
-            console.log('if status')
-          } else {
-            console.log('if not status')
-            vm.$router.push({name: 'Login'})
-          }
+    vm.$store.dispatch('checkToken', {
+      callback: function (status) {
+        console.log('checkToken :: token = ' + vm.$store.getters.token.substr(0, 10))
+        if (status) {
+          console.log('if status')
+        } else {
+          console.log('if not status')
+          vm.$router.push({name: 'Login'})
         }
-      })
+      }
     })
   },
   computed: {

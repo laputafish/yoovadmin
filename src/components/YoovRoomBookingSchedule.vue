@@ -1,30 +1,26 @@
 <template>
   <div v-if="currentRoom" id="yoovRoomBookingSchedule">
     <h5 class="bg-default">{{ currentRoom.name }}&nbsp;
-      <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ currentRoom.capacity }}</span>
       <b-button variant="primary"
                 @click="onTestClicked">Test</b-button>
+      <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ currentRoom.capacity }}</span>
     </h5>
     <b-alert show>{{ currentRoom.equipments }}</b-alert>
+    <div class="d-flex flex-row">
+      <button type="button"
+              @click="onPrevButtonClicked"
+              class="btn-prev btn btn-sm btn-primary justify-content-start">
+        <i class="fa fa-fw fa-caret-left"></i>
+      </button>
+      <button type="button"
+              @click="onNextButtonClicked"
+              class="ml-auto btn-next btn btn-sm btn-primary justify-content-end">
+        <i class="fa fa-fw fa-caret-right"></i>
+      </button>
+    </div>
     <div class="schedule-table-header">
       <table style="width:100%;">
         <tbody>
-        <tr>
-          <td colspan="7" style="width: 100%;">
-            <div class="d-flex flex-row">
-              <button type="button"
-                      @click="onPrevButtonClicked"
-                      class="btn-prev btn btn-sm btn-primary justify-content-start">
-                <i class="fa fa-fw fa-caret-left"></i>
-              </button>
-              <button type="button"
-                      @click="onNextButtonClicked"
-                      class="ml-auto btn-next btn btn-sm btn-primary justify-content-end">
-                <i class="fa fa-fw fa-caret-right"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
         <tr class="room-schedule-weekday-label-row">
           <td v-for="weekday in displayedWeekdays">
             {{ weekday.label }}<br/>
@@ -60,20 +56,24 @@
         </tbody>
       </table>
     </div>
-    <v-dialog></v-dialog>
+    <yoov-timeline-selection-modal
+      :open="showingYoovtimelineSelectionModal"
+      @close="showingYoovtimelineSelectionModal=false"></yoov-timeline-selection-modal>
   </div>
 </template>
 
 <script>
   import {EventBus} from '@/event-bus'
-  import {VDialog} from 'vue-js-modal'
+  import YoovTimelineSelectionModal from '@/dialogs/YoovTimelineSelectionModal'
 
   export default {
     components: {
-      'v-dialog': VDialog
+      'yoov-timeline-selection-modal': YoovTimelineSelectionModal
     },
     data () {
       return {
+        showingYoovtimelineSelectionModal: false,
+
         currentMoment: null,
         currentRoom: null,
         displayedRangeStart: '2018-05-06',
@@ -98,7 +98,11 @@
     props: {
       booking: null,
       defaultRoom: null,
-      defaultMoment: null
+      defaultMoment: null,
+      editable: {
+        type: Boolean,
+        default: false
+      }
     },
     mounted () {
       console.log('YoovRoomBookingSchedule :: mounted')
@@ -154,28 +158,14 @@
       },
       rooms () {
         return this.$store.getters.meetingRooms
+      },
+      user () {
+        return this.$store.getters.user
       }
     },
     methods: {
       onTestClicked () {
-        this.$modal.show('dialog', {
-          title: 'Alert!',
-          text: 'You are too awesome',
-          buttons: [
-            {
-              title: 'Deal with it',
-              handler: () => { alert('Woot!') }
-            },
-            {
-              title: '',       // Button title
-              default: true,    // Will be triggered by default if 'Enter' pressed.
-              handler: () => {} // Button click handler
-            },
-            {
-              title: 'Close'
-            }
-          ]
-        })
+        this.showingYoovtimelineSelectionModal = true
       },
       onNextButtonClicked () {
         let vm = this
@@ -628,7 +618,9 @@
             occupied: item.id !== vm.booking.id,
             'booking-approved': item.status === 'approved',
             'booking-rejected': item.status === 'rejected',
-            'booking-pending': item.status === 'pending'
+            'booking-pending': item.status === 'pending',
+            'booking-self': (vm.user && item.applicant_id === vm.user.id),
+            'booking-editable': vm.editable
           }
         } else {
           if (typeof vm.booking === 'undefined') {
@@ -722,7 +714,9 @@
     background-color: #ff0000;
   }
 
-  #yoovRoomBookingSchedule .schedule-item-wrapper.occupied .schedule-item {
+  #yoovRoomBookingSchedule .schedule-item-wrapper.occupied:not(.booking-self) .schedule-item,
+  #yoovRoomBookingSchedule .schedule-item-wrapper.occupied:not(.booking-editable) .schedule-item
+  {
     cursor: default;
   }
 
@@ -738,6 +732,10 @@
 
   #yoovRoomBookingSchedule .schedule-content-row td:nth-child(2n+1) {
     background-color: rgba(0, 0, 0, 0.03);
+  }
+
+  #yoovRoomBookingSchedule div[role=alert] {
+    margin-bottom:1px;
   }
 
   #yoovRoomBookingSchedule .schedule-item-wrapper {

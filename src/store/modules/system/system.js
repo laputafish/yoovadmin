@@ -16,15 +16,13 @@ const state = {
 const getters = {
   token (state) {
     return state.token
-    // console.log('getters.token')
-    // return localStorage.getItem('token')
   },
   loggedIn (state) {
-    console.log('getters.loggedIn')
+    console.log('store :: getters.loggedIn')
     return Boolean(state.user && state.token)
   },
   user (state) {
-    console.log('getters.user')
+    console.log('store :: getters.user')
     return state.user
   },
   productsByCategory (state) {
@@ -50,7 +48,7 @@ function getCategory (categoryId, categoryNode) {
     if (categoryNode.children) {
       for (var i = 0; i < categoryNode.children.length; i++) {
         var child = categoryNode.children[i]
-        console.log('getCategory i=' + i + ': child.name = ' + child.name)
+        console.log('store :: getCategory i=' + i + ': child.name = ' + child.name)
         result = getCategory(categoryId, child)
         if (result) {
           break
@@ -75,15 +73,15 @@ function getCategory (categoryId, categoryNode) {
 }
 
 function getCategoryParent (categoryId, categoryNode) {
-  console.log('getCategoryParent :: categoryId: ', categoryId)
+  console.log('store :: getCategoryParent :: categoryId: ', categoryId)
   if (typeof categoryNode === 'undefined') {
     categoryNode = state.categoryRoot
   }
   let result = null
-  console.log('getCategoryParent :: categoryNode.children.length = ' + categoryNode.children.length)
+  console.log('store :: getCategoryParent :: categoryNode.children.length = ' + categoryNode.children.length)
   for (var i = 0; i < categoryNode.children.length; i++) {
     var children = categoryNode.children[i]
-    console.log('check i=' + i + ' child#' + children.id + ' "' + children.name)
+    console.log('store :; getCategoryParent :: check i=' + i + ' child#' + children.id + ' "' + children.name)
     if (children.id === categoryId) {
       result = categoryNode
       break
@@ -101,7 +99,7 @@ function getCategoryParent (categoryId, categoryNode) {
 
 function moveCategory (category, afterParent, beforeParent) {
   // remove child from before parent
-  console.log('moveCategory: beforeParent: ', beforeParent)
+  console.log('store :: moveCategory: beforeParent: ', beforeParent)
   for (var i = 0; i < beforeParent.children.length; i++) {
     if (beforeParent.children[i].id === category.id) {
       beforeParent.children.splice(i, 1)
@@ -126,7 +124,7 @@ const mutations = {
     Vue.axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
     Vue.axios.defaults.headers.common['Content-Type'] = 'application/json'
     Vue.axios.defaults.headers.common['Accept'] = 'application/json'
-    console.log('setToken :: localStorage.setItem :: token = ' + token)
+    console.log('store :: setToken :: localStorage.setItem :: token = ' + token)
   },
   [types.SET_ACTIVE_MENU] (state, data) {
     state.activeMenu = data
@@ -136,12 +134,12 @@ const mutations = {
     let beforeParent = getCategory(payload.beforeParent.id)
     let item = getCategory(payload.data.id)
 
-    console.log('REPOSITION_CATEGORY : afterParent.id = ' + payload.afterParent.id)
-    console.log('REPOSITION_CATEGORY : beforeParent.id = ' + payload.beforeParent.id)
+    console.log('store :: REPOSITION_CATEGORY : afterParent.id = ' + payload.afterParent.id)
+    console.log('store :: REPOSITION_CATEGORY : beforeParent.id = ' + payload.beforeParent.id)
 
-    console.log('system.js :: REPOSITION_CATEGORY :: item: ', item)
+    console.log('store :: system.js :: REPOSITION_CATEGORY :: item: ', item)
     let currentParent = getCategoryParent(item)
-    console.log('system.js :: REPOSITION_CATEGORY :: currentParent is ' + currentParent.name)
+    console.log('store :: system.js :: REPOSITION_CATEGORY :: currentParent is ' + currentParent.name)
 
     if (currentParent.id !== afterParent.id) {
       moveCategory(item, afterParent, beforeParent)
@@ -150,13 +148,13 @@ const mutations = {
   removeCategoryChild (state, payload) {
     let parentId = payload.parentId
     let itemId = payload.itemId
-    console.log('removeCategoryChild :: parentId = ' + parentId)
-    console.log('removeCategoryChild :: itemId = ' + itemId)
+    console.log('store :: removeCategoryChild :: parentId = ' + parentId)
+    console.log('store :: removeCategoryChild :: itemId = ' + itemId)
     let parent = getCategory(parentId)
     let item = getCategory(itemId)
 
     let index = parent.children.indexOf(item)
-    console.log('removeCategoryChild :: index = ' + index)
+    console.log('store :: removeCategoryChild :: index = ' + index)
 
     parent.children.splice(index, 1)
   },
@@ -187,26 +185,36 @@ const actions = {
     let token = localStorage.getItem('token')
     this.token = token
     dispatch(types.SET_TOKEN, token)
-    console.log('checkToken :: token=' + getters.token)
+    console.log('store :: checkToken :: token=' + token.substr(0, 10))
     let result = false
     if (token) {
       Vue.axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
       Vue.axios.defaults.headers.common['Content-Type'] = 'application/json'
       Vue.axios.defaults.headers.common['Accept'] = 'application/json'
-      console.log('getters.token')
-      await dispatch('fetchUser')
-      if (getters.user) {
-        console.log('getters.user')
-        result = true
-      } else {
-        console.log('not getters.user')
-      }
+      console.log('store :: checkToken :: getters.token')
+      dispatch('fetchUser').then(function () {
+        console.log('store :: fetchUser :: user:', getters.user)
+        if (getters.user) {
+          console.log('store :: checkToken :: getters.user')
+          result = true
+          if (typeof payload.callback === 'function') {
+            console.log('store :: checkToken :: payload.callback === function')
+            payload.callback(result)
+          }
+        } else {
+          console.log('store :: checkToken :: not getters.user')
+          if (typeof payload.callback === 'function') {
+            console.log('store :: checkToken :: payload.callback === function')
+            payload.callback(result)
+          }
+        }
+      })
     } else {
-      console.log('not getters.token')
-    }
-    if (typeof payload.callback === 'function') {
-      console.log('payload.callback === function')
-      payload.callback(result)
+      console.log('store :: checkToken :: not getters.token')
+      if (typeof payload.callback === 'function') {
+        console.log('store :: checkToken :: payload.callback === function')
+        payload.callback(result)
+      }
     }
   },
 
@@ -225,15 +233,15 @@ const actions = {
 
   // Update token
   async updateToken ({ commit }, token) {
-    console.log('updateToken starts')
+    console.log('store :: updatetoken => commit(updateToken) starts')
     // Update token in store's state
     commit('setToken', token)
     // Set Authorization token for all axios requests
     // await axios.this.$axios.setToken(token, '')
     // Update cookies
-    console.log('updateToken :: process.browser: ', process.browser)
+    console.log('store :: updateToken => commit(updateToken) :: process.browser: ', process.browser)
     if (process.browser) {
-      console.log('with process.browser')
+      console.log('store :: updateToken => commit(updateToken) :: with process.browser')
       // ...Browser
       if (token) {
         Cookies.set('ccmsToken', token, { expires: 1 })
@@ -241,7 +249,7 @@ const actions = {
         Cookies.remove('ccmsToken')
       }
     } else {
-      console.log('without process.browser')
+      console.log('store commit(updateToken) :: without process.browser')
       // ...Server
       let params = {
         domain: '/'
@@ -258,11 +266,12 @@ const actions = {
     Vue.axios.defaults.headers.common['Accept'] = 'application/json'
     // this.app.context.res.setHeader('Authorization', Cookie.serialize('ccmsToken', token, params))
     // console.log('Axios: ', this.$axios.defaults.headers.common.Authorization)
-    console.log('updateToken ends')
+    console.log('store :: commit(updateToken) ends')
   },
 
   // Fetch Token
   async fetchToken ({ dispatch }) {
+    console.log('store :: fetchToken')
     let token
     // Try to extract token from cookies
     if (!token) {
@@ -274,9 +283,9 @@ const actions = {
       await dispatch('updateToken', token)
     }
     if (process.browser) {
-      console.log('Browser token: ', token)
+      console.log('store :: fetchtoken :: Browser token: ' + getters.token.substr(0, 10))
     } else {
-      console.log('Server token: ', token)
+      console.log('store :: fetchtoken :: Server token: ' + getters.token.substr(0, 10))
     }
   },
 
@@ -289,7 +298,7 @@ const actions = {
   // Fetch
 //  async fetch ({ getters, state, commit, dispatch }, username = 'admin', {
   async fetchUser ({ getters, state, commit, dispatch }, callback) {
-    console.log('fetchUser')
+    console.log('store :: fetchUser')
     // let token = getters.token
     let url = constants.apiUrl + '/user'
 //     console.log('fetch')
@@ -309,6 +318,8 @@ const actions = {
         dispatch(types.SET_USER, {
           user: response.data,
           callback: callback
+        }).then(function () {
+          console.log('fetchUser >> dispatch(ser_user).then: user', getters.user)
         })
       })
     } catch (e) {
@@ -355,8 +366,8 @@ const actions = {
         })
    */
 //  async login ({ dispatch }, { fields, endpoint = 'https://climatecms-api.herokuapp.com/api/login' } = {}) {
-  async login ({ commit, dispatch }, { credentials, callback }) {
-    console.log('login : credentials: ', credentials)
+  async login ({ commit, dispatch, getters }, { credentials, callback }) {
+    console.log('store :: login starts :: credentials: ', credentials)
     try {
       let url = constants.url + '/oauth/token'
       let data = {
@@ -368,18 +379,22 @@ const actions = {
       }
       // Send credentials to API
       await Vue.axios.post(url, data).then(function (response) {
-        console.log('/oauth/token: response: ', response)
+        console.log('store :: axios :: /oauth/token: response: ', response)
         let data = response.data
 //          commit('setUser', data.user)
+        console.log('store :: login >> commit(setToken)')
         commit('setToken', data.access_token)
         // dispatch('updateToken', data.access_token)
-        dispatch('fetchUser', callback)
+        console.log('store :: login >> dispatch(fetchUser)')
+        dispatch('fetchUser', callback).then(function () {
+          console.log('store :; login :: commit >> fetchUser :: user:', getters.user)
+        })
 //         if (typeof callback === 'function') {
 //           console.log('login :: check callback is function')
 // //          callback(data.status)
 //         }
       }, function (error) {
-        console.log('/oauth/token error: ', error)
+        console.log('store :: login :: /oauth/token error: ', error)
       })
     } catch (error) {
       if (error.response && error.response.status === 401) {
