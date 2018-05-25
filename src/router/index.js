@@ -5,7 +5,8 @@ import Router from 'vue-router'
 import Full from '@/containers/Full'
 
 // Views
-import Dashboard from '@/views/Dashboard'
+// import Dashboard from '@/views/Dashboard'
+import OADashboard from '@/views/oa/dashboard/Dashboard'
 import Charts from '@/views/Charts'
 import Widgets from '@/views/Widgets'
 
@@ -143,7 +144,7 @@ export default new Router({
         {
           path: 'dashboard',
           name: 'Dashboard',
-          component: Dashboard
+          component: OADashboard
         },
         {
           path: 'charts',

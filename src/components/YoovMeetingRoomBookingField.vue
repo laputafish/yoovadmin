@@ -164,9 +164,6 @@
             vm.timelineSelectionDialog_booking = params.booking
             vm.timelineSelectionDialog_currentMoment = params.currentMoment
             vm.timelineSelectionDialog_mode = params.mode
-            console.log('showDialog timelineSelectionDialog_booking = ' + vm.timelineSelectionDialog_booking)
-            console.log('showDialog timelineSelectionDialog_currentMoment = ' + vm.timelineSelectionDialog_currentMoment.toString())
-            console.log('showDialog timelineSelectionDialog_mode = ' + vm.timelineSelectionDialog_mode)
             vm.showingTimelineSelectionDialog = true
             break
           case 'timeSlotEntryConfirmationDialog':

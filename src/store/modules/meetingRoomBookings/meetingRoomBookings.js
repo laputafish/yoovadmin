@@ -1,6 +1,7 @@
 import * as types from './meetingRoomBookings_types'
 import * as constants from '../../constants'
 import axios from 'axios'
+import moment from 'moment'
 
 const state = {
   meetingRoomBookings: [],
@@ -28,6 +29,27 @@ const getBooking = (bookings, bookingId) => {
   return result
 }
 
+const getHumanReadableTime = (moment) => {
+  let hour = moment.get('hour')
+  let minute = moment.get('minute')
+  let ampm = 'am'
+  let result = hour
+  if (hour >= 12) {
+    ampm = 'pm'
+  }
+  if (minute > 0) {
+    result += ':' + (minute < 10 ? '0' + minute : minute)
+  }
+  result += ampm
+  return result
+}
+
+const getTimeSlotRange = (startMoment, endMoment) => {
+  let startTime = getHumanReadableTime(startMoment)
+  let endTime = getHumanReadableTime(endMoment)
+  return startTime + ' - ' + endTime
+}
+
 const mutations = {
   // updateMeetingRooms (state, payload) {
   //   state.meetingRooms = payload
@@ -44,6 +66,19 @@ const mutations = {
   },
   setMeetingRoomBookings (state, payload) {
     state.meetingRoomBookings = payload
+    console.log('Store :: meetingRoomBookings :: setMeetingRoomBookings')
+    for (var i = 0; i < state.meetingRoomBookings.length; i++) {
+      var bookingStartMoment = moment(state.meetingRoomBookings[i].started_at)
+      var bookingEndMoment = moment(state.meetingRoomBookings[i].ended_at)
+      var bookingStartMomentClone = bookingStartMoment.clone()
+      var weekStart = bookingStartMomentClone.startOf('week')
+
+      state.meetingRoomBookings[i].weekday = Math.floor(bookingStartMoment.diff(weekStart, 'day'))
+      state.meetingRoomBookings[i].hour = bookingStartMoment.get('hour')
+      state.meetingRoomBookings[i].range = getTimeSlotRange(bookingStartMoment, bookingEndMoment)
+      state.meetingRoomBookings[i].startMoment = bookingStartMoment
+      state.meetingRoomBookings[i].endMoment = bookingEndMoment
+    }
   },
   removeBooking (state, bookingId) {
     console.log('meetingRoomBooking.js :: removeBooking :: bookingId = ' + bookingId)

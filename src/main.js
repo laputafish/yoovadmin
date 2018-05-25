@@ -52,7 +52,7 @@ import 'simple-line-icons/scss/simple-line-icons.scss'
 window.$ = $
 window.jQuery = $
 
-Vue.use(VModal, {dialog: true, dynamic: true})
+Vue.use(VModal, {dynamic: true})
 Vue.use(VuejsDialog)
 Vue.use(BootstrapVue)
 Vue.use(Moment)
