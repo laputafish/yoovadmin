@@ -3,7 +3,7 @@
     <div class="container-fluid">
       <div class="d-flex flex-column-reverse flex-sm-row">
         <yoov-room-booking></yoov-room-booking>
-        <yoov-scanner-box v-if="false"></yoov-scanner-box>
+        <yoov-scanner-box></yoov-scanner-box>
       </div>
     </div>
   </div>
@@ -25,6 +25,9 @@
       user () {
         return this.$store.getters.user
       }
+    },
+    mounted () {
+      this.$store.dispatch('GET_EQUIPMENTS')
     }
   }
 </script>

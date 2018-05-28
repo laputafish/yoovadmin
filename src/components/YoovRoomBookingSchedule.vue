@@ -540,8 +540,9 @@
       */
       editSchedule (item) {
         let vm = this
-        let cloneMoment = vm.currentMoment.clone()
-
+        vm.editBooking = item
+        vm.selectedMoment = item.startMoment
+        vm.showingYoovTimelineSelectionModal = true
       },
       editSchedule2 (columnIndex, mode) {
         let vm = this

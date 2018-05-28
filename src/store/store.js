@@ -1,10 +1,14 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
+
+// Modules
 import system from './modules/system/system'
 import meetingRooms from './modules/meetingRooms/meetingRooms'
 import meetingRoomBookings from './modules/meetingRoomBookings/meetingRoomBookings'
 import meetings from './modules/meetings/meetings'
+import equipments from './modules/equipments/equipments'
+
 import Cookies from 'js-cookie'
 
 Vue.use(Vuex)
@@ -15,7 +19,8 @@ export const store = new Vuex.Store({
     system,
     meetingRoomBookings,
     meetingRooms,
-    meetings
+    meetings,
+    equipments
   },
   plugins: [
     createPersistedState({
