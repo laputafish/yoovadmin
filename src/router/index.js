@@ -44,6 +44,7 @@ import VToolTip from '@/views/vueplugins/VToolTip'
 import MeetingRoomBookingList from '@/views/oa/meetingRoomBookings/MeetingRoomBookingList'
 import MeetingList from '@/views/oa/meetings/MeetingList'
 import MeetingRoomList from '@/views/oa/meetingRooms/MeetingRoomList'
+import FileManager from '@/views/oa/fileManager/FileManager'
 
 // View: /Components
 import Buttons from '@/views/components/Buttons'
@@ -145,6 +146,11 @@ export default new Router({
           path: 'dashboard',
           name: 'Dashboard',
           component: OADashboard
+        },
+        {
+          path: 'folders/:folderId',
+          name: 'File Manager',
+          component: FileManager
         },
         {
           path: 'charts',

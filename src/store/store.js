@@ -8,6 +8,7 @@ import meetingRooms from './modules/meetingRooms/meetingRooms'
 import meetingRoomBookings from './modules/meetingRoomBookings/meetingRoomBookings'
 import meetings from './modules/meetings/meetings'
 import equipments from './modules/equipments/equipments'
+import fileManager from './modules/fileManager/fileManager'
 
 import Cookies from 'js-cookie'
 
@@ -20,7 +21,8 @@ export const store = new Vuex.Store({
     meetingRoomBookings,
     meetingRooms,
     meetings,
-    equipments
+    equipments,
+    fileManager
   },
   plugins: [
     createPersistedState({

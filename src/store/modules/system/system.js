@@ -3,14 +3,15 @@ import Cookies from 'js-cookie'
 import * as types from './system_types'
 import data from '../data.json'
 import * as constants from '../../constants'
-// import axios from 'axios'
+import axios from 'axios'
 import Vue from 'vue'
 
 const state = {
   ...data,
   token: null,
   user: null,
-  activeMenu: ''
+  activeMenu: '',
+  publicFolders: []
 }
 
 const getters = {
@@ -24,6 +25,28 @@ const getters = {
   user (state) {
     console.log('store :: getters.user')
     return state.user
+  },
+  publicScanFolder (state) {
+    console.log('userScanFolder :: folders:', state.publicFolders)
+    let result = null
+    for (var i = 0; i < state.publicFolders.length; i++) {
+      if (state.publicFolders[i].name === 'scan') {
+        result = state.publicFolders[i]
+        break
+      }
+    }
+    return result
+  },
+  userScanFolder (state) {
+    console.log('userScanFolder :: folders:', state.user.folders)
+    let result = null
+    for (var i = 0; i < state.user.folders.length; i++) {
+      if (state.user.folders[i].name === 'scan') {
+        result = state.user.folders[i]
+        break
+      }
+    }
+    return result
   },
   productsByCategory (state) {
     return (categoryId) => {
@@ -177,7 +200,11 @@ const mutations = {
       parent.children = []
     }
     parent.children.splice(index, 0, item)
+  },
+  setPublicFolders (state, payload) {
+    state.publicFolders = payload
   }
+
 }
 
 const actions = {
@@ -416,6 +443,16 @@ const actions = {
   [types.SET_USER] ({commit}, payload) {
     console.log('actions :: commit(setUser)')
     commit('setUser', payload)
+  },
+
+  async [types.GET_PUBLIC_FOLDERS] ({commit}, payload) {
+    let apiUrl = constants.apiUrl + '/folders'
+    let data = {
+      type: 'public'
+    }
+    await axios.get(apiUrl, {params: data}).then(function (response) {
+      commit('setPublicFolders', response.data)
+    })
   },
 
   [types.MOVE_PRODUCT_CATEGORY] (context, payload) {

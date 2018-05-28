@@ -1,15 +1,14 @@
 <template>
-  <b-card id="scanner-block" no-body class="p-0">
+  <b-card id="scanner-block" no-body class="p-0" v-if="scanner">
     <b-card-body class="p-2">
       <table>
         <tr>
           <td style="padding-right:5px;">
-            <img src="/static/img/scanner.png" class="office-scanner">
+              <img src="/static/img/scanner.png" class="office-scanner">
           </td>
           <td style="vertical-align:middle;">
-            <i
-                    :class="{'text-success':scanner.occupied_by===0,'text-gray-out':scanner.occupied_by!==0}"
-                    class="scan-target-direction fa fa-caret-right"></i>
+              <i :class="{'text-success':scanner.occupied_by===0,'text-gray-out':scanner.occupied_by!==0}"
+               class="scan-target-direction fa fa-caret-right"></i>
           </td>
           <td style="vertical-align:bottom;">
             <scanner-folder
@@ -26,9 +25,9 @@
         <!-- down arrow -->
         <tr>
           <td class="text-center" style="line-height: 0.5;">
-            <i style="line-height: 0.5;"
+              <i style="line-height: 0.5;"
                :class="{'text-success':scanner.occupied_by===user.id,'text-black-20':scanner.occupied_by===0,'text-black-50':(scanner.occupied_by!==0 && scanner.occupied_by!==user.id)}"
-               class="scan-target-direction fa fa-caret-down"></i>
+              class="scan-target-direction fa fa-caret-down"></i>
           </td>
           <td colspan="2"></td>
         </tr>
@@ -116,7 +115,7 @@
 
 <style>
 #scanner-block {
-  min-width: 160px;
+  min-width: 180px;
 }
 
 #scanner-block table tr td {
