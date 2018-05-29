@@ -4,12 +4,16 @@ import axios from 'axios'
 // import moment from 'moment'
 
 const state = {
-  currentFolder: null
+  currentFolder: null,
+  selectedDocumentIds: []
 }
 
 const getters = {
   currentFolder: (state) => {
     return state.currentFolder
+  },
+  selectedDocumentIds: (state) => {
+    return state.selectedDocumentIds
   }
 }
 const mutations = {
@@ -21,14 +25,31 @@ const mutations = {
     console.log('currentFolder:', state.currentFolder)
   },
   toggleDocumentSelection: (state, payload) => {
-    for (var i = 0; i < state.currentFolder.documents.length; i++) {
-      if (state.currentFolder.documents[i] === payload) {
-        state.currentFolder.documents[i].selected = !state.currentFolder.documents[i].selected
-        break
-      }
-    }
-  }
+    let document = payload
+    let index = state.selectedDocumentIds.indexOf(document.id)
 
+    if (index >= 0) {
+      state.selectedDocumentIds.splice(index, 1)
+    } else {
+      state.selectedDocumentIds.push(document.id)
+    }
+    // console.log('mutations: toggleDocumentSelection :; payload: ', payload)
+    // for (var i = 0; i < state.currentFolder.documents.length; i++) {
+    //   if (state.currentFolder.documents[i] === payload) {
+    //     state.currentFolder.documents[i].selected = !state.currentFolder.documents[i].selected
+    //     console.log('toggleDocumentSelection : document: ', state.currentFolder.documents[i])
+    //     break
+    //   }
+    // }
+  },
+  selectAllDocuments: (state, payload) => {
+    state.selectedDocumentIds = state.currentFolder.documents.map(function (document) {
+      return document.id
+    })
+  },
+  clearDocumentSelection: (state, payload) => {
+    state.selectedDocumentIds = []
+  }
 }
 
 const actions = {
@@ -44,7 +65,15 @@ const actions = {
     })
   },
   async [types.TOGGLE_DOCUMENT_SELECTION] ({state, commit, dispatch}, payload) {
-    commit('toggleDocumentSelection', payload)
+    console.log('toggle: async :: before commit')
+    await commit('toggleDocumentSelection', payload)
+    console.log('toggle: async :: after commit')
+  },
+  async [types.SELECT_ALL_DOCUMENTS] ({state, commit, dispatch}, payload) {
+    await commit('selectAllDocuments')
+  },
+  async [types.CLEAR_DOCUMENT_SELECTION] ({state, commit, dispatch}, payload) {
+    await commit('clearDocumentSelection')
   }
 }
 

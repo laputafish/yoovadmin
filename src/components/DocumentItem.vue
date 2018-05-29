@@ -1,15 +1,19 @@
 <template>
   <div class="document-item d-flex flex-column align-items-center"
-    :class="{selected:document.selected}">
+    :class="{selected:selected, 'have-selection':haveSelection}">
     <div class="document-checkbox"
       @click="toggleDocument">
-      <i class="fa fa-fw fa-square"></i>
+      <i class="fa fa-fw"
+         :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
     </div>
     <img class="document-icon"
          :src="getIconSrc(document.media_id)"/><br/>
-    <small class="document-label">{{ document.filename }}</small>
+    <div class="document-label">{{ document.filename }}</div>
     <div class="document-action">
-      <button class="btn btn-danger btn-xs">
+      <button class="btn btn-primary btn-xs" @click="downloadDocument()">
+        <i class="fa fa-fw fa-download"></i>
+      </button><br/>
+      <button class="btn btn-danger btn-xs" @click="deleteDocument()">
         <i class="fa fa-fw fa-close"></i>
       </button>
     </div>
@@ -28,21 +32,60 @@
         }
       }
     },
+    watch: {
+      document: {
+        handler: (value) => {
+          console.log('DocumentItem :: watch(document) :: value = ', value)
+        },
+        deep: true
+      }
+    },
+    computed: {
+      haveSelection () {
+        return this.$store.getters.selectedDocumentIds.length > 0
+      },
+      selected () {
+        let vm = this
+        console.log('DocumentItem :: computed(selected) :: document.id = ' + vm.document.id)
+        console.log('computer(selected) :: selectedDocumentIds: ', vm.$store.getters.selectedDocumentIds)
+        console.log('computer(selected) :: selectedDocumentIds.index(document.id) = ' +
+          vm.$store.getters.selectedDocumentIds.indexOf(vm.document.id))
+        let result = vm.$store.getters.selectedDocumentIds.indexOf(vm.document.id) >= 0
+        console.log('computer(selected) :: result = ' + result)
+        return result
+      }
+      // ,
+      // selectedDocumentIds () {
+      //   return this.$store.getters.selectedDocumentIds
+      // }
+    },
     methods: {
+      deleteDocument () {
+
+      },
+      downloadDocument () {
+
+      },
       getIconSrc (mediaId) {
         return constants.apiUrl + '/media/icons/' + mediaId
       },
       toggleDocument () {
         let vm = this
         console.log('toggleDocument: ' + vm.document.id)
-        this.$store.dispatch('TOGGLE_DOCUMENT_SELECTION', document)
+        this.$store.dispatch('TOGGLE_DOCUMENT_SELECTION', vm.document).then(function (response) {
+          // vm.$nextTick(function () {
+          //   vm.$emit('updateSelected')
+          // })
+          // console.log('toggleDocument :: after dispatch :: vm.document: ', vm.document)
+        })
       }
     }
   }
 </script>
 
 <style>
-  .document-item.selected .document-checkbox {
+  .document-item.selected .document-checkbox,
+  .document-item.have-selection .document-checkbox {
     display:block;
   }
 
@@ -50,18 +93,18 @@
     display:none;
   }
 
-  .document-item.selected .document-checkbox i.fa-check-square {
-    display:block;
-  }
-  .document-item.selected .document-checkbox i.fa-square {
-    display:none;
-  }
-  .document-item .document-checkbox i.fa-check-square {
-    display:none;
-  }
-  .document-item .document-checkbox i.fa-square {
-    display:block;
-  }
+  /*.document-item.selected .document-checkbox i.fa-check-square {*/
+    /*display:block;*/
+  /*}*/
+  /*.document-item.selected .document-checkbox i.fa-square {*/
+    /*display:none;*/
+  /*}*/
+  /*.document-item .document-checkbox i.fa-check-square {*/
+    /*display:none;*/
+  /*}*/
+  /*.document-item .document-checkbox i.fa-square {*/
+    /*display:block;*/
+  /*}*/
 
   .document-item {
     position: Relative;
@@ -69,6 +112,18 @@
     display: inline-block !important;
     width:120px;
     text-align: center;
+    float:left;
+  }
+  .document-item .document-label {
+    font-size: 8px;
+    line-height: 1;
+    max-width:120px;
+    padding:0 3px;
+    margin-top:5px;
+    height: 24px;
+    overflow: hidden;
+    white-space: normal;
+    text-overflow: ellipsis;
   }
   .document-item:hover .document-checkbox {
     display: block;
