@@ -7,6 +7,7 @@
          :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
     </div>
     <img class="document-icon"
+         @click="onImageClicked"
          :src="getIconSrc(document.media_id)"/><br/>
     <div class="document-label">{{ document.filename }}</div>
     <div class="document-action">
@@ -17,13 +18,27 @@
         <i class="fa fa-fw fa-close"></i>
       </button>
     </div>
+    <yoov-image-dialog
+      v-if="showingImageDialog"
+      @close="showingImageDialog=false"
+      :imageUrl="imageUrl"></yoov-image-dialog>
   </div>
 </template>
 
 <script>
   import * as constants from '@/store/constants'
+  import YoovImageDialog from '@/dialogs/YoovImageDialog'
 
   export default {
+    components: {
+      'yoov-image-dialog': YoovImageDialog
+    },
+    data () {
+      return {
+        imageUrl: '',
+        showingImageDialog: false
+      }
+    },
     props: {
       document: {
         type: Object,
@@ -60,8 +75,52 @@
       // }
     },
     methods: {
-      deleteDocument () {
+      showDocument () {
+        let vm = this
+        if (vm.isImage()) {
+          vm.imageUrl = '/media/image/' + vm.document.media_id
+          vm.showingImageDialog = true
+        } else {
+          let url = '/offer_documents/document/' + vm.document.id
+          console.log('showDocument :: vm.offerLetter: ', vm.offerLetter)
+          if (vm.offerLetter) {
+            url += '/letter/' + vm.offerLetter.id
+          } else if (vm.candidate) {
+            url += '/candidate/' + vm.candidate.id
+            if (vm.document.tags) {
+              console.log('showDocument :: vm.document.tags: ', vm.document.tags)
+              let keyValueList = vm.getTagKeyValueList(vm.document.tags)
+              if (Object.keys(keyValueList).length > 0) {
+                url += '/params/' + encodeURI(keyValueList)
+              }
+            }
+          } else {
+            url += '/media/' + vm.mediaId +
+              '/type/' + vm.document.document_type +
+              '/pdf/' + vm.document.output_pdf
+          }
 
+          window.open(url, '_blank')
+        }
+      },
+      isImage () {
+        let vm = this
+        let imageTypes = ['png', 'gif', 'jpg', 'jpeg']
+        return imageTypes.indexOf(vm.document.file_type.toLowerCase()) >= 0
+      },
+      onImageClicked () {
+        this.showDocument()
+      },
+      deleteDocument () {
+        let vm = this
+        this.$dialog.confirm('Are you sure?', {
+          okText: 'Yes',
+          cancelText: 'No'
+        }).then(function (dialog) {
+          vm.$store.dispatch('DELETE_DOCUMENT', vm.document.id).then(function () {
+            vm.$emit('refresh')
+          })
+        })
       },
       downloadDocument () {
 

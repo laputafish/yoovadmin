@@ -5,18 +5,31 @@
         <path-links
           :ancestors="currentFolder.ancestors"></path-links>
         <div class="file-manager-toolbar text-right d-flex flex-row">
+          <!-- Select All -->
           <button class="btn btn-sm btn-info" @click="selectAll()">
             <i class="fa fa-check-square"></i>&nbsp;Select All
           </button>
+          <!-- Select None -->
           <button class="btn btn-sm btn-info" @click="selectNone()">
             <i class="fa fa-square"></i>&nbsp;Clear
           </button>
-          <button class="btn btn-sm btn-primary ml-auto"><i class="fa fa-download"></i>&nbsp;Download</button>
-          <button class="btn btn-sm btn-danger"><i class="fa fa-close"></i>&nbsp;Delete</button>
+          <!-- Download -->
+          <button class="btn btn-sm btn-primary ml-auto"
+            @click="downloadSelected()">
+            <i class="fa fa-download"></i>
+            &nbsp;Download
+          </button>
+          <!-- Delete -->
+          <button class="btn btn-sm btn-danger"
+            @click="deleteSelected()">
+            <i class="fa fa-close"></i>
+            &nbsp;Delete
+          </button>
         </div>
         <div v-if="currentFolder">
           <document-item
             @updateSelected="updateSelectedHandler"
+            @refresh="refreshFolder"
             :document="document"
             :key="index"
             v-for="(document,index) in documents"></document-item>
@@ -75,10 +88,23 @@
       this.unSubscribe()
     },
     methods: {
+      downloadSelected () {
+        // let vm = this
+      },
+      deleteSelected () {
+        let vm = this
+        vm.$dialog.confirm('Are you sure?', {
+          okText: 'Yes',
+          cancelText: 'No'
+        }).then(function (response) {
+          vm.$store.dispatch('DELETE_SELECTED').then(function () {
+            vm.refreshFolder()
+          })
+        })
+      },
       refreshFolder () {
         let vm = this
         vm.$store.dispatch('SET_CURRENT_FOLDER', vm.$route.params.folderId)
-        alert('folder refreshed')
       },
       unSubscribe () {
         this.pusher.disconnect()

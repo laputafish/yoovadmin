@@ -74,6 +74,20 @@ const actions = {
   },
   async [types.CLEAR_DOCUMENT_SELECTION] ({state, commit, dispatch}, payload) {
     await commit('clearDocumentSelection')
+  },
+  async [types.DELETE_DOCUMENT] ({state, commit, dispatch}, payload) {
+    let documentId = payload
+    let apiUrl = constants.apiUrl + '/documents/' + documentId
+    await axios.delete(apiUrl).then(function (response) {
+    })
+  },
+  async [types.DELETE_SELECTED] ({state, commit, dispatch}, payload) {
+    let apiUrl = constants.apiUrl + '/documents'
+    let data = {
+      command: 'DELETE',
+      ids: state.selectedDocumentIds
+    }
+    await axios.post(apiUrl, data).then(function (response) {})
   }
 }
 
