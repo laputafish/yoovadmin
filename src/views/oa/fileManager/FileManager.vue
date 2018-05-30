@@ -6,19 +6,20 @@
           :ancestors="currentFolder.ancestors"></path-links>
         <div class="file-manager-toolbar text-right d-flex flex-row">
           <!-- Select All -->
-          <button class="btn btn-sm btn-info" @click="selectAll()">
-            <i class="fa fa-check-square"></i>&nbsp;Select All
+          <button class="btn-selection btn btn-sm btn-info" @click="selectClear()">
+            <!--<i class="fa"-->
+              <!--:class="{'fa-check-square':!allSelected, 'fa-square':allSelected}"></i>-->
+            &nbsp;{{ allSelected ? 'Clear All' : 'Select All' }}
           </button>
           <!-- Select None -->
-          <button class="btn btn-sm btn-info" @click="selectNone()">
-            <i class="fa fa-square"></i>&nbsp;Clear
-          </button>
+          <!--<button class="btn btn-sm btn-info" @click="selectNone()">-->
+            <!--<i class="fa fa-square"></i>&nbsp;Clear-->
+          <!--</button>-->
           <!-- Download -->
-          <button class="btn btn-sm btn-primary ml-auto"
-            @click="downloadSelected()">
+          <a :href="downloadLink" class="btn btn-sm btn-primary ml-auto">
             <i class="fa fa-download"></i>
             &nbsp;Download
-          </button>
+          </a>
           <!-- Delete -->
           <button class="btn btn-sm btn-danger"
             @click="deleteSelected()">
@@ -43,6 +44,7 @@
   import PathLinks from '@/components/PathLinks'
   import DocumentItem from '@/components/DocumentItem'
   import Pusher from 'pusher-js' // import Pusher
+  import * as constants from '@/store/constants'
 
   export default {
     data () {
@@ -55,6 +57,11 @@
       'document-item': DocumentItem
     },
     computed: {
+      downloadLink () {
+        let vm = this
+        let idString = vm.selectedDocumentIds.join(',')
+        return constants.apiUrl + '/media/download_documents/' + idString
+      },
       user () {
         return this.$store.getters.user
       },
@@ -68,6 +75,9 @@
       selectedDocumentIds () {
         let vm = this
         return vm.$store.getters.selectedDocumentIds
+      },
+      allSelected () {
+        return this.documents.length === this.selectedDocumentIds.length
       }
     },
     watch: {
@@ -118,6 +128,14 @@
           // this.mockReviews.unshift(data.review)
         })
       },
+      selectClear () {
+        let vm = this
+        if (vm.allSelected) {
+          vm.$store.dispatch('CLEAR_ALL_DOCUMENT_SELECTION')
+        } else {
+          vm.$store.dispatch('SELECT_ALL_DOCUMENTS')
+        }
+      },
       selectAll () {
         this.$store.dispatch('SELECT_ALL_DOCUMENTS')
       },
@@ -147,6 +165,9 @@
 }
 .file-manager .file-manager-toolbar button {
   margin-left: 5px;
+}
+.file-manager-toolbar .btn-selection {
+  min-width: 80px;
 }
 .file-manager-separator {
   border-color: black;

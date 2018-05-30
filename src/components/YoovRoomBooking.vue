@@ -7,7 +7,7 @@
         <option v-for="room in rooms" :value="room.id">{{ room.name }}</option>
       </select>
     </form>
-    <h3>MMMMSSSSSSSSSSSSSSSSSSSSSSS</h3>
+    <h3>MMMM</h3>
     <b-card-body>
       <yoov-room-booking-schedule
         :editable="true"
@@ -16,7 +16,6 @@
         @input="updateBooking">
       </yoov-room-booking-schedule>
     </b-card-body>
-    {{ user }}
   </b-card>
 </template>
 

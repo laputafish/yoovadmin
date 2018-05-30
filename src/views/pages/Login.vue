@@ -2,9 +2,6 @@
   <div class="app flex-row align-items-center animated fadeIn">
     <div class="container">
       <div class="row justify-content-center">
-        <div class="col-sm-12">
-          {{ user }}
-        </div>
         <div class="col-md-8">
           <div class="card-group mb-0">
             <div class="card p-4">

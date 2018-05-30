@@ -1,10 +1,10 @@
 <template>
   <yoov-modal id="yoovImageDialog">
-    <div slot="header" class="header" style="position:relative;">
-      <h3 class="dialog-title d-inline">
-        Image
-      </h3>
-    </div>
+    <!--<div slot="header" class="header" style="position:relative;">-->
+      <!--<h3 class="dialog-title d-inline">-->
+        <!--Image-->
+      <!--</h3>-->
+    <!--</div>-->
     <div slot="body">
       <img :src="imageSrc"/>
     </div>

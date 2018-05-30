@@ -100,6 +100,11 @@ export default new Router({
       component: Full,
       children: [
         {
+          path: 'dashboard',
+          name: 'Dashboard',
+          component: OADashboard
+        },
+        {
           path: '/app',
           redirect: '/app/products',
           name: 'Products',
@@ -142,11 +147,7 @@ export default new Router({
             }
           ]
         },
-        {
-          path: 'dashboard',
-          name: 'Dashboard',
-          component: OADashboard
-        },
+
         {
           path: 'folders/:folderId',
           name: 'File Manager',

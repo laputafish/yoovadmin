@@ -11,9 +11,9 @@
          :src="getIconSrc(document.media_id)"/><br/>
     <div class="document-label">{{ document.filename }}</div>
     <div class="document-action">
-      <button class="btn btn-primary btn-xs" @click="downloadDocument()">
+      <a :href="downloadLink" class="btn btn-primary btn-xs xx">
         <i class="fa fa-fw fa-download"></i>
-      </button><br/>
+      </a><br/>
       <button class="btn btn-danger btn-xs" @click="deleteDocument()">
         <i class="fa fa-fw fa-close"></i>
       </button>
@@ -68,6 +68,9 @@
         let result = vm.$store.getters.selectedDocumentIds.indexOf(vm.document.id) >= 0
         console.log('computer(selected) :: result = ' + result)
         return result
+      },
+      downloadLink () {
+        return constants.apiUrl + '/media/download/' + this.document.media_id
       }
       // ,
       // selectedDocumentIds () {
@@ -81,7 +84,7 @@
           vm.imageUrl = '/media/image/' + vm.document.media_id
           vm.showingImageDialog = true
         } else {
-          let url = '/media/document/' + vm.document.media_id
+          let url = constants.apiUrl + '/media/document/' + vm.document.media_id
           window.open(url, '_blank')
         }
       },
@@ -105,7 +108,9 @@
         })
       },
       downloadDocument () {
-
+        let vm = this
+        let url = constants.apiUrl + '/media/download/' + vm.document.media_id
+        window.open(url, '_blank')
       },
       getIconSrc (mediaId) {
         return constants.apiUrl + '/media/icons/' + mediaId
@@ -154,6 +159,7 @@
     width:120px;
     text-align: center;
     float:left;
+    margin-bottom:10px;
   }
   .document-item .document-label {
     font-size: 8px;
@@ -161,7 +167,7 @@
     max-width:120px;
     padding:0 3px;
     margin-top:5px;
-    height: 24px;
+    height: 26px;
     overflow: hidden;
     white-space: normal;
     text-overflow: ellipsis;
