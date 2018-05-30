@@ -81,25 +81,7 @@
           vm.imageUrl = '/media/image/' + vm.document.media_id
           vm.showingImageDialog = true
         } else {
-          let url = '/offer_documents/document/' + vm.document.id
-          console.log('showDocument :: vm.offerLetter: ', vm.offerLetter)
-          if (vm.offerLetter) {
-            url += '/letter/' + vm.offerLetter.id
-          } else if (vm.candidate) {
-            url += '/candidate/' + vm.candidate.id
-            if (vm.document.tags) {
-              console.log('showDocument :: vm.document.tags: ', vm.document.tags)
-              let keyValueList = vm.getTagKeyValueList(vm.document.tags)
-              if (Object.keys(keyValueList).length > 0) {
-                url += '/params/' + encodeURI(keyValueList)
-              }
-            }
-          } else {
-            url += '/media/' + vm.mediaId +
-              '/type/' + vm.document.document_type +
-              '/pdf/' + vm.document.output_pdf
-          }
-
+          let url = '/media/document/' + vm.document.media_id
           window.open(url, '_blank')
         }
       },
