@@ -6,6 +6,16 @@
       </h3>
     </div>
     <div slot="body">
+      <div class="input-group row">
+        <label class="col-sm-3 col-form-label" for="applicantName">In Charge</label>
+        <input class="col-sm-9 form-control" v-model="booking.applicantName"/>
+      </div>
+      <div class="input-group row">
+        <label class="col-sm-3 col-form-label" for="purpose">Purpose</label>
+        <input class="col-sm-9 form-control" v-model="booking.purpose"/>
+      </div>
+      <hr style="margin-top:0.5rem;margin-bottom:8px;"/>
+
       <div class="d-flex flex-row">
         <div class="align-self-start">
           <button type="button"
@@ -16,8 +26,9 @@
         </div>
         <div class="align-self-center" style="margin: 0 auto;">
           <div class="flex-grow-1 text-center current-date">
-            <span>{{ currentDay }}</span>
-            <div class="weekday-label">{{ showingMoment ? showingMoment.format('ddd') : '' }}</div>
+            <span class="date-label">{{ currentDay }}</span>
+            <span class="weekday-label">{{ showingMoment ? showingMoment.format('ddd') : '' }}</span>
+            <br/>
           </div>
         </div>
         <div class="align-self-end">
@@ -29,7 +40,7 @@
         </div>
       </div>
       <div ref="timeSlots" class="time-slots">
-        <hr style="margin-bottom:5px;"/>
+        <hr style="margin-top:0.3rem;margin-bottom:5px;"/>
         <table style="width:100%;margin-top:0;">
           <tr>
             <td v-for="column in timeSlots">
@@ -39,7 +50,9 @@
                    :class="{selected:item.selected,occupied:item.occupied}"
                    @mousedown="onSlotMouseDown(item)"
                    @mouseup="selecting=false"
-                @mousemove="onSlotMouseMove(item)">{{ item.label }}</div>
+                   @mousemove="onSlotMouseMove(item)">
+                <div class="timeslot-label">{{ item.label }}</div>
+              </div>
             </td>
           </tr>
         </table>
@@ -47,10 +60,14 @@
       <small class="footnote align-self-start">* double-click to reset start point</small>
     </div>
     <div slot="footer" style="width:100%;" class="mt-0 pt-0">
-
       <div class="text-center">
         <div v-if="false">booking: {{ booking }}</div>
-        <button :disabled="false"
+        <button :disabled="booking.id===0"
+                class="btn btn-danger"
+                @click="deleteBooking()">
+          Delete
+        </button>
+        <button :disabled="selectionInfo.selection.length===0"
                 class="btn btn-primary"
                 @click="save()">
           OK
@@ -134,37 +151,37 @@
         item.selected = true
         // console.log('onSlotDblClick')
       },
-      getSelectionInfo () {
-        let vm = this
-        let selection = []
-        let first = -1
-        let last = -1
-        // console.log('getSelectionInfo ::vm.slots: ', vm.slots)
-        for (var i = 0; i < vm.slots.length; i++) {
-          // console.log('getSelectionInfo i=' + i)
-          if (vm.slots[i].selected) {
-            // console.log('getSelectionInfo slot selected')
-            if (first === -1) {
-              first = i
-              // console.log('getSelectionInfo first = ' + first)
-            }
-            selection.push(vm.slots[i])
-          } else {
-            // console.log('getSelectionInfo slot not selected')
-            if (first > -1) {
-              if (last === -1) {
-                last = i - 1
-                // console.log('getSelectionInfo last = ' + last)
-              }
-            }
-          }
-        }
-        return {
-          firstIndex: first,
-          lastIndex: last,
-          selection: selection
-        }
-      },
+      // getSelectionInfo () {
+      //   let vm = this
+      //   let selection = []
+      //   let first = -1
+      //   let last = -1
+      //   // console.log('getSelectionInfo ::vm.slots: ', vm.slots)
+      //   for (var i = 0; i < vm.slots.length; i++) {
+      //     // console.log('getSelectionInfo i=' + i)
+      //     if (vm.slots[i].selected) {
+      //       // console.log('getSelectionInfo slot selected')
+      //       if (first === -1) {
+      //         first = i
+      //         // console.log('getSelectionInfo first = ' + first)
+      //       }
+      //       selection.push(vm.slots[i])
+      //     } else {
+      //       // console.log('getSelectionInfo slot not selected')
+      //       if (first > -1) {
+      //         if (last === -1) {
+      //           last = i - 1
+      //           // console.log('getSelectionInfo last = ' + last)
+      //         }
+      //       }
+      //     }
+      //   }
+      //   return {
+      //     firstIndex: first,
+      //     lastIndex: last,
+      //     selection: selection
+      //   }
+      // },
       getOccupiedCount (start, end) {
         let vm = this
         let result = 0
@@ -191,7 +208,7 @@
         if (!item.occupied) {
           let vm = this
           let index = vm.slots.indexOf(item)
-          let {firstIndex, lastIndex, selection} = vm.getSelectionInfo()
+          let {firstIndex, lastIndex, selection} = vm.selectionInfo
 
           let i
           if (selection.length === 0) {
@@ -264,13 +281,17 @@
         }
       },
 
+      deleteBooking () {
+        alert('delete')
+      },
+
       save () {
         let vm = this
-        let selectionInfo = vm.getSelectionInfo()
-        console.log('save() selectionInfo: ', selectionInfo)
+//        let selectionInfo = vm.getSelectionInfo()
+        console.log('save() selectionInfo: ', vm.selectionInfo)
         console.log('save() slot count = ' + vm.slots.length)
-        let startSlot = vm.slots[selectionInfo.firstIndex]
-        let endSlot = vm.slots[selectionInfo.lastIndex]
+        let startSlot = vm.slots[vm.selectionInfo.firstIndex]
+        let endSlot = vm.slots[vm.selectionInfo.lastIndex]
         console.log('save() startSlot: ', startSlot)
         console.log('save() endSlot: ', endSlot)
 
@@ -334,6 +355,37 @@
       }
     },
     computed: {
+      selectionInfo () {
+        let vm = this
+        let selection = []
+        let first = -1
+        let last = -1
+        // console.log('getSelectionInfo ::vm.slots: ', vm.slots)
+        for (var i = 0; i < vm.slots.length; i++) {
+          // console.log('getSelectionInfo i=' + i)
+          if (vm.slots[i].selected) {
+            // console.log('getSelectionInfo slot selected')
+            if (first === -1) {
+              first = i
+              // console.log('getSelectionInfo first = ' + first)
+            }
+            selection.push(vm.slots[i])
+          } else {
+            // console.log('getSelectionInfo slot not selected')
+            if (first > -1) {
+              if (last === -1) {
+                last = i - 1
+                // console.log('getSelectionInfo last = ' + last)
+              }
+            }
+          }
+        }
+        return {
+          firstIndex: first,
+          lastIndex: last,
+          selection: selection
+        }
+      },
       currentDay () {
         let vm = this
         if (vm.showingMoment) {
@@ -397,36 +449,55 @@
   line-height: 1;
 }
 
+#yoovTimelineSelectionDialog .current-date .date-label {
+  font-size: 14px;
+}
 #yoovTimelineSelectionDialog .current-date .weekday-label {
   font-weight: bold;
   font-size: 14px;
   padding-top: 4px;
+  text-transform: uppercase;
+}
+
+#yoovTimelineSelectionDialog .modal-body {
+  padding-top: 0.5rem;
 }
 
 #yoovTimelineSelectionDialog .modal-container {
-  width: 560px;
+  width: 600px;
 }
 
 #yoovTimelineSelectionDialog .current-date span {
   padding: 0;
   margin: 0;
 }
-#yoovTimelineSelectionDialog .time-slots {
 
-}
-
-#yoovTimelineSelectionDialog .time-slots td {
-  vertical-align: top;
-}
-
-#yoovTimelineSelectionDialog .time-slots td div {
+#yoovTimelineSelectionDialog .time-slots td div.timeslot {
+  height: 25px;
+  font-size: 9px;
   min-width:30px;
   padding:0 5px;
-  text-align:right;
+  text-align:center;
   border-right: 1px solid transparent;
   border-bottom: 1px solid white;
   background-color: rgba(200,200,200,.3);
   cursor: pointer;
+  position: relative;
+}
+
+#yoovTimelineSelectionDialog .time-slots td div.timeslot div.timeslot-label {
+  margin-top: -2px;
+  font-size: 9px;
+  position:absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+}
+
+#yoovTimelineSelectionDialog .time-slots td {
+  vertical-align: top;
 }
 
 #yoovTimelineSelectionDialog .time-slots td div.occupied {
@@ -459,5 +530,8 @@
 
 #yoovTimelineSelectionDialog .modal-footer button {
   min-width: 80px;
+}
+#yoovTimelineSelectionDialog .modal-footer button:disabled {
+  cursor: default
 }
 </style>

@@ -6,7 +6,19 @@ import moment from 'moment'
 const state = {
   meetingRoomBookings: [],
   loadingMeetingRoomBookings: true,
-  workingBooking: null
+  workingBooking: null,
+  bookingTemplate: {
+    id: 0,
+    applicant_id: 0,
+    applicant_name: '',
+    meeting_room_id: 0,
+    meeting_room: null,
+    meeting_room_name: '',
+    started_at: null,
+    ended_at: null,
+    status: 'new',
+    remark: ''
+  }
 }
 
 const getters = {
@@ -17,18 +29,7 @@ const getters = {
     return state.workingBooking
   },
   bookingTemplate: (state) => {
-    return {
-      id: 0,
-      applicant_id: 0,
-      applicant_name: '',
-      meeting_room_id: 0,
-      meeting_room: null,
-      meeting_room_name: '',
-      started_at: null,
-      ended_at: null,
-      status: 'new',
-      remark: ''
-    }
+    return state.bookingTemplate
   }
 }
 

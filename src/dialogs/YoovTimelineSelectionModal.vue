@@ -3,8 +3,18 @@
            id="yoovTimelineSelectionModal"
            @ok="onOk"
            @cancel="onCancel"
-           title="Select Timeline">
+           title="Select Time Slots">
     <div id="yoovTimelineSelectionDialog">
+      <div class="input-group row">
+        <label class="col-sm-3 col-form-label" for="applicantName">In Charge</label>
+        <input class="col-sm-9 form-control" v-model="applicantName"/>
+      </div>
+      <div class="input-group row">
+        <label class="col-sm-3 col-form-label" for="purpose">Purpose</label>
+        <input class="col-sm-9 form-control" v-model="purpose"/>
+      </div>
+      <hr style="margin-top:1rem;margin-bottom:8px;"/>
+
       <div class="d-flex flex-row">
         <div class="align-self-start">
           <button type="button"
@@ -14,10 +24,10 @@
           </button>
         </div>
         <div class="align-self-center" style="margin: 0 auto;">
-          <div class="flex-grow-1 text-center current-date">
+          <span class="flex-grow-1 text-center current-date">
             <span>{{ currentDay }}</span>
-            <div class="weekday-label">{{ showingMoment ? showingMoment.format('ddd') : '' }}</div>
-          </div>
+            <span class="weekday-label">{{ showingMoment ? showingMoment.format('ddd') : '' }}</span>
+          </span>
         </div>
         <div class="align-self-end">
           <button type="button"
@@ -27,22 +37,26 @@
           </button>
         </div>
       </div>
-      <div ref="timeSlots" class="time-slots">
-        <hr style="margin-bottom:5px;"/>
-        <table style="width:100%;margin-top:0;">
-          <tr>
-            <td v-for="column in timeSlots">
-              <div v-for="item in column"
-                   @dblclick.stop="onSlotDblClick(item)"
-                   class="timeslot"
-                   :class="{selected:item.selected,occupied:item.occupied}"
-                   @mousedown="onSlotMouseDown(item)"
-                   @mouseup="selecting=false"
-                   @mousemove="onSlotMouseMove(item)">{{ item.label }}</div>
-            </td>
-          </tr>
-        </table>
-      </div>
+      <transition name="timeSlots" mode="out-in">
+        <div ref="timeSlots" class="time-slots" :key="triggerTransition">
+          <hr style="margin-top:0.5rem;margin-bottom:5px;"/>
+          <table style="width:100%;margin-top:0;">
+            <tr>
+              <td v-for="column in timeSlots">
+                <div v-for="item in column"
+                     @dblclick.stop="onSlotDblClick(item)"
+                     class="timeslot"
+                     :class="{selected:item.selected,occupied:item.occupied}"
+                     @mousedown="onSlotMouseDown(item)"
+                     @mouseup="selecting=false"
+                     @mousemove="onSlotMouseMove(item)">
+                  <div class="timeslot-label">{{ item.label }}</div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </transition>
       <small class="footnote align-self-start">* double-click to reset start point</small>
     </div>
     <!--<div style="width:100%;" class="mt-0 pt-0">-->
@@ -71,6 +85,7 @@
   export default {
     data () {
       return {
+        triggerTransition: false,
         selecting: false,
         // list range
         startHour: 7,
@@ -84,7 +99,10 @@
         endSlotMoment: null,
 
         showingMoment: null,
-        slots: []
+        slots: [],
+
+        applicantName: '',
+        purpose: ''
       }
     },
     props: {
@@ -97,6 +115,9 @@
       'yoov-modal': YoovModal
     },
     methods: {
+      triggerAnimation () {
+        this.triggerTransition = !this.triggerTransition
+      },
       clearSelection () {
         let vm = this
         for (var i = 0; i < vm.slots.length; i++) {
@@ -118,7 +139,9 @@
         newMoment.add(-1, 'days')
         this.showingMoment = newMoment
         // this.showingMoment.add(-1, 'days')
+        console.log('onPrevButtonClicked :: this.showingMoment = ' + this.showingMoment.toString())
         this.updateTimeSlots()
+        this.triggerAnimation()
         // console.log('onPrevButtonClicked :: showingMoment: ', this.showingMoment.toString())
       },
       onNextButtonClicked () {
@@ -126,7 +149,9 @@
         newMoment.add(1, 'days')
         this.showingMoment = newMoment
         // this.showingMoment.add(1, 'days')
+        console.log('onPrevButtonClicked :: this.showingMoment = ' + this.showingMoment.toString())
         this.updateTimeSlots()
+        this.triggerAnimation()
         // console.log('onNextButtonClicked :: showingMoment: ', this.showingMoment.toString())
       },
       onSlotDblClick (item) {
@@ -228,17 +253,42 @@
 
       resetSlots () {
         let vm = this
-        for (var i = 0; i < vm.slots.length; i++) {
-          vm.slots[i].occupied = false
-          vm.slots[i].selected = false
+        vm.startMoment = vm.showingMoment.clone()
+        vm.startMoment.set({hour: vm.startHour, minute: 0, second: 0})
+
+        vm.endMoment = vm.showingMoment.clone()
+        vm.endMoment.set({hour: vm.endHour, minute: 0, second: 0})
+        // console.log('mounted :: startMoment: ' + vm.startMoment.toString())
+        // console.log('mounted :: endMoment: ' + vm.endMoment.toString())
+
+        let loopMoment = vm.startMoment.clone()
+        vm.slots = []
+        while (loopMoment < vm.endMoment) {
+          let moment = loopMoment.clone()
+          // console.log('mounted :: assign to slots: ' + moment.toString())
+          vm.slots.push({
+            moment: moment,
+            label: moment.format('hh:mm a'),
+            selected: false,
+            occupied: false
+          })
+          loopMoment.add('15', 'minutes')
         }
+        //
+        // for (var i = 0; i < vm.slots.length; i++) {
+        //   vm.slots[i].occupied = false
+        //   vm.slots[i].selected = false
+        // }
       },
 
       setSlotStatus (key, booking) {
         let vm = this
+        console.log('setSlotStatus key=' + key + ', booking:', booking)
         for (var i = 0; i < vm.slots.length; i++) {
           let slotStartMoment = vm.slots[i].moment
           let slotEndMoment = slotStartMoment.clone().add(15, 'minutes')
+          console.log('#' + i + ': slot start/end: ' + slotStartMoment.toString() + ' - ' + slotEndMoment.toString())
+          console.log('     booking start/end: ' + booking.startMoment.toString() + ' - ' + booking.endMoment.toString())
           if (slotStartMoment.diff(booking.startMoment, 'minute') >= 0 &&
             booking.endMoment.diff(slotEndMoment, 'minute') >= 0) {
             vm.slots[i][key] = true
@@ -250,13 +300,17 @@
         let vm = this
         vm.resetSlots()
         vm.$store.dispatch('GET_DAY_BOOKINGS', vm.showingMoment).then(function (bookings) {
-          // console.log('updateTimeSlots :: GET_DAY_BOOKINGS: bookings: ', bookings)
+          console.log('updateTimeSlots :: GET_DAY_BOOKINGS: bookings: ', bookings)
           for (var i = 0; i < bookings.length; i++) {
+            console.log('bookings[i].id = ' + bookings[i].id)
+            console.log('vm.booking.id = ' + vm.booking.id)
             if (bookings[i].id !== vm.booking.id) {
               vm.setSlotStatus('occupied', bookings[i])
             }
           }
-          vm.setSlotStatus('selected', vm.booking)
+          if (vm.booking.startMoment && vm.booking.endMoment) {
+            vm.setSlotStatus('selected', vm.booking)
+          }
         })
 
         let newSlots = []
@@ -325,34 +379,45 @@
       console.log('YoovTimelineSelectionDialog :: mounted')
       let vm = this
       vm.$refs.timeSlots.onselectstart = function () { return false }
-      if (vm.currentMoment) {
-        vm.showingMoment = vm.currentMoment
-
-        vm.startMoment = vm.showingMoment.clone()
-        vm.startMoment.set({hour: vm.startHour, minute: 0, second: 0})
-
-        vm.endMoment = vm.showingMoment.clone()
-        vm.endMoment.set({hour: vm.endHour, minute: 0, second: 0})
-        // console.log('mounted :: startMoment: ' + vm.startMoment.toString())
-        // console.log('mounted :: endMoment: ' + vm.endMoment.toString())
-
-        let loopMoment = vm.startMoment.clone()
-        vm.slots = []
-        while (loopMoment < vm.endMoment) {
-          let moment = loopMoment.clone()
-          // console.log('mounted :: assign to slots: ' + moment.toString())
-          vm.slots.push({
-            moment: moment,
-            label: moment.format('hh:mm a'),
-            selected: false,
-            occupied: false
-          })
-          loopMoment.add('15', 'minutes')
-        }
-        vm.updateTimeSlots()
-      }
+      // if (vm.currentMoment) {
+      //   vm.showingMoment = vm.currentMoment
+      //
+      //   vm.startMoment = vm.showingMoment.clone()
+      //   vm.startMoment.set({hour: vm.startHour, minute: 0, second: 0})
+      //
+      //   vm.endMoment = vm.showingMoment.clone()
+      //   vm.endMoment.set({hour: vm.endHour, minute: 0, second: 0})
+      //   // console.log('mounted :: startMoment: ' + vm.startMoment.toString())
+      //   // console.log('mounted :: endMoment: ' + vm.endMoment.toString())
+      //
+      //   let loopMoment = vm.startMoment.clone()
+      //   vm.slots = []
+      //   while (loopMoment < vm.endMoment) {
+      //     let moment = loopMoment.clone()
+      //     // console.log('mounted :: assign to slots: ' + moment.toString())
+      //     vm.slots.push({
+      //       moment: moment,
+      //       label: moment.format('hh:mm a'),
+      //       selected: false,
+      //       occupied: false
+      //     })
+      //     loopMoment.add('15', 'minutes')
+      //   }
+      //   vm.updateTimeSlots()
+      // }
     },
     watch: {
+      currentMoment: {
+        handler: function (value) {
+          let vm = this
+          console.log('watch(currentMoment) : value:', value)
+          console.log('watch(currentMoment) : currentMoment:', vm.currentMoment)
+          console.log('watch(showingMoment) : showingMoment:', vm.showingMoment)
+          vm.showingMoment = value
+          vm.updateTimeSlots()
+        },
+        deep: true
+      },
       showingMoment: {
         handler: (value) => {
           console.log('showingMoment :: value:', value)
@@ -433,6 +498,7 @@
     font-weight: bold;
     font-size: 14px;
     padding-top: 4px;
+    text-transform: uppercase;
   }
 
   #yoovTimelineSelectionModal .modal-dialog {
@@ -450,18 +516,34 @@
 
   }
 
-  #yoovTimelineSelectionModal .time-slots td {
-    vertical-align: top;
+  #yoovTimelineSelectionModal .time-slots .timeslot {
+    height: 25px;
+    font-size: 9px;
   }
 
-  #yoovTimelineSelectionModal .time-slots td div {
+  #yoovTimelineSelectionModal .time-slots td div.timeslot {
     min-width:30px;
     padding:0 5px;
-    text-align:right;
+    text-align:center;
     border-right: 1px solid transparent;
     border-bottom: 1px solid white;
     background-color: rgba(200,200,200,.3);
     cursor: pointer;
+    position: relative;
+  }
+
+  #yoovTimelineSelectionModal .time-slots div.timeslot div.timeslot-label {
+    margin-top: -3px;
+    position:absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+  }
+
+  #yoovTimelineSelectionModal .time-slots td {
+    vertical-align: top;
   }
 
   #yoovTimelineSelectionModal .time-slots td div.occupied {
@@ -495,4 +577,5 @@
   #yoovTimelineSelectionModal .modal-footer button {
     min-width: 80px;
   }
+
 </style>

@@ -62,6 +62,7 @@ export default {
       return 'name not specified' // his.$route.name
     },
     list () {
+      console.log('Full :: list: ', this.$route.matched)
       return this.$route.matched
     },
     user () {

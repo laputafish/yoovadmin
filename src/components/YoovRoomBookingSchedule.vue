@@ -3,8 +3,10 @@
     <h5 class="bg-default">{{ currentRoom.name }}&nbsp;
       <b-button variant="primary"
                 @click="onTestClicked">Test</b-button>
-      <span class="badge badge-success"><i class="fa fa-user"></i>&nbsp;x&nbsp;{{ currentRoom.capacity }}
-      showingYoovTimelineSelectionModal: {{ showingYoovTimelineSelectionModal}}</span>
+      <span class="badge badge-success">
+        <i class="fa fa-user"></i>
+        &nbsp;x&nbsp;{{ currentRoom.capacity }}
+      </span>
     </h5>
     <b-alert show>{{ currentRoom.equipments }}</b-alert>
     <div class="d-flex flex-row">
@@ -45,7 +47,9 @@
                  :style="getItemStyle(item)">
               <div class="schedule-item">
                 <span>{{ item.range }}</span><br/>
-                <span class="badge badge-default"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
+                <h6>
+                  <span class="badge badge-dark"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
+                </h6>
                 <div class="booking-status">
                   <i v-if="item.status==='pending'" class="fa fa-fw fa-hourglass-half"></i>
                   <i v-else class="fa fa-fw fa-check"></i>
@@ -57,26 +61,33 @@
         </tbody>
       </table>
     </div>
-    <yoov-timeline-selection-modal
-      :currentMoment="currentMoment"
+    <yoov-timeline-selection-dialog
+      v-if="showingYoovTimelineSelectionModal"
+      :currentMoment="selectedMoment"
       :booking="editBooking"
-      :open="showingYoovTimelineSelectionModal"
       @onResult="onDialogResult"
-      @close="showingYoovTimelineSelectionModal=false"></yoov-timeline-selection-modal>
+      @close="showingYoovTimelineSelectionModal=false"></yoov-timeline-selection-dialog>
+    <yoov-test-modal
+      v-if="showingYoovTestModal"
+    @close="showingYoovTestModal=false"></yoov-test-modal>
   </div>
 </template>
 
 <script>
   import {EventBus} from '@/event-bus'
-  import YoovTimelineSelectionModal from '@/dialogs/YoovTimelineSelectionModal'
+  import YoovTimelineSelectionDialog from '@/dialogs/YoovTimelineSelectionDialog'
+  import YoovTestModal from '@/dialogs/YoovTestModal'
 
   export default {
     components: {
-      'yoov-timeline-selection-modal': YoovTimelineSelectionModal
+      'yoov-timeline-selection-dialog': YoovTimelineSelectionDialog,
+      'yoov-test-modal': YoovTestModal
     },
     data () {
       return {
         showingYoovTimelineSelectionModal: false,
+        showingYoovTestModal: false,
+
         editBooking: null,
         currentMoment: null,
         currentRoom: null,
@@ -84,6 +95,7 @@
         displayedRangeEnd: '2018-05-12',
         displayedWeekdays: ['', '', '', '', '', '', ''],
         scheduleSlotByHour: [],
+        selectedMoment: null,
         weekSchedule: [
           /* Sun */ [],
           /* Mon */ [],
@@ -92,7 +104,20 @@
           /* Thu */ [],
           /* Fri */ [],
           /* Sat */ []
-        ]
+        ],
+        bookingTemplate: {
+          id: 0,
+          applicant_id: 0,
+          applicant_name: '',
+          purpose: '',
+          meeting_room_id: 0,
+          meeting_room: null,
+          meeting_room_name: '',
+          started_at: null,
+          ended_at: null,
+          status: 'new',
+          remark: ''
+        }
       }
     },
     model: {
@@ -109,8 +134,9 @@
       }
     },
     mounted () {
-      console.log('YoovRoomBookingSchedule :: mounted')
       let vm = this
+      vm.selectedMoment = vm.$moment()
+      console.log('YoovRoomBookingSchedule :: mounted')
       vm.currentMoment = (vm.defaultMoment === null) ? vm.defaultMoment : vm.$moment()
       vm.initBookingInfos()
       // let promises = [
@@ -165,20 +191,20 @@
       },
       user () {
         return this.$store.getters.user
-      },
-      bookingTemplate () {
-        return this.$store.getters.bookingTemplate
       }
     },
     methods: {
       onDialogResult (result) {
-        alert('onDialogResult')
+        console.log('onDialogResult :; result: ', result)
         // let dialog = result.dialog
         // let payload = result.payload
         this.showingYoovTimelineSelectionModal = false
       },
       onTestClicked () {
+        console.log('onTestClicked')
+        this.showingYoovTestModal = true
         this.showingYoovTimelineSelectionModal = true
+        // this.showingYoovTimelineSelectionModal = true
       },
       onNextButtonClicked () {
         let vm = this
@@ -405,7 +431,7 @@
         for (var i = 0; i < vm.bookings.length; i++) {
           var bookingStartMoment = vm.$moment(vm.bookings[i].started_at)
           var bookingEndMoment = vm.$moment(vm.bookings[i].ended_at)
-          var bookingStartMomentClone = bookingStartMoment.clone()
+          var bookingStartMomentClone = JSON.parse(JSON.stringify(bookingStartMoment))
           var weekStart = bookingStartMomentClone.startOf('week')
 
           vm.bookings[i].weekday = Math.floor(bookingStartMoment.diff(weekStart, 'day'))
@@ -523,9 +549,11 @@
       newSchedule (columnIndex) {
         let vm = this
         let cloneMoment = vm.currentMoment.clone()
-        vm.editBooking = vm.bookingTemplate.clone()
-        vm.editBooking.meeting_room_id = vm.defaultRoom.id
-        vm.editBooking.meeting_room = vm.defaultRoom
+        let bookingTemplate = vm.bookingTemplate
+        console.log('newSchedule :: bookingTemplate: ', bookingTemplate)
+        vm.editBooking = JSON.parse(JSON.stringify(bookingTemplate))
+        vm.editBooking.meeting_room_id = vm.currentRoom.id
+        vm.editBooking.meeting_room = vm.currentRoom
         vm.selectedMoment = cloneMoment.day(columnIndex)
         vm.showingYoovTimelineSelectionModal = true
       },
@@ -590,6 +618,7 @@
         let vm = this
         console.log('YoovMeetingRoomBookingDialog :: onColumnClicked :: vm.booking: ', vm.booking)
         if (vm.booking.started_at !== null) {
+          // Edit
           console.log('YoovMeetingRoomBookingDialog :: onColumnClicked :: emit(showDialog)')
           EventBus.$emit('showDialog', {
             dialog: 'timeSlotEntryConfirmationDialog',
@@ -608,30 +637,13 @@
               }
             }
           })
-
-//        vm.showingConfirmationDialog = true
-          // vm.$dialog.confirm({
-          //   title: 'Schedule Changed',
-          //   body: 'Previous selected time slot will be removed. Are you sure?'
-          // }, {
-          //   okText: 'Yes',
-          //   cancelText: 'No'
-          // }).then(function () {
-          //   console.log('onColumnClicked :: confirm')
-          //   vm.$store.dispatch('REMOVE_BOOKING', vm.booking.id).then(function (response) {
-          //     vm.booking.started_at = null
-          //     vm.booking.ended_at = null
-          //     vm.refreshCalendar(vm.currentRoom)
-          //     vm.newSchedule(index)
-          //   })
-          // }).catch(function () {
-          //   alert('cancel')
-          // })
         } else {
+          // New Schedule
           this.newSchedule(columnIndex)
         }
       },
       onEventClicked (columnIndex, item) {
+        console.log('onEventClicked')
         let vm = this
         if (typeof item === 'undefined') {
           alert('item is undefined')
@@ -639,10 +651,15 @@
         if (vm.booking === null) {
           alert('vm.booking is null')
         }
-        console.log('onEventClicked (columnIndex=' + columnIndex + ') :: item.id=' + item.id + '    vs vm.booking.id=' + vm.booking.id)
-        if (item.id === vm.booking.id) {
-          vm.editSchedule(item)
-        }
+        // console.log('onEventClicked (columnIndex=' + columnIndex + ') :: item.id=' + item.id + '    vs vm.booking.id=' + vm.booking.id)
+        vm.editSchedule(item)
+        // if (item.id === vm.booking.id) {
+        //   console.log('item id === vm.booking.id')
+        //   vm.editSchedule(item)
+        // }
+        // else {
+        //   console.log('item id !== vm.booking.id')
+        // }
       },
       refreshCalendar (currentRoom) {
         console.log('refreshCalendar :: currentRoom: ', currentRoom)

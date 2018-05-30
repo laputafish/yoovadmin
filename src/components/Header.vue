@@ -21,7 +21,7 @@
       <!--<b-nav-item class="px-3" :to="'/pages/header_page2'">Page 2</b-nav-item>-->
       <!--<b-nav-item class="px-3" :to="'/pages/header_page3'">Page 3</b-nav-item>-->
     </b-nav>
-    <b-nav is-nav-bar class="ml-auto">
+    <b-nav id="top-right-menu" is-nav-bar class="ml-auto">
       <b-nav-item :href="'http://google.com'" class="d-md-down-none">
         <i class="icon-bell"></i><span class="badge badge-pill badge-danger">5</span>
       </b-nav-item>
@@ -83,3 +83,11 @@ export default {
   }
 }
 </script>
+<style>
+  #top-right-menu li {
+    display: none;
+  }
+  #top-right-menu button {
+    display: none;
+  }
+</style>
