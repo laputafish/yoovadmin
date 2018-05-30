@@ -8,11 +8,19 @@
     <div slot="body">
       <div class="input-group row">
         <label class="col-sm-3 col-form-label" for="applicantName">In Charge</label>
-        <input class="col-sm-9 form-control" v-model="booking.applicantName"/>
+        <input v-validate="'required'"
+               name="inCharge"
+               :class="{'error-input':errors.has('inCharge')}"
+               class="col-sm-9 form-control"
+               v-model="booking.applicantName"/>
       </div>
       <div class="input-group row">
         <label class="col-sm-3 col-form-label" for="purpose">Purpose</label>
-        <input class="col-sm-9 form-control" v-model="booking.purpose"/>
+        <input v-validate="'required'"
+               name="purpose"
+               :class="{'error-input':errors.has('purpose')}"
+               class="col-sm-9 form-control"
+               v-model="booking.purpose"/>
       </div>
       <hr style="margin-top:0.5rem;margin-bottom:8px;"/>
 
@@ -67,7 +75,7 @@
                 @click="deleteBooking()">
           Delete
         </button>
-        <button :disabled="selectionInfo.selection.length===0"
+        <button :disabled="selectionInfo.selection.length===0 || booking.purpose==='' || booking.applicantName===''"
                 class="btn btn-primary"
                 @click="save()">
           OK
@@ -236,6 +244,8 @@
               }
             }
           }
+          vm.$validator.validate()
+
           if (item.selected) {
             vm.selecting = true
           }
@@ -272,7 +282,9 @@
               vm.setSlotStatus('occupied', bookings[i])
             }
           }
-          vm.setSlotStatus('selected', vm.booking)
+          if (vm.booking.startMoment && vm.booking.endMoment) {
+            vm.setSlotStatus('selected', vm.booking)
+          }
         })
 
         let newSlots = []
@@ -534,4 +546,8 @@
 #yoovTimelineSelectionDialog .modal-footer button:disabled {
   cursor: default
 }
+#yoovTimelineSelectionDialog .error-input {
+  border-color: red;
+}
+
 </style>

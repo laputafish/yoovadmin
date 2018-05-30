@@ -9,6 +9,7 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import $ from 'jquery'
 import Vue from 'vue'
+import VeeValidate from 'vee-validate'
 // import 'vue-tree-halower/dist/halower-tree.min.css'
 // import VTree from 'vue-tree-halower'
 // import LiquorTree from 'liquor-tree'
@@ -51,7 +52,7 @@ import 'simple-line-icons/scss/simple-line-icons.scss'
 
 window.$ = $
 window.jQuery = $
-
+Vue.use(VeeValidate)
 Vue.use(VModal, {dynamic: true})
 Vue.use(VuejsDialog)
 Vue.use(BootstrapVue)
