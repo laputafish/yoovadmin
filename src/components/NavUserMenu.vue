@@ -1,8 +1,9 @@
 <template>
-  <b-nav-item-dropdown right>
+  <b-nav-item-dropdown right class="nav-user-menu">
     <template slot="button-content">
-      <img src="/static/img/avatars/6.jpg" class="img-avatar" alt="admin@bootstrapmaster.com">
-      <span class="d-md-down-none">{{ user ? user.name : '' }}</span>
+      <h3 style="display:inline-block;"><i class="fa fa-user"></i>&nbsp;</h3>
+      <!--<img src="/static/img/avatars/6.jpg" class="img-avatar" alt="admin@bootstrapmaster.com">-->
+      <div class="user-name d-md-down-none">{{ user ? user.name : '' }}</div>
     </template>
     <my-dropdown-item
       :menuItem="menuItem"
@@ -53,5 +54,10 @@
 </script>
 
 <style>
-
+.nav-user-menu .user-name {
+  font-size: 14px;
+  display: inline-block;
+  vertical-align:top;
+  padding-top:8px;
+}
 </style>
