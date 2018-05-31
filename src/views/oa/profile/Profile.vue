@@ -3,33 +3,47 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col">
-          <h3>{{ displayName }}</h3>
+          <div class="pull-right toolbar">
+          <router-link to="/"
+                  class="btn btn-primary ml-1">Back</router-link>
           <button type="button"
-                  class="pull-right btn btn-primary">Submit</button>
+                  class="btn btn-primary">Submit</button>
+          </div>
+          <h3>{{ displayName }}</h3>
         </div>
       </div>
-      <div class="d-flex flex-row">
-        <form>
-          <div class="row">
-            <div class="form-group col-sm">
-              <label for="name">User Name</label>
-              <input class="form-control" id="name" v-model="user.name"/>
-            </div>
-            <div class="form-group col-sm">
-              <label for="first_name">First Name</label>
-              <input class="form-control" id="first_name" v-model="user.first_name"/>
-            </div>
-            <div class="form-group col-sm">
-              <label for="last_name">Last Name</label>
-              <input class="form-control" id="last_name" v-model="user.last_name"/>
-            </div>
-            <div class="form-group col-sm">
-              <label for="email">Email</label>
-              <input class="form-control" id="email" v-model="user.email"/>
-            </div>
-          </div>
-        </form>
+      <hr/>
+
+      <div class="row">
+        <div class="form-group col-sm-3">
+          <label for="name">User Name</label>
+          <input class="form-control" id="name" v-model="user.name"/>
+        </div>
+        <div class="form-group col-sm-3">
+          <label for="name">Alias</label>
+          <input class="form-control" id="alias" v-model="user.alias"/>
+        </div>
+        <div class="form-group col-sm-6">
+          <label for="email">Email</label>
+          <input class="form-control" id="email" v-model="user.email"/>
+        </div>
       </div>
+
+      <div class="row">
+        <div class="form-group col-sm-4">
+          <label for="first_name">First Name</label>
+          <input class="form-control" id="first_name" v-model="user.first_name"/>
+        </div>
+        <div class="form-group col-sm-4">
+          <label for="last_name">Last Name</label>
+          <input class="form-control" id="last_name" v-model="user.last_name"/>
+        </div>
+        <div class="form-group col-sm-4">
+          <label for="mobile">Mobile</label>
+          <input class="form-control" id="mobile" v-model="user.mobile"/>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -48,7 +62,21 @@
         }
       }
     },
+    watch: {
+      dbUser: function (value) {
+        let vm = this
+        vm.user.name = value.name
+        vm.user.first_name = value.first_name
+        vm.user.last_name = value.last_name
+        vm.user.alias = value.alias
+        vm.user.email = value.email
+        vm.user.mobile = value.mobile
+      }
+    },
     computed: {
+      dbUser () {
+        return this.$store.getters.user
+      },
       displayName () {
         let vm = this
         let names = []
@@ -68,3 +96,9 @@
     }
   }
 </script>
+
+<style>
+  .toolbar .btn {
+    min-width: 80px;
+  }
+</style>

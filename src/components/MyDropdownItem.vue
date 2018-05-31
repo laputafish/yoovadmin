@@ -2,12 +2,17 @@
   <b-dropdown-header v-if="menuItem.type==='header'" tag="div" class="text-center">
     <strong>{{ menuItem.title }}</strong>
   </b-dropdown-header>
-  <b-dropdown-item v-else>
+
+  <b-dropdown-item v-else-if="menuItem.link" :to="menuItem.link">
     <i class="fa" :class="menuItem.icon"></i>
-    <router-link v-if="menuItem.link"
-                 class="no-anchor-style"
-                 :to="menuItem.link">{{ menuItem.title }}</router-link>
-    <span v-else href="#" @click="processCommand(menuItem.command)">
+    <span>
+      {{ menuItem.title }}
+    </span>
+    <span v-if="menuItem.badgeNo" class="badge" :class="menuItem.badgeClass">{{ menuItem.badgeNo }}</span>
+  </b-dropdown-item>
+  <b-dropdown-item v-else @click="processCommand(menuItem.command)">
+    <i class="fa" :class="menuItem.icon"></i>
+    <span>
       {{ menuItem.title }}
     </span>
     <span v-if="menuItem.badgeNo" class="badge" :class="menuItem.badgeClass">{{ menuItem.badgeNo }}</span>
