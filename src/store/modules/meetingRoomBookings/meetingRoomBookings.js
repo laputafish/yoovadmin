@@ -208,6 +208,14 @@ const actions = {
 
   async [types.UPDATE_WORKING_BOOKING] ({commit, dispatch, state}, payload) {
     commit('updateWorkingBooking', payload)
+  },
+
+  async [types.SAVE_BOOKING] ({commit, dispatch, state}, payload) {
+    console.log('async SAVE_BOOKING :: payload: ', payload)
+    let apiUrl = constants.apiUrl + '/meeting_room_bookings'
+    await axios.post(apiUrl, {booking: payload}).then(function (response) {
+
+    })
   }
 
 }

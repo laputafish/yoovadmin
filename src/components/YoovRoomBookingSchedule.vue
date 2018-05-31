@@ -109,7 +109,7 @@
           id: 0,
           applicant_id: 0,
           applicant_name: '',
-          purpose: '',
+          description: '',
           meeting_room_id: 0,
           meeting_room: null,
           meeting_room_name: '',
@@ -195,10 +195,15 @@
     },
     methods: {
       onDialogResult (result) {
-        console.log('onDialogResult :; result: ', result)
-        // let dialog = result.dialog
-        // let payload = result.payload
-        this.showingYoovTimelineSelectionModal = false
+        let vm = this
+        switch (result.dialog) {
+          case 'yoovTimelineSelectionDialog':
+            vm.$store.dispatch('SAVE_BOOKING', result.payload.booking).then(function () {
+              vm.refreshCalendar()
+            })
+            this.showingYoovTimelineSelectionModal = false
+            break
+        }
       },
       onTestClicked () {
         console.log('onTestClicked')
@@ -662,8 +667,16 @@
         // }
       },
       refreshCalendar (currentRoom) {
-        console.log('refreshCalendar :: currentRoom: ', currentRoom)
-        this.setCurrentWeekBookings(currentRoom)
+        let vm = this
+        if (typeof currentRoom === 'undefined') {
+          currentRoom = vm.currentRoom
+        }
+        if (vm.currentRoom) {
+          console.log('refreshCalendar :: currentRoom: ', currentRoom)
+          this.setCurrentWeekBookings(currentRoom)
+        } else {
+          console.log('refreshCalendar :: currentRoom is undefined')
+        }
       },
       getScheduleItemClass (item) {
         let vm = this

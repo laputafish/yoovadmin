@@ -5,22 +5,22 @@
         Select Timeline
       </h3>
     </div>
-    <div slot="body">
+    <div slot="body" class="yoov-modal-body">
       <div class="input-group row">
-        <label class="col-sm-3 col-form-label" for="applicantName">In Charge</label>
+        <label class="col-sm-3 col-form-label" for="applicantName">Applicant</label>
         <input v-validate="'required'"
-               name="inCharge"
-               :class="{'error-input':errors.has('inCharge')}"
+               name="applicantName"
+               :class="{'error-input':errors.has('applicantName')}"
                class="col-sm-9 form-control"
-               v-model="booking.applicantName"/>
+               v-model="booking.applicant_name"/>
       </div>
       <div class="input-group row">
-        <label class="col-sm-3 col-form-label" for="purpose">Purpose</label>
+        <label class="col-sm-3 col-form-label" for="description">Description</label>
         <input v-validate="'required'"
-               name="purpose"
-               :class="{'error-input':errors.has('purpose')}"
+               name="description"
+               :class="{'error-input':errors.has('description')}"
                class="col-sm-9 form-control"
-               v-model="booking.purpose"/>
+               v-model="booking.description"/>
       </div>
       <hr style="margin-top:0.5rem;margin-bottom:8px;"/>
 
@@ -37,6 +37,16 @@
             <span class="date-label">{{ currentDay }}</span>
             <span class="weekday-label">{{ showingMoment ? showingMoment.format('ddd') : '' }}</span>
             <br/>
+            <span v-if="selectionInfo.selection.length>0"
+              class="selection-status">
+              {{ selectionInfo.fromLabel }}
+              &nbsp;<i class="fa fa-minus"></i>&nbsp;
+              <span class="badge badge-info selection-duration">
+                {{ selectionInfo.durationStr }}
+              </span>
+              &nbsp;<i class="fa fa-minus"></i>&nbsp;
+              {{ selectionInfo.toLabel }}
+            </span>
           </div>
         </div>
         <div class="align-self-end">
@@ -75,7 +85,7 @@
                 @click="deleteBooking()">
           Delete
         </button>
-        <button :disabled="selectionInfo.selection.length===0 || booking.purpose==='' || booking.applicantName===''"
+        <button :disabled="selectionInfo.selection.length===0 || booking.description==='' || booking.applicant_name===''"
                 class="btn btn-primary"
                 @click="save()">
           OK
@@ -315,14 +325,18 @@
 
         let nextStartMoment = endMoment.clone().add(vm.intervals, 'minutes')
         console.log('save() nextStartMoment: ' + nextStartMoment.toString())
+
+        vm.booking.started_at = startMoment.format('Y-MM-DD HH:mm:ss')
+        vm.booking.ended_at = endMoment.format('Y-MM-DD HH:mm:ss')
         vm.$emit('onResult', {
           dialog: 'yoovTimelineSelectionDialog',
           payload: {
             mode: vm.mode,
-            startMoment: startMoment,
-            startedAt: startMoment.format('Y-MM-DD HH:mm:ss'),
-            endMoment: endMoment,
-            endedAt: nextStartMoment.format('Y-MM-DD HH:mm:ss')
+            booking: vm.booking
+            // startMoment: startMoment,
+            // startedAt: startMoment.format('Y-MM-DD HH:mm:ss'),
+            // endMoment: endMoment,
+            // endedAt: nextStartMoment.format('Y-MM-DD HH:mm:ss')
           }
         })
       }
@@ -372,6 +386,12 @@
         let selection = []
         let first = -1
         let last = -1
+        let durationItems = []
+        let durationStr = ''
+        let totalMin = 0
+        let fromLabel = ''
+        let toLabel = ''
+
         // console.log('getSelectionInfo ::vm.slots: ', vm.slots)
         for (var i = 0; i < vm.slots.length; i++) {
           // console.log('getSelectionInfo i=' + i)
@@ -392,10 +412,32 @@
             }
           }
         }
+
+        if (first !== -1 && last !== -1) {
+          totalMin = (last - first + 1) * 15
+          let hours = Math.floor(totalMin / 60)
+          let mins = totalMin - hours * 60
+          if (hours > 0) {
+            durationItems.push(hours + ' hours')
+          }
+          if (mins > 0) {
+            durationItems.push(mins + ' mins')
+          }
+          fromLabel = vm.slots[first].label
+
+          let toMoment = vm.slots[last].moment.clone().add(vm.intervals, 'minutes')
+          toLabel = toMoment.format('hh:mm a')
+          durationStr = durationItems.join(' ')
+        }
+
         return {
           firstIndex: first,
           lastIndex: last,
-          selection: selection
+          selection: selection,
+          fromLabel: fromLabel,
+          toLabel: toLabel,
+          duration: totalMin,
+          durationStr: durationStr
         }
       },
       currentDay () {
@@ -549,5 +591,14 @@
 #yoovTimelineSelectionDialog .error-input {
   border-color: red;
 }
-
+#yoovTimelineSelectionDialog .selection-status {
+  font-size:8px;
+}
+#yoovTimelineSelectionDialog .selection-status .selection-duration {
+  padding: 3px;
+}
+.yoov-modal-body .input-group {
+  margin-bottom: 3px;
+}
 </style>
+
