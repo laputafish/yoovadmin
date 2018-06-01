@@ -5,7 +5,7 @@
         <div class="col">
           <div class="pull-right toolbar">
           <router-link to="/"
-                  class="btn btn-primary ml-1">Back</router-link>
+                  class="no-anchor-style btn btn-secondary ml-1">Back</router-link>
           <button type="button"
                   class="btn btn-primary">Submit</button>
           </div>
@@ -64,6 +64,7 @@
     },
     watch: {
       dbUser: function (value) {
+        console.log('watch(dbUser) value: ', value)
         let vm = this
         vm.user.name = value.name
         vm.user.first_name = value.first_name
@@ -71,6 +72,12 @@
         vm.user.alias = value.alias
         vm.user.email = value.email
         vm.user.mobile = value.mobile
+      }
+    },
+    mounted () {
+      let vm = this
+      if (vm.dbUser) {
+        vm.user = vm.dbUser
       }
     },
     computed: {

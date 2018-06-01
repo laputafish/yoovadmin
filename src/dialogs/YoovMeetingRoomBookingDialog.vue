@@ -140,7 +140,7 @@ export default {
       vm.$store.dispatch('GET_MEETING_ROOMS')
     ]
     Promise.all(promises).then(function (responses) {
-      vm.$store.dispatch('UPDATE_BOOKING', vm.localBooking).then(function (response) {
+      vm.$store.dispatch('SET_BOOKING', vm.localBooking).then(function (response) {
         console.log('promise.all :: meeting_rooms.length = ' + vm.rooms.length)
         let selectedRoom = null
         for (var i = 0; i < vm.rooms.length; i++) {

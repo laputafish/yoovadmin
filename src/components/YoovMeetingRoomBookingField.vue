@@ -115,7 +115,7 @@
               })
             } else {
               // update booking
-              vm.$store.dispatch('UPDATE_BOOKING', vm.localBooking).then(function () {
+              vm.$store.dispatch('SET_BOOKING', vm.localBooking).then(function () {
                 vm.showCurrentBookings()
               })
             }
@@ -152,8 +152,8 @@
         vm.localBooking.meeting_room_name = selectedRoom.name
         vm.localBooking.started_at = params.startedAt
         vm.localBooking.ended_at = params.endedAt
-        vm.$store.dispatch('UPDATE_BOOKING', vm.localBooking)
-        vm.$store.dispatch('UPDATE_WORKING_BOOKING', vm.localBooking)
+        vm.$store.dispatch('SET_BOOKING', vm.localBooking)
+        vm.$store.dispatch('SET_WORKING_BOOKING', vm.localBooking)
         vm.showingTimelineSelectionDialog = false
       },
       showDialog (params) {

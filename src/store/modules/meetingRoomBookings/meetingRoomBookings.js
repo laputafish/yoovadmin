@@ -48,10 +48,10 @@ const getHumanReadableTime = (moment) => {
   let hour = moment.get('hour')
   let minute = moment.get('minute')
   let ampm = 'am'
-  let result = hour
   if (hour >= 12) {
     ampm = 'pm'
   }
+  let result = hour > 12 ? hour - 12 : hour
   if (minute > 0) {
     result += ':' + (minute < 10 ? '0' + minute : minute)
   }
@@ -89,7 +89,7 @@ const mutations = {
       var weekStart = bookingStartMomentClone.startOf('week')
 
       state.meetingRoomBookings[i].weekday = Math.floor(bookingStartMoment.diff(weekStart, 'day'))
-      state.meetingRoomBookings[i].hour = bookingStartMoment.get('hour')
+      state.meetingRoomBookings[i].quarter = bookingStartMoment.format('HH:mm')
       state.meetingRoomBookings[i].range = getTimeSlotRange(bookingStartMoment, bookingEndMoment)
       state.meetingRoomBookings[i].startMoment = bookingStartMoment
       state.meetingRoomBookings[i].endMoment = bookingEndMoment
@@ -202,19 +202,36 @@ const actions = {
     })
   },
 
-  async [types.UPDATE_BOOKING] ({commit, dispatch, state}, payload) {
+  async [types.SET_BOOKING] ({commit, dispatch, state}, payload) {
     commit('updateBooking', payload)
   },
 
-  async [types.UPDATE_WORKING_BOOKING] ({commit, dispatch, state}, payload) {
+  async [types.SET_WORKING_BOOKING] ({commit, dispatch, state}, payload) {
     commit('updateWorkingBooking', payload)
   },
 
+  // DB Processing
   async [types.SAVE_BOOKING] ({commit, dispatch, state}, payload) {
-    console.log('async SAVE_BOOKING :: payload: ', payload)
+    let booking = payload
     let apiUrl = constants.apiUrl + '/meeting_room_bookings'
-    await axios.post(apiUrl, {booking: payload}).then(function (response) {
+    await axios.post(apiUrl, {booking: booking}).then(function (response) {
+      dispatch(types.GET_MEETING_ROOM_BOOKINGS)
+    })
+  },
 
+  async [types.UPDATE_BOOKING] ({commit, dispatch, state}, payload) {
+    let booking = payload
+    let apiUrl = constants.apiUrl + '/meeting_room_bookings/' + booking.id
+    await axios.put(apiUrl, {booking: booking}).then(function (response) {
+      dispatch(types.GET_MEETING_ROOM_BOOKINGS)
+    })
+  },
+
+  async [types.DELETE_BOOKING] ({commit, dispatch, state}, payload) {
+    let bookingId = payload
+    let apiUrl = constants.apiUrl + '/meeting_room_bookings/' + bookingId
+    await axios.delete(apiUrl).then(function (response) {
+      dispatch(types.GET_MEETING_ROOM_BOOKINGS)
     })
   }
 

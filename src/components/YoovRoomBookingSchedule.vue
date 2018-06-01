@@ -1,8 +1,6 @@
 <template>
   <div v-if="currentRoom" id="yoovRoomBookingSchedule">
     <h5 class="bg-default">{{ currentRoom.name }}&nbsp;
-      <b-button variant="primary"
-                @click="onTestClicked">Test</b-button>
       <span class="badge badge-success">
         <i class="fa fa-user"></i>
         &nbsp;x&nbsp;{{ currentRoom.capacity }}
@@ -46,10 +44,13 @@
                  class="schedule-item-wrapper"
                  :style="getItemStyle(item)">
               <div class="schedule-item">
-                <span>{{ item.range }}</span><br/>
-                <h6>
+                <span class="schedule-item-duration">{{ item.range }}</span><br/>
+                <h6 style="margin:-5px 0 0 0;padding:0;">
                   <span class="badge badge-dark"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
                 </h6>
+                <div class="booking-description">
+                  {{ item.description }}
+                </div>
                 <div class="booking-status">
                   <i v-if="item.status==='pending'" class="fa fa-fw fa-hourglass-half"></i>
                   <i v-else class="fa fa-fw fa-check"></i>
@@ -94,7 +95,7 @@
         displayedRangeStart: '2018-05-06',
         displayedRangeEnd: '2018-05-12',
         displayedWeekdays: ['', '', '', '', '', '', ''],
-        scheduleSlotByHour: [],
+        scheduleSlotByQuarter: [],
         selectedMoment: null,
         weekSchedule: [
           /* Sun */ [],
@@ -108,7 +109,8 @@
         bookingTemplate: {
           id: 0,
           applicant_id: 0,
-          applicant_name: '',
+          applicant: null,
+          // applicant_name: '',
           description: '',
           meeting_room_id: 0,
           meeting_room: null,
@@ -136,30 +138,8 @@
     mounted () {
       let vm = this
       vm.selectedMoment = vm.$moment()
-      console.log('YoovRoomBookingSchedule :: mounted')
       vm.currentMoment = (vm.defaultMoment === null) ? vm.defaultMoment : vm.$moment()
       vm.initBookingInfos()
-      // let promises = [
-      //   vm.$store.dispatch('GET_MEETING_ROOM_BOOKINGS'),
-      //   vm.$store.dispatch('GET_MEETING_ROOMS')
-      // ]
-      // Promise.all(promises).then(function (responses) {
-      //   vm.$store.dispatch('UPDATE_BOOKING', vm.localBooking).then(function (response) {
-      //     console.log('promise.all :: meeting_rooms.length = ' + vm.rooms.length)
-      //     vm.currentMoment = vm.$moment()
-      //     let selectedRoom = null
-      //     for (var i = 0; i < vm.rooms.length; i++) {
-      //       if (vm.rooms[i].id === vm.booking.meeting_room_id) {
-      //         selectedRoom = vm.rooms[i]
-      //         vm.$store.dispatch('SELECT_ROOM', selectedRoom)
-      //         break
-      //       }
-      //     }
-      //     // vm.initBookingInfos()
-      //     // console.log('mounted => refreshCalendar :: selectedRoom: ', selectedRoom)
-      //     // vm.refreshCalendar(selectedRoom)
-      //   })
-      // })
     },
     watch: {
       defaultRoom: {
@@ -170,18 +150,25 @@
         },
         deep: true
       },
-      selectedRoom: {
+      bookings: {
         handler: function (value) {
-          this.currentRoom = value
-          this.refreshCalendar(value)
+          this.refreshCalendar()
         },
         deep: true
       }
+      // ,
+      // selectedRoom: {
+      //   handler: function (value) {
+      //     this.currentRoom = value
+      //     this.refreshCalendar(value)
+      //   },
+      //   deep: true
+      // }
     },
     computed: {
-      selectedRoom () {
-        return this.$store.getters.selectedRoom
-      },
+      // selectedRoom () {
+      //   return this.$store.getters.selectedRoom
+      // },
       bookings () {
         let result = this.$store.getters.meetingRoomBookings
         return result
@@ -198,10 +185,29 @@
         let vm = this
         switch (result.dialog) {
           case 'yoovTimelineSelectionDialog':
-            vm.$store.dispatch('SAVE_BOOKING', result.payload.booking).then(function () {
-              vm.refreshCalendar()
-            })
-            this.showingYoovTimelineSelectionModal = false
+            switch (result.command) {
+              case 'save':
+                vm.editBooking.description = result.payload.booking.description
+                vm.editBooking.started_at = result.payload.startedAt
+                vm.editBooking.ended_at = result.payload.endedAt
+                //            let booking = result.payload.booking
+                // let promise = null
+                if (vm.editBooking.id === 0) {
+                  vm.$store.dispatch('SAVE_BOOKING', vm.editBooking)
+                } else {
+                  vm.$store.dispatch('UPDATE_BOOKING', vm.editBooking)
+                }
+                // promise.then(function () {
+                //   console.log('AFTER SAVE/UPDATE => refreshCalendar')
+                //   vm.refreshCalendar()
+                // })
+                this.showingYoovTimelineSelectionModal = false
+                break
+              case 'delete':
+                this.$store.dispatch('DELETE_BOOKING', result.payload.id)
+                this.showingYoovTimelineSelectionModal = false
+                break
+            }
             break
         }
       },
@@ -234,7 +240,7 @@
           weekdaySchedule = vm.weekSchedule[i]
           output = 'Weekday #' + i + ': '
           for (var j = 0; j < weekdaySchedule.length; j++) {
-            output = output + 'j=' + j + ':hr=' + weekdaySchedule[j].hour + ',tp=' + weekdaySchedule[j].top + '; '
+            output = output + 'j=' + j + ':hr=' + weekdaySchedule[j].quarter + ',tp=' + weekdaySchedule[j].top + '; '
           }
 //        console.log('outputWeekSchedule: ' + output)
         }
@@ -315,8 +321,8 @@
             // console.log('sort weekday item: loop=' + loop + ', needle=' + needle)
             while (loop >= 0) {
               loopBooking = loopBookings[loop]
-              // console.log('loop: sort weekday item: loop=' + loop + ', needle=' + needle + ' booking.hour=' + booking.hour + '  loopBooking.hour=' + loopBooking.hour)
-              if (parseInt(booking.hour) < parseInt(loopBooking.hour)) {
+              // console.log('loop: sort weekday item: loop=' + loop + ', needle=' + needle + ' booking.quarter=' + booking.quarter + '  loopBooking.quarter=' + loopBooking.quarter)
+              if (booking.quarter < loopBooking.quarter) {
                 needle = loop
               } else {
                 break
@@ -335,25 +341,15 @@
 
         // adjust top position of schedule item region
         // console.log('setCurrentWeekBookings :: adjust top position')
-        vm.setupScheduleSlotByHour()
+        vm.setupScheduleSlotByQuarter()
         // console.log('before sort')
         vm.setScheduleRegionTop()
-        // console.log('setCurrentWeekBookings :: scheduleSlotByHour: ', vm.scheduleSlotByHour)
+        // console.log('setCurrentWeekBookings :: scheduleSlotByQuarter: ', vm.scheduleSlotByQuarter)
       },
-      // logCurrentBookings () {
-      //   let vm = this
-      //   for (var i = 0; i < vm.currentBookings.length; i++) {
-      //     let booking = vm.currentBookings[i]
-      //     console.log('#' + i + ': id=' + booking.id + ' appId=' + booking.applicant_id +
-      //       ' (' + booking.applicant_name + ') ' +
-      //       'room id = ' + booking.meeting_room_id + ' (' + booking.meeting_room_name + ') ' +
-      //       'started_at=' + booking.started_at + '   ended_at=' + booking.ended_at
-      //     )
-      //   }
-      // },
-      setupScheduleSlotByHour () {
+
+      setupScheduleSlotByQuarter () {
         let vm = this
-        vm.scheduleSlotByHour = {}
+        vm.scheduleSlotByQuarter = {}
         /* weekdaySchedule
         0: []
         1: [{..}, {..}]
@@ -365,57 +361,52 @@
 
         =>
 
-        scheduleSlotByHour
-        hour: 10 => [{..}, {..}, {..}]
-        hour: 11 => []
-        hour: 12 => [{..}]
-        hour: 14 => []
-        hour: 16 => [{..}, {..}]
+        scheduleSlotByQuarter
+        quarter: '10:00' => [{..}, {..}, {..}]
+        quarter: '10:15' => []
+        quarter: '10:30' => [{..}]
+        quarter: '10:45' => []
+        quarter: '11:00' => [{..}, {..}]
         */
-        console.log('setupScheduleSlotByHour :: weekSchedule: ', vm.weekSchedule)
+        console.log('setupScheduleSlotByQuarter :: weekSchedule: ', vm.weekSchedule)
+        console.log('setupScheduleSlotByQuarter :: loop on each weekday')
+        console.log('setupScheduleSlotByQuarter :: scheduleSlotByQuarter keys: ' + Object.keys(vm.scheduleSlotByQuarter))
+
         for (var i = 0; i < vm.weekSchedule.length; i++) {
+          console.log('   Weekday#' + i + ' check any schedule within this weekday:')
           var schedulesInDay = vm.weekSchedule[i]
           if (schedulesInDay) {
+            console.log('      schedulesInDay.length = ' + schedulesInDay.length)
             for (var j = 0; j < schedulesInDay.length; j++) {
-              console.log('Weekday#' + i + ' :: j#' + j + ': schedulesInDay[j]: ', schedulesInDay[j])
-              console.log('Weekday#' + i + ' :: j#' + j + ': scheduleSlotByHour: ', vm.scheduleSlotByHour)
+              console.log('         schedule j=' + j + ': schedulesInDay[j]: ', schedulesInDay[j])
+              console.log('         schedule j=' + j + ': scheduleSlotByQuarter: checking current slotByQuarter status: ', vm.scheduleSlotByQuarter)
               var scheduleItem = schedulesInDay[j]
-              var hourList = Object.keys(vm.scheduleSlotByHour)
-              console.log('Weekday#' + i + ' :: j#' + j + ': hourList: ', hourList)
-              console.log('Weekday#' + i + ' :: j#' + j + ': hour = ' + scheduleItem.hour)
+              var quarterList = Object.keys(vm.scheduleSlotByQuarter)
+              console.log('         schedule j=' + j + ': quarterList: ', quarterList)
+              console.log('         schedule j=' + j + ': quarter = ' + scheduleItem.quarter)
 
-              if (hourList.indexOf(scheduleItem.hour.toString()) === -1) {
-                vm.scheduleSlotByHour[scheduleItem.hour] = []
+              if (quarterList.indexOf(scheduleItem.quarter) === -1) {
+                console.log('         quarterList not contains this hour, create quarter slot')
+                vm.scheduleSlotByQuarter[scheduleItem.quarter] = []
+              } else {
+                console.log('         quarterList contains this quarter')
               }
-              vm.scheduleSlotByHour[scheduleItem.hour].push(scheduleItem)
+              console.log('            push this quarter')
+              vm.scheduleSlotByQuarter[scheduleItem.quarter].push(scheduleItem)
             }
           }
         }
-        console.log('setupScheduleSlotByHour: scheduleSlotByHour: ', vm.scheduleSlotByHour)
+        console.log('setupScheduleSlotByQuarter: scheduleSlotByQuarter: ', vm.scheduleSlotByQuarter)
       },
-      // getHumanReadableTime (moment) {
-      //   let hour = moment.get('hour')
-      //   let minute = moment.get('minute')
-      //   let ampm = 'am'
-      //   let result = hour
-      //   if (hour >= 12) {
-      //     ampm = 'pm'
-      //   }
-      //   if (minute > 0) {
-      //     result += ':' + (minute < 10 ? '0' + minute : minute)
-      //   }
-      //   result += ampm
-      //   return result
-      // },
 
       getHumanReadableTime (moment) {
         let hour = moment.get('hour')
         let minute = moment.get('minute')
         let ampm = 'am'
-        let result = hour
         if (hour >= 12) {
           ampm = 'pm'
         }
+        let result = hour > 12 ? hour - 12 : hour
         if (minute > 0) {
           result += ':' + (minute < 10 ? '0' + minute : minute)
         }
@@ -436,11 +427,13 @@
         for (var i = 0; i < vm.bookings.length; i++) {
           var bookingStartMoment = vm.$moment(vm.bookings[i].started_at)
           var bookingEndMoment = vm.$moment(vm.bookings[i].ended_at)
-          var bookingStartMomentClone = JSON.parse(JSON.stringify(bookingStartMoment))
+          console.log('initBookingInfos i=' + i + ': vm.bookings[i] bookingStartMoment: ' + bookingStartMoment.toString())
+
+          var bookingStartMomentClone = vm.$moment(bookingStartMoment.toString())
           var weekStart = bookingStartMomentClone.startOf('week')
 
           vm.bookings[i].weekday = Math.floor(bookingStartMoment.diff(weekStart, 'day'))
-          vm.bookings[i].hour = bookingStartMoment.get('hour')
+          vm.bookings[i].quarter = bookingStartMoment.format('HH:mm')
           vm.bookings[i].range = vm.getTimeSlotRange(bookingStartMoment, bookingEndMoment)
           vm.bookings[i].startMoment = bookingStartMoment
           vm.bookings[i].endMoment = bookingEndMoment
@@ -453,49 +446,49 @@
         }
       },
 
-      sortNumber (a, b) {
-        return a - b
+      sortQuarter (a, b) {
+        return a > b
       },
 
       setScheduleRegionTop () {
         let vm = this
         console.log('setScheduleRegionTop starts')
 
-        let hours = []
+        let quarters = []
         let weekdayIndex
         let j
         let k
-        for (var hour in vm.scheduleSlotByHour) {
-          hours.push(parseInt(hour))
+        for (var quarter in vm.scheduleSlotByQuarter) {
+          quarters.push(quarter)
         }
-        hours.sort(vm.sortNumber)
-        console.log('setScheduleRegionTop :: hours: ', hours)
+        quarters.sort(vm.sortQuarter)
+        console.log('setScheduleRegionTop :: quarters: ', quarters)
 
         let result = []
         let top = 20
         let step = 20
-        let loopHour = 0
+        let loopQuarter = 0
         let item = null
 
-        for (weekdayIndex = 0; weekdayIndex < hours.length; weekdayIndex++) {
-          loopHour = hours[weekdayIndex].toString()
-          console.log('hour: ' + loopHour + ' item count = ' + vm.scheduleSlotByHour[loopHour].length)
-          for (k = 0; k < vm.scheduleSlotByHour[loopHour].length; k++) {
-            item = vm.scheduleSlotByHour[loopHour][k]
-            item.hour = loopHour
+        for (weekdayIndex = 0; weekdayIndex < quarters.length; weekdayIndex++) {
+          loopQuarter = quarters[weekdayIndex]
+          console.log('hour: ' + loopQuarter + ' item count = ' + vm.scheduleSlotByQuarter[loopQuarter].length)
+          for (k = 0; k < vm.scheduleSlotByQuarter[loopQuarter].length; k++) {
+            item = vm.scheduleSlotByQuarter[loopQuarter][k]
+            item.quarter = loopQuarter
             item.top = top
           }
           //
           // result.push({
-          //   hour: loopHour,
-          //   items: vm.scheduleSlotByHour[loopHour],
+          //   hour: loopQuarter,
+          //   items: vm.scheduleSlotByQuarter[loopQuarter],
           //   top: top
           // })
           top += step
         }
         vm.outputWeekSchedule()
 
-        console.log('setScheduleRegionTop :: scheduleSlotByHour: ', vm.scheduleSlotByHour)
+        console.log('setScheduleRegionTop :: scheduleSlotByQuarter: ', vm.scheduleSlotByQuarter)
         let items = []
         let overlapped = 0
         for (weekdayIndex = 0; weekdayIndex < 7; weekdayIndex++) {
@@ -505,9 +498,9 @@
             overlapped = 100 - (items[j].top - items[j - 1].top)
             // console.log('extendTopPosition weekday:' + i + ' j=' + j + ' overlapped: ' + overlapped)
             if (overlapped > 0) {
-              hour = items[j].startMoment.get('hour')
-              // console.log('extend hour=' + hour + ', overlapped=' + overlapped)
-              vm.extendTopPosition(hour, overlapped)
+              quarter = items[j].startMoment.format('HH:mm')
+              // console.log('extend quarter=' + quarter + ', overlapped=' + overlapped)
+              vm.extendTopPosition(quarter, overlapped)
               vm.outputWeekSchedule()
             }
           }
@@ -530,9 +523,9 @@
 
             console.log('checkGapBetween weekdayIndex=' + weekdayIndex + ',j=' + j + ' : sequential = ' + (sequential ? 'yes' : 'no'))
             if (!sequential && overlapped === 0) {
-              hour = items[j].startMoment.get('hour')
-              console.log('extend hour=' + hour + ', overlapped=' + overlapped)
-              vm.extendTopPosition(hour, 20)
+              quarter = items[j].startMoment.format('HH:mm')
+              console.log('extend quarter=' + quarter + ', overlapped=' + overlapped)
+              vm.extendTopPosition(quarter, 20)
               vm.outputWeekSchedule()
             }
           }
@@ -541,12 +534,12 @@
         console.log('setScheduleRegionTop ends :: weekdaySchedule: ', vm.weekSchedule)
         return result
       },
-      extendTopPosition (hour, extendAmount) {
+      extendTopPosition (quarter, extendAmount) {
         let vm = this
-        for (var loopHour in vm.scheduleSlotByHour) {
-          if (loopHour >= hour) {
-            for (var i = 0; i < vm.scheduleSlotByHour[loopHour].length; i++) {
-              vm.scheduleSlotByHour[loopHour][i].top += extendAmount
+        for (var loopQuarter in vm.scheduleSlotByQuarter) {
+          if (loopQuarter >= quarter) {
+            for (var i = 0; i < vm.scheduleSlotByQuarter[loopQuarter].length; i++) {
+              vm.scheduleSlotByQuarter[loopQuarter][i].top += extendAmount
             }
           }
         }
@@ -557,6 +550,8 @@
         let bookingTemplate = vm.bookingTemplate
         console.log('newSchedule :: bookingTemplate: ', bookingTemplate)
         vm.editBooking = JSON.parse(JSON.stringify(bookingTemplate))
+        vm.editBooking.applicant_id = vm.user.id
+        vm.editBooking.applicant = vm.user
         vm.editBooking.meeting_room_id = vm.currentRoom.id
         vm.editBooking.meeting_room = vm.currentRoom
         vm.selectedMoment = cloneMoment.day(columnIndex)
@@ -656,16 +651,9 @@
         if (vm.booking === null) {
           alert('vm.booking is null')
         }
-        // console.log('onEventClicked (columnIndex=' + columnIndex + ') :: item.id=' + item.id + '    vs vm.booking.id=' + vm.booking.id)
         vm.editSchedule(item)
-        // if (item.id === vm.booking.id) {
-        //   console.log('item id === vm.booking.id')
-        //   vm.editSchedule(item)
-        // }
-        // else {
-        //   console.log('item id !== vm.booking.id')
-        // }
       },
+
       refreshCalendar (currentRoom) {
         let vm = this
         if (typeof currentRoom === 'undefined') {
@@ -680,14 +668,15 @@
       },
       getScheduleItemClass (item) {
         let vm = this
-        if (item && vm.booking) {
+        if (vm.user && item && vm.booking) {
           return {
             occupied: item.id !== vm.booking.id,
             'booking-approved': item.status === 'approved',
             'booking-rejected': item.status === 'rejected',
             'booking-pending': item.status === 'pending',
             'booking-self': (vm.user && item.applicant_id === vm.user.id),
-            'booking-editable': vm.editable
+            'booking-editable': vm.editable,
+            'is-owner': vm.user.id === item.applicant_id
           }
         } else {
           if (typeof vm.booking === 'undefined') {
@@ -740,13 +729,8 @@
     width: 100%;
     padding-right: 20px;
   }
-  #yoovRoomBookingSchedule .schedule-item {
-    background-color: #fffeba;
-    border-radius: 1rem;
-    text-align: center;
-    height: 100%;
-    width: 100%;
-    position: relative;
+  #yoovRoomBookingSchedule .schedule-item .schedule-item-duration {
+    font-size: 12px;
   }
 
   #yoovRoomBookingSchedule .schedule-item .booking-status {
@@ -757,12 +741,43 @@
     font-size: 10px;
   }
 
+  #yoovRoomBookingSchedule .schedule-item {
+    border-radius: 1rem;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    position: relative;
+  }
+
+  #yoovRoomBookingSchedule .schedule-item-wrapper.booking-pending.occupied.is-owner .schedule-item {
+    background-color: rgba(40,167,69, .8);
+    color: white;
+  }
+  #yoovRoomBookingSchedule .schedule-item-wrapper.booking-pending.occupied.is-owner:hover .schedule-item {
+    background-color: rgba(40, 167, 69, 1);
+  }
+
+  #yoovRoomBookingSchedule .schedule-item-wrapper.booking-approved.occupied.is-owner .schedule-item {
+    background-color: rgba(147,211,162,.8)
+  }
+  #yoovRoomBookingSchedule .schedule-item-wrapper.booking-approved.occupied.is-owner:hover .schedule-item {
+    background-color: rgba(147,211,162,1)
+  }
+
   #yoovRoomBookingSchedule .schedule-item-wrapper.booking-pending.occupied .schedule-item {
-    background-color: #fffeea;
+    background-color: rgba(255,255,204,.8);
+    /*background-color: #fffeea;*/
+  }
+  #yoovRoomBookingSchedule .schedule-item-wrapper.booking-pending.occupied:hover .schedule-item {
+    background-color: rgba(255,255,204,1);
   }
 
   #yoovRoomBookingSchedule .schedule-item-wrapper.booking-approved.occupied .schedule-item {
-    background-color: #93d3a2;
+    background-color: rgba(255,255,229,.8);
+    /*background-color: #28a745;*/
+  }
+  #yoovRoomBookingSchedule .schedule-item-wrapper.booking-approved.occupied:hover .schedule-item {
+    background-color: rgba(255,255,229,1);
   }
 
   #yoovRoomBookingSchedule .schedule-item-wrapper.booking-rejected.occupied .schedule-item {
@@ -771,10 +786,6 @@
 
   #yoovRoomBookingSchedule .schedule-item-wrapper.booking-pending:not(.occupied) .schedule-item {
     background-color: yellow; /*#fffeba;*/
-  }
-
-  #yoovRoomBookingSchedule .schedule-item-wrapper.booking-approved:not(.occupied) .schedule-item {
-    background-color: #28a745;
   }
 
   #yoovRoomBookingSchedule .schedule-item-wrapper.booking-rejected:not(.occupied) .schedule-item {
@@ -804,7 +815,15 @@
   #yoovRoomBookingSchedule div[role=alert] {
     margin-bottom:1px;
   }
-
+  #yoovRoomBookingSchedule .booking-description {
+    font-size: 10px;
+    width: 100%;
+    overflow: hidden;
+    color: black;
+    height: 32px;
+    text-align: center;
+    padding: 0 5px;
+  }
   #yoovRoomBookingSchedule .schedule-item-wrapper {
     height: 100px;
     width: 100%;
