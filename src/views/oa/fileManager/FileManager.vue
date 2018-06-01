@@ -63,7 +63,7 @@
 <script>
   import PathLinks from '@/components/PathLinks'
   import DocumentItem from '@/components/DocumentItem'
-  import FolderItem from '@/components/'
+  import FolderItem from '@/components/FolderItem'
   import Pusher from 'pusher-js' // import Pusher
   import * as constants from '@/store/constants'
 
@@ -76,7 +76,8 @@
     },
     components: {
       'path-links': PathLinks,
-      'document-item': DocumentItem
+      'document-item': DocumentItem,
+      'folder-item': FolderItem
     },
     computed: {
       downloadLink () {
