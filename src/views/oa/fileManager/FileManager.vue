@@ -11,6 +11,18 @@
               <!--:class="{'fa-check-square':!allSelected, 'fa-square':allSelected}"></i>-->
             &nbsp;{{ allSelected ? 'Clear All' : 'Select All' }}
           </button>
+          <button class="btn btn-sm btn-default"
+                  @click="newFolder()">
+            <i class="fa fa-folder"></i>
+          </button>
+          <button class="btn btn-sm btn-default"
+                  @click="move()">
+            <i class="fa fa-arrows"></i>
+          </button>
+          <button class="btn btn-sm btn-default"
+                  @click="copy()">
+            <i class="fa fa-copy"></i>
+          </button>
           <!-- Select None -->
           <!--<button class="btn btn-sm btn-info" @click="selectNone()">-->
             <!--<i class="fa fa-square"></i>&nbsp;Clear-->
@@ -49,7 +61,8 @@
   export default {
     data () {
       return {
-        pusher: null
+        pusher: null,
+        currentFolderId: null
       }
     },
     components: {
@@ -89,7 +102,14 @@
       }
     },
     mounted () {
-      this.refreshFolder()
+      let vm = this
+      if (vm.$route.params.folderId === 0) {
+        let folderName = vm.$route.params.folderName
+        vm.currentFolderId = vm.getUserFolderId(folderName)
+      } else {
+        vm.currentFolderId = vm.$route.params.folderId
+      }
+      vm.refreshFolder()
     },
     created () {
       this.subscribe()
@@ -98,6 +118,20 @@
       this.unSubscribe()
     },
     methods: {
+      getUserFolderId (folderName, folders) {
+        let vm = this
+        let result = null
+        if (typeof folders === 'undefined') {
+          folders = vm.user.folder.children
+        }
+        for (var i = 0; i < folders.length; i++) {
+          if (folders[i].name === folderName) {
+            result = folders[i]
+            break
+          }
+        }
+        return result ? result.id : 0
+      },
       downloadSelected () {
         // let vm = this
       },
@@ -114,7 +148,7 @@
       },
       refreshFolder () {
         let vm = this
-        vm.$store.dispatch('SET_CURRENT_FOLDER', vm.$route.params.folderId)
+        vm.$store.dispatch('SET_CURRENT_FOLDER', vm.currentFolderId)
       },
       unSubscribe () {
         this.pusher.disconnect()

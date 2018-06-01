@@ -2,7 +2,8 @@
   <div class="scanner-folder">
     <button type="button"
             :class="iconClass"
-            class="btn btn-link btn-folder d-flex flex-column justify align-items-center" @click="onButtonClicked">
+            class="btn btn-link btn-folder d-flex flex-column justify align-items-center"
+            @click="onButtonClicked">
       <i class="fa fa-folder"></i>
       <small class="scanner-folder-label">{{ label }}</small>
     </button>
@@ -45,8 +46,8 @@
           let publicScanFolderId = vm.$store.getters.publicScanFolder.id
           vm.$router.push('/folders/' + publicScanFolderId)
         } else {
-          let userScanFolderId = vm.$store.getters.userScanFolder.id
-          vm.$router.push('/folders/' + userScanFolderId)
+          // let userScanFolderId = vm.$store.getters.userScanFolder.id
+          vm.$router.push('/folders')
         }
       }
     }

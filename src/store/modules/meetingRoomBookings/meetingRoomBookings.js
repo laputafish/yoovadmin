@@ -17,7 +17,8 @@ const state = {
     started_at: null,
     ended_at: null,
     status: 'new',
-    remark: ''
+    remark: '',
+    processingBooking: true
   }
 }
 
@@ -30,6 +31,9 @@ const getters = {
   },
   bookingTemplate: (state) => {
     return state.bookingTemplate
+  },
+  processingBooking: (state) => {
+    return state.processingBooking
   }
 }
 
@@ -156,13 +160,23 @@ const mutations = {
       state.workingBooking.ended_at = booking.ended_at
       state.workingBooking.remark = booking.remark
     }
+  },
+
+  setProcessingStatus (state, yesNo) {
+    console.log('*** setProcessingStatus = ' + (yesNo ? 'yes' : 'no'))
+    if (!yesNo) {
+      return
+    }
+    state.processingBooking = true
   }
 }
 
 const actions = {
   async [types.GET_MEETING_ROOM_BOOKINGS] ({commit, dispatch}, payload) {
     let apiUrl = constants.apiUrl
+    commit('setProcessingStatus', true)
     await axios.get(apiUrl + '/meeting_room_bookings').then(function (response) {
+      commit('setProcessingStatus', false)
       commit('setMeetingRoomBookings', response.data)
       if (payload) {
         if (typeof payload.callback === 'function') {
@@ -214,7 +228,9 @@ const actions = {
   async [types.SAVE_BOOKING] ({commit, dispatch, state}, payload) {
     let booking = payload
     let apiUrl = constants.apiUrl + '/meeting_room_bookings'
+    commit('setProcessingStatus', true)
     await axios.post(apiUrl, {booking: booking}).then(function (response) {
+      commit('setProcessingStatus', false)
       dispatch(types.GET_MEETING_ROOM_BOOKINGS)
     })
   },
@@ -222,15 +238,19 @@ const actions = {
   async [types.UPDATE_BOOKING] ({commit, dispatch, state}, payload) {
     let booking = payload
     let apiUrl = constants.apiUrl + '/meeting_room_bookings/' + booking.id
+    commit('setProcessingStatus', true)
     await axios.put(apiUrl, {booking: booking}).then(function (response) {
+      commit('setProcessingStatus', false)
       dispatch(types.GET_MEETING_ROOM_BOOKINGS)
     })
   },
 
   async [types.DELETE_BOOKING] ({commit, dispatch, state}, payload) {
+    commit('setProcessingStatus', true)
     let bookingId = payload
     let apiUrl = constants.apiUrl + '/meeting_room_bookings/' + bookingId
     await axios.delete(apiUrl).then(function (response) {
+      commit('setProcessingStatus', false)
       dispatch(types.GET_MEETING_ROOM_BOOKINGS)
     })
   }

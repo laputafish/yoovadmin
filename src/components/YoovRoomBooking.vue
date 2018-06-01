@@ -1,21 +1,27 @@
 <template>
-  <b-card class="flex-grow-1">
-    <form class="form-line pull-right" v-if="rooms">
-      <select v-model="selectedRoomId"
-        class="form-control">
-        <option disabled value="0">Please select room</option>
-        <option v-for="room in rooms" :value="room.id">{{ room.name }}</option>
-      </select>
-    </form>
-    <h3>MMMM</h3>
-    <b-card-body>
-      <yoov-room-booking-schedule
-        :editable="true"
-        v-model="booking"
-        :defaultRoom="selectedRoom"
-        @input="updateBooking">
-      </yoov-room-booking-schedule>
-    </b-card-body>
+  <b-card class="flex-grow-1" id="yoov-room-booking">
+    <div class="d-flex flex-row">
+      <h3 style="position:relative;" class="flex-grow-1">
+        <div class="spinner"
+             v-if="processing">
+          <i class="fa fa-spinner fa-spin"></i>
+        </div>
+        MMMM
+      </h3>
+      <form class="form-line" v-if="rooms">
+        <select v-model="selectedRoomId"
+          class="form-control">
+          <option disabled value="0">Please select room</option>
+          <option v-for="room in rooms" :value="room.id">{{ room.name }}</option>
+        </select>
+      </form>
+    </div>
+    <yoov-room-booking-schedule
+      :editable="true"
+      v-model="booking"
+      :defaultRoom="selectedRoom"
+      @input="updateBooking">
+    </yoov-room-booking-schedule>
   </b-card>
 </template>
 
@@ -53,7 +59,16 @@
         }
       })
     },
+    watch: {
+      processing: function (value) {
+        alert('value = ' + value)
+      }
+    },
     computed: {
+      processing () {
+        let status = this.$store.getters.processingBooking
+        return status
+      },
       selectedRoom () {
         let vm = this
         let result = null
@@ -82,3 +97,13 @@
     }
   }
 </script>
+
+<style>
+  #yoov-room-booking .spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+  }
+</style>

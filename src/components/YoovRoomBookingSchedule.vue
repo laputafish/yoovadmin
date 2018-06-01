@@ -1,21 +1,21 @@
 <template>
   <div v-if="currentRoom" id="yoovRoomBookingSchedule">
-    <h5 class="bg-default">{{ currentRoom.name }}&nbsp;
-      <span class="badge badge-success">
-        <i class="fa fa-user"></i>
-        &nbsp;x&nbsp;{{ currentRoom.capacity }}
-      </span>
-    </h5>
-    <b-alert show>{{ currentRoom.equipments }}</b-alert>
+    <!--<b-alert show>{{ currentRoom.equipments }}</b-alert>-->
     <div class="d-flex flex-row">
       <button type="button"
               @click="onPrevButtonClicked"
               class="btn-prev btn btn-sm btn-primary justify-content-start">
         <i class="fa fa-fw fa-caret-left"></i>
       </button>
+      <h5 class="mx-auto bg-default">{{ currentRoom.name }}&nbsp;
+        <span class="badge badge-success">
+          <i class="fa fa-user"></i>
+        &nbsp;  x&nbsp;{{ currentRoom.capacity }}
+        </span>
+      </h5>
       <button type="button"
               @click="onNextButtonClicked"
-              class="ml-auto btn-next btn btn-sm btn-primary justify-content-end">
+              class="btn-next btn btn-sm btn-primary justify-content-end">
         <i class="fa fa-fw fa-caret-right"></i>
       </button>
     </div>

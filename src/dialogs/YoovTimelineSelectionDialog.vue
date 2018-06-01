@@ -80,7 +80,7 @@
                    @mousedown="onSlotMouseDown(item)"
                    @mouseup="selecting=false"
                    @mousemove="onSlotMouseMove(item)">
-                <div class="timeslot-label">{{ item.label }}</div>
+                <div class="timeslot-label">{{ item.label }} ...</div>
               </div>
             </td>
           </tr>
@@ -90,10 +90,9 @@
     </div>
     <div slot="footer" style="width:100%;" class="mt-0 pt-0">
       <div class="text-center">
-        <div v-if="false">booking: {{ booking }}</div>
         <button :disabled="booking.id===0 || booking.applicant_id!==user.id"
                 class="btn btn-danger"
-                @click="deleteBooking()">
+                @click="deleteBooking(booking)">
           Delete
         </button>
         <button :disabled="selectionInfo.selection.length===0 || booking.description==='' || booking.applicant_name==='' || booking.applicant_id!==user.id"
@@ -304,14 +303,22 @@
         }
       },
 
-      deleteBooking () {
+      deleteBooking (booking) {
         let vm = this
-        vm.$emit('onResult', {
-          dialog: 'yoovTimelineSelectionDialog',
-          command: 'delete',
-          payload: {
-            id: vm.booking.id
-          }
+        vm.$dialog.confirm({
+          title: 'Booking Cancellation',
+          body: 'Are you sure?'
+        }, {
+          okText: 'Yes',
+          cancelText: 'No'
+        }).then(function () {
+          vm.$emit('onResult', {
+            dialog: 'yoovTimelineSelectionDialog',
+            command: 'delete',
+            payload: {
+              id: vm.booking.id
+            }
+          })
         })
       },
 
