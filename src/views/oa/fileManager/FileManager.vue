@@ -40,6 +40,14 @@
           </button>
         </div>
         <div v-if="currentFolder">
+          <folder-item
+            @updateSelected="updateSelectedHandler"
+            @refresh="refreshFolder"
+            :folder="folder"
+            :key="index"
+            v-for="(folder,index) in folders"></folder-item>
+        </div>
+        <div v-if="currentFolder">
           <document-item
             @updateSelected="updateSelectedHandler"
             @refresh="refreshFolder"
@@ -55,6 +63,7 @@
 <script>
   import PathLinks from '@/components/PathLinks'
   import DocumentItem from '@/components/DocumentItem'
+  import FolderItem from '@/components/'
   import Pusher from 'pusher-js' // import Pusher
   import * as constants from '@/store/constants'
 
@@ -81,6 +90,10 @@
       currentFolder () {
         return this.$store.getters.currentFolder
       },
+      folders () {
+        let vm = this
+        return vm.currentFolder ? vm.currentFolder.children : []
+      },
       documents () {
         let vm = this
         return vm.currentFolder ? vm.currentFolder.documents : []
@@ -99,17 +112,19 @@
           console.log('FileManager :: watch(currentFolder) : value:', value)
         },
         deep: true
+      },
+      user: {
+        handler: function (value) {
+          this.initFolder()
+        },
+        deep: true
       }
     },
     mounted () {
       let vm = this
-      if (vm.$route.params.folderId === 0) {
-        let folderName = vm.$route.params.folderName
-        vm.currentFolderId = vm.getUserFolderId(folderName)
-      } else {
-        vm.currentFolderId = vm.$route.params.folderId
+      if (vm.user) {
+        vm.initFolder()
       }
-      vm.refreshFolder()
     },
     created () {
       this.subscribe()
@@ -118,6 +133,30 @@
       this.unSubscribe()
     },
     methods: {
+      newFolder () {
+        this.$store.dispatch('NEW_FOLDER')
+      },
+      move () {
+
+      },
+      copy () {
+
+      },
+      initFolder () {
+        let vm = this
+        if (vm.$route.params.folderId) {
+          if (vm.$route.params.folderId === 0) {
+            let folderName = vm.$route.params.folderName
+            console.log('mounted :: route.params: ', vm.$route.params)
+            vm.currentFolderId = vm.getUserFolderId(folderName)
+          } else {
+            vm.currentFolderId = vm.$route.params.folderId
+          }
+        } else {
+          vm.currentFolderId = vm.user.folder.id
+        }
+        vm.refreshFolder()
+      },
       getUserFolderId (folderName, folders) {
         let vm = this
         let result = null

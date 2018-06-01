@@ -155,7 +155,7 @@ export default new Router({
         },
 
         {
-          path: 'folders/:folderId',
+          path: 'folders/:folderId?/:folderName?',
           name: 'File Manager',
           component: FileManager
         },

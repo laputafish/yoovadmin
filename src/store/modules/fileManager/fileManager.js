@@ -53,6 +53,13 @@ const mutations = {
 }
 
 const actions = {
+  async [types.REFRESH_FOLDER] ({state, commit, dispatch}) {
+    let apiUrl = constants.apiUrl + '/folders/' + state.currentFolder.id
+    console.log('REFRESH_FOLDER :: apiUrl = ' + apiUrl)
+    await axios.get(apiUrl).then(function (response) {
+    })
+  },
+
   async [types.SET_CURRENT_FOLDER] ({state, commit, dispatch}, payload) {
     console.log('SET_CURRENT_FOLDER :: payload:', payload)
     let folderId = payload
@@ -88,6 +95,16 @@ const actions = {
       ids: state.selectedDocumentIds
     }
     await axios.post(apiUrl, data).then(function (response) {})
+  },
+  async [types.NEW_FOLDER] ({state, commit, dispatch}, payload) {
+    let apiUrl = constants.apiUrl + '/folders'
+    let data = {
+      command: 'NEW',
+      parent_folder_id: state.currentFolder.id
+    }
+    await axios.post(apiUrl, data).then(function (response) {}).then(function () {
+      dispatch(types.REFRESH_FOLDER)
+    })
   }
 }
 
