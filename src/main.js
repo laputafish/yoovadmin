@@ -10,8 +10,8 @@
 import $ from 'jquery'
 import Vue from 'vue'
 import VeeValidate from 'vee-validate'
-// import 'vue-tree-halower/dist/halower-tree.min.css'
-// import VTree from 'vue-tree-halower'
+import 'vue-tree-halower/dist/halower-tree.min.css'
+import {VTree} from 'vue-tree-halower'
 // import LiquorTree from 'liquor-tree'
 
 // import datePicker from 'vue-bootstrap-datetimepicker'
@@ -66,7 +66,8 @@ Vue.use(VueDraggable)
 Vue.use(VueAxios, axios)
 Vue.use(Datatable)
 // Vue.use(Datatable, {customLocale})
-// Vue.use(VTree)
+Vue.use(VTree)
+// Vue.use(VSelectTree)
 // Vue.use(Carousel)
 // Vue.component('vue-drag-tree', VueDragTree)
 Vue.component(SortableTree.name, SortableTree)

@@ -5,7 +5,13 @@ import axios from 'axios'
 
 const state = {
   currentFolder: null,
-  selectedDocumentIds: []
+  selectedDocumentIds: [],
+  selectedFolderIds: [],
+  userAllFolders: {
+    personalFolders: [],
+    publicFolders: [],
+    sharedFolders: []
+  }
 }
 
 const getters = {
@@ -14,7 +20,20 @@ const getters = {
   },
   selectedDocumentIds: (state) => {
     return state.selectedDocumentIds
+  },
+  selectedFolderIds: (state) => {
+    return state.selectedFolderIds
+  },
+  haveFileSelected: (state) => {
+    return state.selectedDocumentIds.length + state.selectedFolderIds.length > 0
+  },
+  selectionCount: (state) => {
+    return state.selectedDocumentIds.length + state.selectedFolderIds.length
+  },
+  userAllFolders: (state) => {
+    return state.userAllFolders
   }
+
 }
 const mutations = {
   setCurrentFolder: (state, payload) => {
@@ -22,6 +41,9 @@ const mutations = {
     for (var i = 0; i < state.currentFolder.documents.length; i++) {
       state.currentFolder.documents[i].selected = false
     }
+    state.selectedDocumentIds = []
+    state.selectedFolderIds = []
+
     console.log('currentFolder:', state.currentFolder)
   },
   toggleDocumentSelection: (state, payload) => {
@@ -33,22 +55,45 @@ const mutations = {
     } else {
       state.selectedDocumentIds.push(document.id)
     }
-    // console.log('mutations: toggleDocumentSelection :; payload: ', payload)
-    // for (var i = 0; i < state.currentFolder.documents.length; i++) {
-    //   if (state.currentFolder.documents[i] === payload) {
-    //     state.currentFolder.documents[i].selected = !state.currentFolder.documents[i].selected
-    //     console.log('toggleDocumentSelection : document: ', state.currentFolder.documents[i])
-    //     break
-    //   }
-    // }
+  },
+  toggleFolderSelection: (state, payload) => {
+    let folder = payload
+    let index = state.selectedFolderIds.indexOf(folder.id)
+
+    if (index >= 0) {
+      state.selectedFolderIds.splice(index, 1)
+    } else {
+      state.selectedFolderIds.push(folder.id)
+    }
   },
   selectAllDocuments: (state, payload) => {
+    console.log('selectAllDocuments')
     state.selectedDocumentIds = state.currentFolder.documents.map(function (document) {
       return document.id
     })
+    console.log('state.selectedDocumentIds: ', state.selectedDocumentIds)
   },
-  clearDocumentSelection: (state, payload) => {
+  selectAllFolders: (state, payload) => {
+    console.log('selectAllFolders')
+    state.selectedFolderIds = state.currentFolder.children.map(function (folder) {
+      return folder.id
+    })
+    console.log('state.selectedFolderIds: ', state.selectedFolderIds)
+  },
+  clearDocumentSelection: (state) => {
     state.selectedDocumentIds = []
+  },
+  clearFolderSelection: (state) => {
+    state.selectedFolderIds = []
+  },
+  updateFolderName: (state, payload) => {
+    payload.folder.name = payload.name
+  },
+  updateDocumentName: (state, payload) => {
+    payload.document.filename = payload.name
+  },
+  setUserAllFolders: (state, payload) => {
+    state.userAllFolders = payload
   }
 }
 
@@ -57,6 +102,7 @@ const actions = {
     let apiUrl = constants.apiUrl + '/folders/' + state.currentFolder.id
     console.log('REFRESH_FOLDER :: apiUrl = ' + apiUrl)
     await axios.get(apiUrl).then(function (response) {
+      commit('setCurrentFolder', response.data)
     })
   },
 
@@ -71,16 +117,26 @@ const actions = {
       commit('setCurrentFolder', response.data)
     })
   },
-  async [types.TOGGLE_DOCUMENT_SELECTION] ({state, commit, dispatch}, payload) {
-    console.log('toggle: async :: before commit')
+  async [types.TOGGLE_DOCUMENT_SELECTION] ({commit}, payload) {
     await commit('toggleDocumentSelection', payload)
-    console.log('toggle: async :: after commit')
   },
-  async [types.SELECT_ALL_DOCUMENTS] ({state, commit, dispatch}, payload) {
+  async [types.TOGGLE_FOLDER_SELECTION] ({commit}, payload) {
+    await commit('toggleFolderSelection', payload)
+  },
+  async [types.SELECT_ALL_FILES] ({state, commit, dispatch}, payload) {
+    console.log('fileManager.js :: SELECT_ALL_FILES')
     await commit('selectAllDocuments')
+    await commit('selectAllFolders')
   },
-  async [types.CLEAR_DOCUMENT_SELECTION] ({state, commit, dispatch}, payload) {
+  async [types.CLEAR_ALL_FILES] ({state, commit, dispatch}, payload) {
     await commit('clearDocumentSelection')
+    await commit('clearFolderSelection')
+  },
+  async [types.DELETE_FOLDER] ({state, commit, dispatch}, payload) {
+    let folderId = payload
+    let apiUrl = constants.apiUrl + '/folders/' + folderId
+    await axios.delete(apiUrl).then(function (response) {
+    })
   },
   async [types.DELETE_DOCUMENT] ({state, commit, dispatch}, payload) {
     let documentId = payload
@@ -105,7 +161,43 @@ const actions = {
     await axios.post(apiUrl, data).then(function (response) {}).then(function () {
       dispatch(types.REFRESH_FOLDER)
     })
+  },
+  async [types.UPDATE_DOCUMENT_NAME] ({state, commit, dispatch}, payload) {
+    let document = payload.document
+    let apiUrl = constants.apiUrl + '/documents/' + document.id
+    let data = {
+      command: 'UPDATE_DOCUMENT_NAME',
+      name: payload.name
+    }
+    await axios.post(apiUrl, data).then(function (response) {}).then(function () {
+      dispatch(types.REFRESH_FOLDER)
+    })
+  },
+  async [types.UPDATE_FOLDER_NAME] ({state, commit, dispatch}, payload) {
+    commit('updateFolderName', payload)
+    let folder = payload.folder
+    let apiUrl = constants.apiUrl + '/folders/' + folder.id
+    let data = {
+      command: 'UPDATE_FOLDER_NAME',
+      name: payload.name
+    }
+    await axios.put(apiUrl, data).then(function (response) {}).then(function () {
+      dispatch(types.REFRESH_FOLDER)
+    })
+  },
+
+  async [types.GET_USER_ALL_FOLDERS] ({commit}, payload) {
+    let userId = payload
+    let apiUrl = constants.apiUrl + '/folders'
+    let data = {
+      user_id: userId,
+      type: 'all'
+    }
+    await axios.get(apiUrl, {params: data}).then(function (response) {
+      commit('setUserAllFolders', response.data)
+    })
   }
+
 }
 
 export default {

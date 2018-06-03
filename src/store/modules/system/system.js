@@ -14,6 +14,18 @@ const state = {
   publicFolders: []
 }
 
+const transformFolders = folders => {
+  let result = []
+  for (var i = 0; i < folders.length; i++) {
+    result.push({
+      name: folders[i].name,
+      expanded: true,
+      children: folders[i].children ? transformFolders(folders[i].children) : []
+    })
+  }
+  return result
+}
+
 const getters = {
   token (state) {
     return state.token
@@ -25,6 +37,16 @@ const getters = {
   user (state) {
     console.log('store :: getters.user')
     return state.user
+  },
+  userFolders (state) {
+    console.log('system.js :: getters.userFolders: state.user.folder: ', state.user.folder)
+    let folder = state.user.folder
+    let result = [{
+      name: folder.name,
+      expanded: true,
+      children: folder.children ? transformFolders(folder.children) : []
+    }]
+    return result
   },
   publicScanFolder (state) {
     console.log('userScanFolder :: folders:', state.publicFolders)

@@ -2,14 +2,19 @@
   <div class="document-item d-flex flex-column align-items-center"
     :class="{selected:selected, 'have-selection':haveSelection}">
     <div class="document-checkbox"
-      @click="toggleDocument">
+      @click="toggleSelection">
       <i class="fa fa-fw"
          :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
     </div>
     <img class="document-icon"
          @click="onImageClicked"
          :src="getIconSrc(document.media_id)"/><br/>
-    <div class="document-label">{{ document.filename }}</div>
+    <input v-if="editing"
+           ref="documentName"
+           @blur="onEdited"
+           @focus="$event.target.select()"
+           class="filename-editing" v-model="currentName"/>
+    <div v-else class="document-label">{{ document.filename }}</div>
     <div class="document-action">
       <a :href="downloadLink" class="btn btn-primary btn-xs xx">
         <i class="fa fa-fw fa-download"></i>
@@ -35,6 +40,8 @@
     },
     data () {
       return {
+        editing: false,
+        currentName: '',
         imageUrl: '',
         showingImageDialog: false
       }
@@ -57,17 +64,10 @@
     },
     computed: {
       haveSelection () {
-        return this.$store.getters.selectedDocumentIds.length > 0
+        return this.$store.getters.haveFileSelected
       },
       selected () {
-        let vm = this
-        console.log('DocumentItem :: computed(selected) :: document.id = ' + vm.document.id)
-        console.log('computer(selected) :: selectedDocumentIds: ', vm.$store.getters.selectedDocumentIds)
-        console.log('computer(selected) :: selectedDocumentIds.index(document.id) = ' +
-          vm.$store.getters.selectedDocumentIds.indexOf(vm.document.id))
-        let result = vm.$store.getters.selectedDocumentIds.indexOf(vm.document.id) >= 0
-        console.log('computer(selected) :: result = ' + result)
-        return result
+        return this.$store.getters.selectedDocumentIds.indexOf(this.document.id) >= 0
       },
       downloadLink () {
         return constants.apiUrl + '/media/download/' + this.document.media_id
@@ -78,6 +78,22 @@
       // }
     },
     methods: {
+      onEdited () {
+        alert('onEdited')
+        let vm = this
+        if (vm.currentName !== vm.document.name) {
+          vm.$store.dispatch('UPDATE_FILENAME', {
+            folder: vm.folder,
+            name: vm.currentName
+          })
+        }
+        vm.editing = false
+      },
+      editName (name) {
+        this.currentName = name
+        this.editing = true
+        this.$refs.documentName.$el.focus()
+      },
       showDocument () {
         let vm = this
         if (vm.isImage()) {
@@ -115,9 +131,8 @@
       getIconSrc (mediaId) {
         return constants.apiUrl + '/media/icons/' + mediaId
       },
-      toggleDocument () {
+      toggleSelection () {
         let vm = this
-        console.log('toggleDocument: ' + vm.document.id)
         this.$store.dispatch('TOGGLE_DOCUMENT_SELECTION', vm.document).then(function (response) {
           // vm.$nextTick(function () {
           //   vm.$emit('updateSelected')
@@ -199,5 +214,11 @@
     width: 48px;
     height: 48px;
     object-fit: contain;
+  }
+  .document-item input.filename-editing {
+    padding: 0;
+    font-size: 9px;
+    width: 100%;
+    border: 1px solid darkgray;
   }
 </style>

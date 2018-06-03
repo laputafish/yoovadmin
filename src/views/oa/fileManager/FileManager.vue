@@ -6,42 +6,55 @@
           :ancestors="currentFolder.ancestors"></path-links>
         <div class="file-manager-toolbar text-right d-flex flex-row">
           <!-- Select All -->
-          <button class="btn-selection btn btn-sm btn-info" @click="selectClear()">
+          <!--<a href="#"-->
+             <!--class="btn btn-sm btn-default dropdown-toggle"-->
+             <!--data-toggle="dropdown"-->
+             <!--role="button"-->
+             <!--aria-haspopup="true"-->
+             <!--aria-expanded="false">Save & Load <span class="caret"></span></a>-->
+          <!--<ul class="dropdown-menu">-->
+            <!--<li><a href="#">Action</a></li>-->
+            <!--<li><a href="#">Another action</a></li>-->
+          <!--</ul>-->
+          <button v-tooltip="allSelected ? 'Clear All' : 'Select All'" class="btn-default btn btn-sm" @click="selectClear()">
             <!--<i class="fa"-->
               <!--:class="{'fa-check-square':!allSelected, 'fa-square':allSelected}"></i>-->
-            &nbsp;{{ allSelected ? 'Clear All' : 'Select All' }}
+            <i class="fa" :class="{'fa-square':allSelected, 'fa-check-square':!allSelected}"></i>
           </button>
-          <button class="btn btn-sm btn-default"
+          <button v-tooltip="'New Folder'" class="btn btn-sm btn-default"
+                  style="position:relative;"
                   @click="newFolder()">
             <i class="fa fa-folder"></i>
           </button>
-          <button class="btn btn-sm btn-default"
+
+          <button v-tooltip="'Move'" class="btn btn-sm btn-default"
+                  :disabled="selectionCount===0"
                   @click="move()">
             <i class="fa fa-arrows"></i>
           </button>
-          <button class="btn btn-sm btn-default"
+          <button v-tooltip="'Copy'" class="btn btn-sm btn-default"
+                  :disabled="selectionCount===0"
                   @click="copy()">
             <i class="fa fa-copy"></i>
+          </button>
+          <button v-tooltip="'Delete'" class="btn btn-sm btn-default"
+                  :disabled="selectionCount===0"
+                  @click="deleteSelected()">
+            <i class="fa fa-close"></i>
           </button>
           <!-- Select None -->
           <!--<button class="btn btn-sm btn-info" @click="selectNone()">-->
             <!--<i class="fa fa-square"></i>&nbsp;Clear-->
           <!--</button>-->
           <!-- Download -->
-          <a :href="downloadLink" class="btn btn-sm btn-primary ml-auto">
+          <a v-tooltip="'Download'" :href="downloadLink" class="btn btn-sm btn-default ml-auto no-anchor-style">
             <i class="fa fa-download"></i>
-            &nbsp;Download
           </a>
           <!-- Delete -->
-          <button class="btn btn-sm btn-danger"
-            @click="deleteSelected()">
-            <i class="fa fa-close"></i>
-            &nbsp;Delete
-          </button>
         </div>
         <div v-if="currentFolder">
           <folder-item
-            @updateSelected="updateSelectedHandler"
+            @updateSelected="updateSelectedFolderHandler"
             @refresh="refreshFolder"
             :folder="folder"
             :key="index"
@@ -49,7 +62,7 @@
         </div>
         <div v-if="currentFolder">
           <document-item
-            @updateSelected="updateSelectedHandler"
+            @updateSelected="updateSelectedDocumentHandler"
             @refresh="refreshFolder"
             :document="document"
             :key="index"
@@ -57,6 +70,11 @@
         </div>
       </div>
     </div>
+    <folder-tree-dialog v-if="showingFolderTreeDialog"
+                        :disabledFolderId="currentFolder.id"
+      @close="showingFolderTreeDialog=false">
+
+    </folder-tree-dialog>
   </div>
 </template>
 
@@ -66,20 +84,26 @@
   import FolderItem from '@/components/FolderItem'
   import Pusher from 'pusher-js' // import Pusher
   import * as constants from '@/store/constants'
+  import FolderTreeDialog from '@/dialogs/FolderTreeDialog'
 
   export default {
     data () {
       return {
         pusher: null,
-        currentFolderId: null
+        currentFolderId: null,
+        showingFolderTreeDialog: false
       }
     },
     components: {
       'path-links': PathLinks,
       'document-item': DocumentItem,
-      'folder-item': FolderItem
+      'folder-item': FolderItem,
+      'folder-tree-dialog': FolderTreeDialog
     },
     computed: {
+      selectionCount () {
+        return this.$store.getters.selectionCount
+      },
       downloadLink () {
         let vm = this
         let idString = vm.selectedDocumentIds.join(',')
@@ -103,8 +127,13 @@
         let vm = this
         return vm.$store.getters.selectedDocumentIds
       },
+      selectedFolderIds () {
+        let vm = this
+        return vm.$store.getters.selectedFolderIds
+      },
       allSelected () {
-        return this.documents.length === this.selectedDocumentIds.length
+        return (this.documents.length === this.selectedDocumentIds.length) &&
+          (this.folders.length === this.selectedFolderIds.length && this.folders.length > 0)
       }
     },
     watch: {
@@ -138,10 +167,12 @@
         this.$store.dispatch('NEW_FOLDER')
       },
       move () {
-
+        console.log('FileManager :: move')
+        this.showingFolderTreeDialog = true
       },
       copy () {
-
+        console.log('FileManager :: copy')
+        this.showingFolderTreeDialog = true
       },
       initFolder () {
         let vm = this
@@ -205,23 +236,28 @@
       selectClear () {
         let vm = this
         if (vm.allSelected) {
-          vm.$store.dispatch('CLEAR_ALL_DOCUMENT_SELECTION')
+          vm.$store.dispatch('CLEAR_ALL_FILES')
         } else {
-          vm.$store.dispatch('SELECT_ALL_DOCUMENTS')
+          vm.$store.dispatch('SELECT_ALL_FILES')
         }
       },
-      selectAll () {
-        this.$store.dispatch('SELECT_ALL_DOCUMENTS')
-      },
+      // selectAll () {
+      //   this.$store.dispatch('SELECT_ALL_FILES')
+      // },
       selectNone () {
-        this.$store.dispatch('CLEAR_ALL_DOCUMENT_SELECTION')
+        this.$store.dispatch('CLEAR_ALL_FILES')
       },
-      updateSelectedHandler () {
+      updateSelectedDocumentHandler () {
         let vm = this
         for (var i = 0; i < vm.currentFolder.documents.length; i++) {
           vm.currentFolder.documents[i].selected = true
         }
-        console.log('updateSelectedHandler :: currentFolder:', vm.currentFolder)
+      },
+      updateSelectedFolderHandler () {
+        let vm = this
+        for (var i = 0; i < vm.currentFolder.children.length; i++) {
+          vm.currentFolder.children[i].selected = true
+        }
       },
       getIconSrc (mediaId) {
 

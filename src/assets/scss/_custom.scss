@@ -48,7 +48,12 @@
   text-decoration: none;
 }
 
-.btn.btn-default {
+.btn.btn-default:disabled {
+  cursor: default;
+}
+
+.btn.btn-default,
+.btn.btn-default:hover:disabled {
   background-color: rgba(221, 221, 221, .6);
   color: rgba(0,0,0,.5);
 }
@@ -56,4 +61,46 @@
 .btn.btn-default:hover {
   background-color: rgba(221, 221, 221, 1);
   color: rgba(0,0,0,1);
+}
+
+ul.dropdown-menu {
+  padding: 5px;
+}
+
+ul.dropdown-menu > li > a {
+  width: 100%;
+  display: block;
+  color: black;
+  padding: 0 3px;
+}
+
+ul.dropdown-menu > li > a:hover {
+  background-color: lightgray;
+  color: white;
+  text-decoration: none;
+}
+
+.tooltip-inner {
+  background: rgba(0,0,0,.6) !important;
+}
+
+.modal-footer > div {
+  text-align: center;
+}
+
+.modal-footer > div > button {
+  min-width: 80px;
+
+}
+
+.halo-tree .node-title {
+  border: 1px transparent solid;
+}
+
+.modal-wrapper {
+  vertical-align: top !important;
+}
+
+.modal-container {
+  margin-top: 70px !important;
 }

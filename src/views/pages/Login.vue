@@ -106,7 +106,7 @@
             console.log('Login :: callback: status: ', status)
             console.log('Login :: callback: token: ' + vm.$store.getters.token)
             if (valid) {
-              vm.$router.push({name: 'Meetings'})
+              vm.$router.push({name: 'Dashboard'})
             } else {
               vm.$dialog.alert('Access Denied!')
             }
