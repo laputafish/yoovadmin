@@ -53,22 +53,38 @@
         <!-- Delete -->
       </div>
       <div v-if="currentFolder">
-        <folder-item
+        <file-item
           @updateSelected="updateSelectedFolderHandler"
           @refresh="refreshFolder"
-          :folder="folder"
+          fileType="folder"
+          :fileItem="folder"
           :key="'folder_'+index"
-          v-for="(folder,index) in folders"></folder-item>
-        <document-item
+          v-for="(folder,index) in folders"></file-item>
+        <file-item
           @updateSelected="updateSelectedDocumentHandler"
           @refresh="refreshFolder"
-          :document="document"
+          fileType="document"
+          :fileItem="document"
           :key="'document_'+index"
-          v-for="(document,index) in documents"></document-item>
+          v-for="(document,index) in documents"></file-item>
+        <!--<folder-item-->
+          <!--@updateSelected="updateSelectedFolderHandler"-->
+          <!--@refresh="refreshFolder"-->
+          <!--:folder="folder"-->
+          <!--:key="'folder_'+index"-->
+          <!--v-for="(folder,index) in folders"></folder-item>-->
+        <!--<document-item-->
+          <!--@updateSelected="updateSelectedDocumentHandler"-->
+          <!--@refresh="refreshFolder"-->
+          <!--:document="document"-->
+          <!--:key="'document_'+index"-->
+          <!--v-for="(document,index) in documents"></document-item>-->
       </div>
     </div>
     <folder-tree-dialog v-if="showingFolderTreeDialog"
                         :disabledFolderId="currentFolder.id"
+                        :command="currentCommand"
+                        @ok="onTargetFolderSelected"
       @close="showingFolderTreeDialog=false">
 
     </folder-tree-dialog>
@@ -77,8 +93,9 @@
 
 <script>
   import PathLinks from '@/components/PathLinks'
-  import DocumentItem from '@/components/DocumentItem'
-  import FolderItem from '@/components/FolderItem'
+  import FileItem from '@/components/FileItem'
+  // import DocumentItem from '@/components/DocumentItem'
+  // import FolderItem from '@/components/FolderItem'
   import Pusher from 'pusher-js' // import Pusher
   import * as constants from '@/store/constants'
   import FolderTreeDialog from '@/dialogs/FolderTreeDialog'
@@ -87,17 +104,22 @@
     data () {
       return {
         pusher: null,
+        currentCommand: 'move',
         currentFolderId: null,
         showingFolderTreeDialog: false
       }
     },
     components: {
       'path-links': PathLinks,
-      'document-item': DocumentItem,
-      'folder-item': FolderItem,
+      'file-item': FileItem,
+      // 'document-item': DocumentItem,
+      // 'folder-item': FolderItem,
       'folder-tree-dialog': FolderTreeDialog
     },
     computed: {
+      personalFolders () {
+        return this.$store.getters.personalFolders
+      },
       selectionCount () {
         return this.$store.getters.selectionCount
       },
@@ -160,15 +182,21 @@
       this.unSubscribe()
     },
     methods: {
+      onTargetFolderSelected (payload) {
+        let selectedFolderId = payload.folderId
+        let command = payload.command
+        alert('command=' + command + ', selectedFolderId = ' + selectedFolderId)
+        this.showingFolderTreeDialog = false
+      },
       newFolder () {
         this.$store.dispatch('NEW_FOLDER')
       },
       move () {
-        console.log('FileManager :: move')
+        this.currentCommand = 'move'
         this.showingFolderTreeDialog = true
       },
       copy () {
-        console.log('FileManager :: copy')
+        this.currentCommand = 'copy'
         this.showingFolderTreeDialog = true
       },
       initFolder () {

@@ -21,6 +21,9 @@ const getters = {
   selectedDocumentIds: (state) => {
     return state.selectedDocumentIds
   },
+  personalFolders: (state) => {
+    return state.userAllFolders.personalFolders
+  },
   selectedFolderIds: (state) => {
     return state.selectedFolderIds
   },
@@ -122,6 +125,15 @@ const actions = {
   },
   async [types.TOGGLE_FOLDER_SELECTION] ({commit}, payload) {
     await commit('toggleFolderSelection', payload)
+  },
+  async [types.TOGGLE_FILE_ITEM_SELECTION] ({dispatch}, payload) {
+    let fileItem = payload.fileItem
+    let fileType = payload.fileType
+    if (fileType === 'folder') {
+      dispatch(types.TOGGLE_FOLDER_SELECTION, fileItem)
+    } else {
+      dispatch(types.TOGGLE_DOCUMENT_SELECTION, fileItem)
+    }
   },
   async [types.SELECT_ALL_FILES] ({state, commit, dispatch}, payload) {
     console.log('fileManager.js :: SELECT_ALL_FILES')

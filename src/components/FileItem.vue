@@ -1,13 +1,35 @@
 <template>
-    <div class="folder-item d-flex flex-column align-items-center"
+    <div class="file-item d-flex flex-column align-items-center"
          :class="{selected:selected, 'have-selection':haveSelection}">
-        <div class="folder-checkbox"
-             @click="toggleSelection">
-            <i class="fa fa-fw"
-               :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
+        <div class="file-item-status">
+            <div class="file-item-checkbox"
+                 @click.prevent.stop="toggleSelection">
+                <i class="fa fa-fw"
+                   :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
+            </div>
+            <div class="file-item-summary"
+                 @click.prevent.stop="onImageClicked">
+                <div class="file-folder-count">
+                    {{ fileItem.children.length }}
+                </div>
+                <div class="file-document-count">
+                    {{ fileItem.documents.length }}
+                </div>
+            </div>            <!--<div class="file-item-status-item">-->
+                <!--<i class="fa fa-fw fa-folder"></i><br/>-->
+                <!--<span class="badge badge-primary">-->
+                    <!--{{ fileItem.children.length }}-->
+                <!--</span>-->
+            <!--</div>-->
+            <!--<div class="file-item-status-item">-->
+                <!--<i class="fa fa-fw fa-file"></i><br/>-->
+                <!--<span class="badge badge-primary">-->
+                    <!--{{ fileItem.documents.length }}-->
+                <!--</span>-->
+            <!--</div>-->
         </div>
-        <img class="folder-icon"
-            :draggable="true"
+        <img class="file-item-icon"
+             :draggable="true"
              @drop.stop="handleDrop"
              @dragover.stop="handleDragOver"
              @dragenter.stop="handleDragEnter"
@@ -17,15 +39,15 @@
              @click.prevent.stop="onImageClicked"
              :src="getIconSrc()"/><br/>
         <input v-if="editing"
-               ref="folderName"
+               ref="fileItemName"
                @blur="onEdited"
                @keyup="onKeyUp"
                @focus="$event.target.select()"
                class="filename-editing" v-model="currentName"/>
-        <div v-else @click="editName(folder.name)"
-             class="folder-label">{{ folder.name }}
+        <div v-else @click="editName(fileItem.name)"
+             class="file-item-label">{{ fileItem.name }}
         </div>
-        <div class="folder-action" v-if="!editing">
+        <div class="file-item-action" v-if="!editing">
             <a :href="downloadLink" class="btn btn-primary btn-xs xx">
                 <i class="fa fa-fw fa-download"></i>
             </a><br/>
@@ -49,8 +71,8 @@
                 <i class="fa fa-fw fa-copy"></i>
             </a><br/>
             <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected">
-            <i class="fa fa-fw fa-lock"></i>
-        </a>
+                <i class="fa fa-fw fa-lock"></i>
+            </a>
             <!--</div>-->
         </div>
         <yoov-image-dialog
@@ -77,7 +99,11 @@
       }
     },
     props: {
-      folder: {
+      fileType: {
+        type: String,
+        default: 'folder'
+      },
+      fileItem: {
         type: Object,
         default () {
           return null
@@ -85,9 +111,9 @@
       }
     },
     watch: {
-      folder: {
+      fileItem: {
         handler: (value) => {
-          console.log('DocumentItem :: watch(folder) :: value = ', value)
+
         },
         deep: true
       }
@@ -100,15 +126,25 @@
         return this.$store.getters.haveFileSelected
       },
       selected () {
-        return this.$store.getters.selectedFolderIds.indexOf(this.folder.id) >= 0
+        let vm = this
+        if (vm.fileType === 'folder') {
+          if (vm.fileType === 'folder') {
+            return vm.$store.getters.selectedFolderIds.indexOf(vm.fileItem.id) >= 0
+          } else {
+            return vm.$store.getters.selectedDocumentIds.indexOf(vm.fileItem.id) >= 0
+          }
+        }
       },
       downloadLink () {
-        return constants.apiUrl + '/media/download/' + this.folder.media_id
+        return constants.apiUrl + '/media/download/' + this.fileItem.media_id
+        // ,
+        // selectedDocumentIds () {
+        //   return this.$store.getters.selectedDocumentIds
+        // }
       }
-      // ,
-      // selectedDocumentIds () {
-      //   return this.$store.getters.selectedDocumentIds
-      // }
+    },
+    mounted () {
+      console.log('fileItem: ', this.fileItem)
     },
     methods: {
       isAllowedToDrop () {
@@ -137,9 +173,9 @@
         let vm = this
         this.$store.dispatch('SET_DRAGGABLE_ITEM', {
           vm: vm,
-          name: vm.folder.name,
-          type: 'folder',
-          data: vm.folder
+          name: vm.fileItem.name,
+          type: 'fileItem',
+          data: vm.fileItem
         })
         this.$el.classList.add('dragging-node')
       },
@@ -160,10 +196,10 @@
       menuItemSelected () {
         alert('menuItemSelected')
       },
-      // enterFolder () {
-      //   console.log('FolderItem :: enterFolder this.folder: ', this.folder)
-      //   this.$store.dispatch('SET_CURRENT_FOLDER', this.folder.id)
-      //   this.$router.replace('/folders/' + this.folder.id)
+      // enterfileItem () {
+      //   console.log('fileItemItem :: enterfileItem this.fileItem: ', this.fileItem)
+      //   this.$store.dispatch('SET_CURRENT_fileItem', this.fileItem.id)
+      //   this.$router.replace('/fileItems/' + this.fileItem.id)
       // },
       onKeyUp (event) {
         if (event.key === 'Enter') {
@@ -172,11 +208,18 @@
       },
       onEdited () {
         let vm = this
-        if (vm.currentName !== vm.folder.name) {
-          vm.$store.dispatch('UPDATE_FOLDER_NAME', {
-            folder: vm.folder,
-            name: vm.currentName
-          })
+        if (vm.currentName !== vm.fileItem.name) {
+          if (vm.fileType === 'folder') {
+            vm.$store.dispatch('UPDATE_FOLDER_NAME', {
+              fileItem: vm.fileItem,
+              name: vm.currentName
+            })
+          } else {
+            vm.$store.dispatch('UPDATE_DOCUMENT_NAME', {
+              fileItem: vm.fileItem,
+              name: vm.currentName
+            })
+          }
         }
         vm.editing = false
       },
@@ -186,24 +229,24 @@
         vm.editing = true
         vm.$nextTick(function () {
           console.log('editName :: refs:', vm.$refs)
-          console.log('editName :: refs.folderName:', vm.$refs['folderName'])
-          vm.$refs.folderName.focus()
+          console.log('editName :: refs.fileItemName:', vm.$refs['fileItemName'])
+          vm.$refs.fileItemName.focus()
         })
       },
       showDocument () {
         let vm = this
         if (vm.isImage()) {
-          vm.imageUrl = '/media/image/' + vm.folder.media_id
+          vm.imageUrl = '/media/image/' + vm.fileItem.media_id
           vm.showingImageDialog = true
         } else {
-          let url = constants.apiUrl + '/media/folder/' + vm.folder.media_id
+          let url = constants.apiUrl + '/media/fileItem/' + vm.fileItem.media_id
           window.open(url, '_blank')
         }
       },
       isImage () {
         let vm = this
         let imageTypes = ['png', 'gif', 'jpg', 'jpeg']
-        return imageTypes.indexOf(vm.folder.file_type.toLowerCase()) >= 0
+        return imageTypes.indexOf(vm.fileItem.file_type.toLowerCase()) >= 0
       },
       onLongTap () {
         // console.log('onLongTap')
@@ -215,39 +258,47 @@
         // console.log('onImageClicked :: event: ', event)
         // console.log('onImageClicked')
         // this.showDocument()
-        // console.log('FolderItem :: enterFolder this.folder: ', this.folder)
-        this.$store.dispatch('SET_CURRENT_FOLDER', this.folder.id)
-        this.$router.replace('/folders/' + this.folder.id)
+        // console.log('fileItemItem :: enterfileItem this.fileItem: ', this.fileItem)
+        this.$store.dispatch('SET_CURRENT_FOLDER', this.fileItem.id)
+        this.$router.replace('/folders/' + this.fileItem.id)
       },
       deleteFile () {
         let vm = this
-        this.$dialog.confirm('Delete the folder "' + vm.folder.name + '"?', {
+        this.$dialog.confirm('Delete the fileItem "' + vm.fileItem.name + '"?', {
           okText: 'Yes',
           cancelText: 'No'
         }).then(function (dialog) {
-          vm.$store.dispatch('DELETE_FOLDER', vm.folder.id).then(function () {
+          vm.$store.dispatch('DELETE_fileItem', vm.fileItem.id).then(function () {
             vm.$emit('refresh')
           })
         })
       },
       downloadDocument () {
         let vm = this
-        let url = constants.apiUrl + '/media/download/' + vm.folder.media_id
+        let url = constants.apiUrl + '/media/download/' + vm.fileItem.media_id
         window.open(url, '_blank')
       },
       getIconSrc () {
-        return (this.folder.documents.length + this.folder.children.length) > 0
-          ? '/static/img/folder_48/Empty-Folder-icon.png'
-          : '/static/img/folder_48/Open-Folder-icon.png'
-        // constants.apiUrl + '/media/icons/defaults/folder'
+        let vm = this
+        if (vm.fileType === 'folder') {
+          return (this.fileItem.documents.length + this.fileItem.children.length) > 0
+            ? '/static/img/folder_48/Empty-folder-icon.png'
+            : '/static/img/folder_48/Open-folder-icon.png'
+        } else {
+          return constants.apiUrl + '/media/icons/' + vm.fileItem.media_id
+        }
+        // constants.apiUrl + '/media/icons/defaults/fileItem'
       },
       toggleSelection () {
         let vm = this
-        this.$store.dispatch('TOGGLE_FOLDER_SELECTION', vm.folder).then(function (response) {
+        this.$store.dispatch('TOGGLE_FILE_ITEM_SELECTION', {
+          fileType: vm.fileType,
+          fileItem: vm.fileItem
+        }).then(function (response) {
           // vm.$nextTick(function () {
           //   vm.$emit('updateSelected')
           // })
-          // console.log('toggleDocument :: after dispatch :: vm.folder: ', vm.folder)
+          // console.log('toggleDocument :: after dispatch :: vm.fileItem: ', vm.fileItem)
         })
       }
     }
@@ -255,29 +306,16 @@
 </script>
 
 <style>
-    .folder-item.selected .folder-checkbox,
-    .folder-item.have-selection .folder-checkbox {
+    .file-item.selected .file-item-status .file-item-checkbox,
+    .file-item.have-selection .file-item-status .file-item-checkbox {
         display: block;
     }
 
-    .folder-item .folder-checkbox {
+    .file-item .file-item-status .file-item-checkbox {
         display: none;
     }
 
-    /*.folder-item.selected .folder-checkbox i.fa-check-square {*/
-    /*display:block;*/
-    /*}*/
-    /*.folder-item.selected .folder-checkbox i.fa-square {*/
-    /*display:none;*/
-    /*}*/
-    /*.folder-item .folder-checkbox i.fa-check-square {*/
-    /*display:none;*/
-    /*}*/
-    /*.folder-item .folder-checkbox i.fa-square {*/
-    /*display:block;*/
-    /*}*/
-
-    .folder-item {
+    .file-item {
         position: Relative;
         cursor: pointer;
         display: inline-block !important;
@@ -287,7 +325,7 @@
         margin-bottom: 10px;
     }
 
-    .folder-item .folder-label {
+    .file-item .file-item-label {
         font-size: 8px;
         line-height: 1;
         max-width: 120px;
@@ -299,28 +337,35 @@
         text-overflow: ellipsis;
     }
 
-    .folder-item:hover .folder-checkbox {
+    .file-item:hover .file-item-status .file-item-checkbox,
+    .file-item:hover .file-item-status .file-item-summary,
+    .file-item:hover .file-item-status .file-item-status-item {
         display: block;
     }
 
-    .folder-item .folder-checkbox i {
+    .file-item .file-item-status .file-item-checkbox i {
         font-size: 1.5rem;
         margin-top: -2px;
     }
 
-    .folder-item .folder-checkbox {
+    .file-item .file-item-status .file-item-checkbox,
+    .file-item .file-item-status .file-item-summary,
+    .file-item .file-item-status .file-item-status-item {
         display: none;
+    }
+
+    .file-item .file-item-status {
         position: absolute;
         left: 8px;
         top: 0;
     }
 
-    .folder-item:hover .folder-action {
+    .file-item:hover .file-item-action {
         visibility: visible;
         z-index: 8000;
     }
 
-    .folder-item .folder-action {
+    .file-item .file-item-action {
         position: absolute;
         right: 11px;
         top: 0;
@@ -328,20 +373,20 @@
         text-align: left;
     }
 
-    .folder-item .folder-icon {
+    .file-item .file-item-icon {
         width: 48px;
         height: 48px;
         object-fit: contain;
     }
 
-    .folder-item input.filename-editing {
+    .file-item input.filename-editing {
         padding: 0;
         font-size: 9px;
         width: 100%;
         border: 1px solid darkgray;
     }
 
-    .folder-item .dropdown-menu {
+    .file-item .dropdown-menu {
         padding: 0;
         border: none;
         text-align: right;
@@ -351,22 +396,47 @@
         min-width: 0;
     }
 
-    .folder-item .dropdown-menu .dropdown-item {
+    .file-item .dropdown-menu .dropdown-item {
         padding: 5px 10px;
         display: inline-block;
     }
 
-    .folder-item .dropdown-menu .dropdown-item i {
+    .file-item .dropdown-menu .dropdown-item i {
         margin-left: 0;
         color: darkgray;
     }
 
-    .folder-item .dropdown-menu .btn {
+    .file-item .dropdown-menu .btn {
         margin-right: 1px;
     }
 
-    .folder-item .dropdown-menu .dropdown-item:hover {
+    .file-item .dropdown-menu .dropdown-item:hover {
         background-color: lightgray;
         color: black;
+    }
+    .file-item .file-item-summary {
+        position: absolute;
+        top: 0;
+        left: 20px;
+    }
+    .file-item .file-folder-count {
+        background-color: rgba(0,0,0,.5);
+        top: 16px;
+        color: lightgray;
+        line-height: 0.9;
+        position: absolute;
+        left: 20px;
+        font-size: 8px;
+        width: 20px;
+        padding: 1px 0;
+    }
+    .file-item .file-document-count {
+        font-size: 9px;
+        color: white;
+        top: 28px;
+        left: 20px;
+        position: absolute;
+        line-height: 0.8;
+        width: 20px;
     }
 </style>

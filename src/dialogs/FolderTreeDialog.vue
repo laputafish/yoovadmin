@@ -36,8 +36,12 @@
             <!--<button type="button" @click="search">GO</button>-->
         </div>
         <div slot="footer" style="width:100%;" class="mt-0 pt-0">
-            <button class="btn btn-default" @click="$emit('close')">Cancel</button>
-            <button class="btn btn-primary">OK</button>
+            <button class="btn btn-default"
+                    @click="$emit('close')">Cancel</button>
+            <button class="btn btn-primary"
+                    :disabled="selectedNodes[activeTab]===0"
+                    @click="$emit('ok', {command:command, folderId:selectedNodes[activeTab]})"
+            >OK</button>
         </div>
     </yoov-modal>
 </template>
@@ -47,7 +51,8 @@
 
   export default {
     props: {
-      disableNodeId: 0
+      disableNodeId: 0,
+      command: ''
     },
     components: {
       'yoov-modal': YoovModal
@@ -77,6 +82,11 @@
     data () {
       return {
         activeTab: 'personal',
+        selectedNodes: {
+          'personal': 0,
+          'public': 0,
+          'shared': 0
+        },
         searchword: '',
         personalFolders: [],
         publicFolders: [],
@@ -108,19 +118,21 @@
     methods: {
       refreshUserAllFolders () {
         let vm = this
-        vm.publicFolders = vm.userAllFolders.publicFolders
-        vm.personalFolders = vm.userAllFolders.personalFolders
-        vm.sharedFolders = vm.userAllFolders.sharedFolders
+        vm.publicFolders = JSON.parse(JSON.stringify(vm.userAllFolders.publicFolders))
+        vm.personalFolders = JSON.parse(JSON.stringify(vm.userAllFolders.personalFolders))
+        vm.sharedFolders = JSON.parse(JSON.stringify(vm.userAllFolders.sharedFolders))
         console.log('refreshUserAllFolders :: publicFolders:', vm.publicFolders)
         console.log('refreshUserAllFolders :: personalFolders:', vm.personalFolders)
         console.log('refreshUserAllFolders :: sharedFolders:', vm.sharedFolders)
       },
       tpl (node, ctx) {
+        let vm = this
         let titleClass = node.selected ? 'node-title node-selected bg-primary' : 'node-title'
         if (node.searched) titleClass += ' node-searched'
         return <span>
         <span class={titleClass} domPropsInnerHTML={node.name} onClick={() => {
           ctx.parent.nodeSelected(ctx.props.node)
+          vm.selectedNodes[vm.activeTab] = ctx.parent.getSelectedNodes()[0].id
           console.log(ctx.parent.getSelectedNodes())
         }}></span>
         </span>
