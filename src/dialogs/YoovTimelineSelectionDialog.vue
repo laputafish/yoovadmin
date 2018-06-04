@@ -1,27 +1,45 @@
 <template>
   <yoov-modal id="yoovTimelineSelectionDialog"
-    :class="{'is-owner':booking.applicant_id===user.id}">
-    <div slot="header">
-      <h3 class="dialog-title">
+    :class="{'is-owner':booking.applicant_id===user.id,'mobile':isMobile}">
+    <div slot="header" class="flex-grow-1 d-flex flex-row">
+      <h3 class="dialog-title mr-auto" style="margin-top:7px;">
         Select Timeline
       </h3>
+      <div class="text-center float-right"
+        v-if="isMobile">
+        <button :disabled="booking.id===0 || booking.applicant_id!==user.id"
+                class="btn btn-danger"
+                @click="deleteBooking(booking)">
+          Delete
+        </button>
+        <button :disabled="selectionInfo.selection.length===0 || booking.description==='' || booking.applicant_name==='' || booking.applicant_id!==user.id"
+                class="btn btn-primary"
+                @click="save()">
+          OK
+        </button>
+        <button class="btn btn-default"
+                @click="$emit('close')">
+          Cancel
+        </button>
+      </div>
     </div>
-    <div slot="body" class="yoov-modal-body">
+    <div slot="body" class="container yoov-modal-body"
+      :class="{'mobile':$mq==='mobile'}">
       <div class="input-group row">
-        <label class="col-sm-3 col-form-label" for="applicantName">Applicant</label>
+        <label class="col-3 col-form-label" for="applicantName">Applicant</label>
         <input v-validate="'required'"
                :disabled="true"
                name="applicantName"
-               class="col-sm-9 form-control-readonly"
+               class="col-9 form-control-readonly"
                v-model="booking.applicant.name"/>
       </div>
       <div class="input-group row">
-        <label class="col-sm-3 col-form-label" for="description">Description</label>
+        <label class="col-3 col-form-label" for="description">Description</label>
         <input v-validate="'required'"
                name="description"
                :disabled="!haveAccess"
                :class="{'error-input':errors.has('description'), 'form-control':haveAccess, 'form-control-readonly':!haveAccess}"
-               class="col-sm-9"
+               class="col-9"
                v-model="booking.description"/>
       </div>
       <hr style="margin-top:0.5rem;margin-bottom:8px;"/>
@@ -42,11 +60,15 @@
             <span v-if="selectionInfo.selection.length>0"
               class="selection-status">
               {{ selectionInfo.fromLabel }}
-              &nbsp;<i class="fa fa-minus"></i>&nbsp;
+              <span v-show="!isMobile">&nbsp;</span>
+              <i class="fa fa-minus"></i>
+              <span v-show="!isMobile">&nbsp;</span>
               <span class="badge badge-info selection-duration">
                 {{ selectionInfo.durationStr }}
               </span>
-              &nbsp;<i class="fa fa-minus"></i>&nbsp;
+              <span v-show="!isMobile">&nbsp;</span>
+              <i class="fa fa-minus"></i>
+              <span v-show="!isMobile">&nbsp;</span>
               {{ selectionInfo.toLabel }}
             </span>
             <span v-else class="selection-status">
@@ -76,11 +98,14 @@
               <div v-for="item in column"
                    @dblclick.stop="onSlotDblClick(item)"
                    class="timeslot"
-                   :class="{selected:item.selected,occupied:item.occupied}"
+                   :class="{selected:item.selected,occupied:item.occupied,'blank-slot':!item.label}"
                    @mousedown="onSlotMouseDown(item)"
                    @mouseup="selecting=false"
                    @mousemove="onSlotMouseMove(item)">
-                <div class="timeslot-label">{{ item.label }} ...</div>
+                <div class="timeslot-label"
+                     v-if="item.label">{{ item.label }}
+                  <span v-show="!isMobile"> ...</span>
+                </div>
               </div>
             </td>
           </tr>
@@ -189,20 +214,24 @@
       },
       onSlotDblClick (item) {
         let vm = this
-        vm.pendingForFirstClick = false
-        vm.clearSelection()
-        item.selected = true
-        // console.log('onSlotDblClick')
+        if (item.label) {
+          vm.pendingForFirstClick = false
+          vm.clearSelection()
+          item.selected = true
+          // console.log('onSlotDblClick')
+        }
       },
       onSlotMouseMove (item) {
         let vm = this
-        if (vm.haveAccess) {
-          if (vm.selecting) {
-            let index = vm.slots.indexOf(item)
-            console.log('onSlotMouseMove: index = ' + index)
-            if (index > 0) {
-              if (vm.slots[index - 1].selected) {
-                item.selected = !item.occupied
+        if (item.label) {
+          if (vm.haveAccess) {
+            if (vm.selecting) {
+              let index = vm.slots.indexOf(item)
+              console.log('onSlotMouseMove: index = ' + index)
+              if (index > 0) {
+                if (vm.slots[index - 1].selected) {
+                  item.selected = !item.occupied
+                }
               }
             }
           }
@@ -210,54 +239,56 @@
       },
       onSlotMouseDown (item) {
         let vm = this
-        if (!item.occupied && vm.haveAccess) {
-          let index = vm.slots.indexOf(item)
-          let {firstIndex, lastIndex, selection} = vm.selectionInfo
+        if (item.label) {
+          if (!item.occupied && vm.haveAccess) {
+            let index = vm.slots.indexOf(item)
+            let {firstIndex, lastIndex, selection} = vm.selectionInfo
 
-          let i
-          if (selection.length === 0) {
-            item.selected = true
-          } else {
-            if (index === firstIndex || index === firstIndex - 1 || index === lastIndex || index === lastIndex + 1) {
-              vm.slots[index].selected = !vm.slots[index].selected
-            } else if (index > firstIndex && index < lastIndex) {
-              vm.clearSelection()
+            let i
+            if (selection.length === 0) {
               item.selected = true
-            } else if (index < firstIndex) {
-              if (vm.pendingForFirstClick) {
+            } else {
+              if (index === firstIndex || index === firstIndex - 1 || index === lastIndex || index === lastIndex + 1) {
+                vm.slots[index].selected = !vm.slots[index].selected
+              } else if (index > firstIndex && index < lastIndex) {
                 vm.clearSelection()
                 item.selected = true
-              } else {
-                if (vm.getOccupiedCount(index + 1, firstIndex - 1) === 0) {
-                  for (i = index; i < firstIndex; i++) {
-                    vm.slots[i].selected = true
-                  }
-                } else {
+              } else if (index < firstIndex) {
+                if (vm.pendingForFirstClick) {
                   vm.clearSelection()
                   item.selected = true
+                } else {
+                  if (vm.getOccupiedCount(index + 1, firstIndex - 1) === 0) {
+                    for (i = index; i < firstIndex; i++) {
+                      vm.slots[i].selected = true
+                    }
+                  } else {
+                    vm.clearSelection()
+                    item.selected = true
+                  }
                 }
-              }
-            } else if (index > lastIndex) {
-              console.log('index > lastIndex : pendingForFirstClick: ' + vm.pendingForFirstClick)
-              if (vm.pendingForFirstClick) {
-                vm.clearSelection()
-                item.selected = true
-              } else {
-                if (vm.getOccupiedCount(lastIndex + 1, index - 1) === 0) {
-                  for (i = lastIndex + 1; i <= index; i++) {
-                    vm.slots[i].selected = true
-                  }
-                } else {
+              } else if (index > lastIndex) {
+                console.log('index > lastIndex : pendingForFirstClick: ' + vm.pendingForFirstClick)
+                if (vm.pendingForFirstClick) {
                   vm.clearSelection()
                   item.selected = true
+                } else {
+                  if (vm.getOccupiedCount(lastIndex + 1, index - 1) === 0) {
+                    for (i = lastIndex + 1; i <= index; i++) {
+                      vm.slots[i].selected = true
+                    }
+                  } else {
+                    vm.clearSelection()
+                    item.selected = true
+                  }
                 }
               }
             }
-          }
-          vm.$validator.validate()
-          vm.pendingForFirstClick = false
-          if (item.selected) {
-            vm.selecting = true
+            vm.$validator.validate()
+            vm.pendingForFirstClick = false
+            if (item.selected) {
+              vm.selecting = true
+            }
           }
         }
       },
@@ -399,6 +430,9 @@
     //   }
     // },
     computed: {
+      isMobile () {
+        return this.$mq === 'mobile'
+      },
       haveAccess () {
         return this.booking.applicant_id === this.user.id
       },
@@ -538,11 +572,12 @@
 }
 
 #yoovTimelineSelectionDialog .modal-body {
-  padding-top: 0.5rem;
+  padding: 0.5rem;
 }
 
 #yoovTimelineSelectionDialog .modal-container {
-  width: 600px;
+  width: 98%;
+  max-width: 600px;
 }
 
 #yoovTimelineSelectionDialog .current-date span {
@@ -567,6 +602,9 @@
   position: relative;
 }
 
+#yoovTimelineSelectionDialog .time-slots td div.timeslot.blank-slot {
+  cursor: default;
+}
 
 #yoovTimelineSelectionDialog .time-slots td div.timeslot div.timeslot-label {
   margin-top: -2px;
@@ -638,5 +676,50 @@
   border: lightgray 1px solid;
 }
 
+#yoovTimelineSelectionDialog .modal-header {
+  padding: 0;
+}
+/*#yoovTimelineSelectionDialog .modal-header h3 {*/
+  /*font-size: 18px;*/
+/*}*/
+@media(min-width:560px) {
+  #yoovTimelineSelectionDialog .modal-header {
+    padding: 0.5rem;
+  }
+
+  /*#yoovTimelineSelectionDialog .modal-header h3 {*/
+    /*font-size: 28px;*/
+  /*}*/
+}
+
+#yoovTimelineSelectionDialog.mobile .modal-header h3 {
+  font-size: 20px;
+}
+#yoovTimelineSelectionDialog.mobile .modal-header {
+  padding: 2px;
+}
+#yoovTimelineSelectionDialog.mobile .modal-footer {
+  display: none;
+}
+#yoovTimelineSelectionDialog.mobile .modal-header button {
+  padding: 7px;
+  min-width:50px;
+}
+#yoovTimelineSelectionDialog.mobile .yoov-modal-body {
+  padding: 0;
+}
+#yoovTimelineSelectionDialog.mobile .yoov-modal-body .row {
+  margin: 0;
+}
+#yoovTimelineSelectionDialog.mobile .yoov-modal-body .col-form-label {
+  padding: 0;
+}
+#yoovTimelineSelectionDialog.mobile .yoov-modal-body .input-group input.form-control-readonly {
+  padding: 0.375rem 0.75rem;
+}
+#yoovTimelineSelectionDialog.mobile .yoov-modal-body .btn-prev,
+#yoovTimelineSelectionDialog.mobile .yoov-modal-body .btn-next {
+  min-width: 40px;
+}
 </style>
 

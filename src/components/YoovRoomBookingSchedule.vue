@@ -49,6 +49,7 @@
                   <span class="badge badge-dark"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
                 </h6>
                 <div class="booking-description">
+                  #{{ item.id }}
                   {{ item.description }}
                 </div>
                 <div class="booking-status">
@@ -98,13 +99,13 @@
         scheduleSlotByQuarter: [],
         selectedMoment: null,
         weekSchedule: [
-          /* Sun */ [],
-          /* Mon */ [],
-          /* Tue */ [],
-          /* Wed */ [],
-          /* Thu */ [],
-          /* Fri */ [],
-          /* Sat */ []
+          // /* Sun */ [],
+          // /* Mon */ [],
+          // /* Tue */ [],
+          // /* Wed */ [],
+          // /* Thu */ [],
+          // /* Fri */ [],
+          // /* Sat */ []
         ],
         bookingTemplate: {
           id: 0,
@@ -169,6 +170,12 @@
       // selectedRoom () {
       //   return this.$store.getters.selectedRoom
       // },
+      daysPerPeriod () {
+        return this.isMobile ? 3 : 7
+      },
+      isMobile () {
+        return this.$mq === 'mobile'
+      },
       bookings () {
         let result = this.$store.getters.meetingRoomBookings
         return result
@@ -212,41 +219,35 @@
         }
       },
       onTestClicked () {
-        console.log('onTestClicked')
         this.showingYoovTestModal = true
         this.showingYoovTimelineSelectionModal = true
-        // this.showingYoovTimelineSelectionModal = true
       },
       onNextButtonClicked () {
         let vm = this
-        console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
-        vm.currentMoment = vm.currentMoment.add('days', 7)
-        console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
+        let dummy = vm.currentMoment.clone()
+        vm.currentMoment = dummy.add('days', vm.daysPerPeriod)
         vm.refreshCalendar(vm.currentRoom)
       },
       onPrevButtonClicked () {
         let vm = this
-        console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
-        vm.currentMoment = vm.currentMoment.add('days', -7)
-        console.log('onNextButtonClicked :: currentMoment = ' + vm.currentMoment.toString())
+        let dummy = vm.currentMoment.clone()
+        vm.currentMoment = dummy.add('days', -vm.daysPerPeriod)
         vm.refreshCalendar(vm.currentRoom)
       },
       outputWeekSchedule () {
         let vm = this
         let weekdaySchedule
         let output = ''
-//      console.log('outputWeekSchedule :: weekSchedule.length = ' + vm.weekSchedule.length)
         for (var i = 0; i < vm.weekSchedule.length; i++) {
           weekdaySchedule = vm.weekSchedule[i]
           output = 'Weekday #' + i + ': '
           for (var j = 0; j < weekdaySchedule.length; j++) {
             output = output + 'j=' + j + ':hr=' + weekdaySchedule[j].quarter + ',tp=' + weekdaySchedule[j].top + '; '
           }
-//        console.log('outputWeekSchedule: ' + output)
         }
       },
 
-      setCurrentWeekBookings (room) {
+      setCurrentPeriodBookings (room) {
         if (typeof room === 'undefined') {
           alert('selectedRoom is undefined')
         }
@@ -254,66 +255,82 @@
         let dummy = null
         let dummyDay = null
 
-        let displayedWeekdays = []
-        for (var i = 0; i < 7; i++) {
+        if (vm.isMobile) {
           dummy = vm.currentMoment.clone()
-          dummyDay = dummy.day(i)
+          vm.displayedRangeStart = dummy.add(-1, 'days').startOf('day')
+          dummy = vm.currentMoment.clone()
+          vm.displayedRangeEnd = dummy.add(1, 'days').endOf('day')
+        } else {
+          dummy = vm.currentMoment.clone()
+          vm.displayedRangeStart = dummy.startOf('week')
+          dummy = vm.currentMoment.clone()
+          vm.displayedRangeEnd = dummy.endOf('week')
+        }
+        console.log('***********> date = ' + vm.displayedRangeEnd.date())
+
+        let displayedWeekdays = []
+        let loopDate = vm.displayedRangeStart.clone()
+        for (var i = 0; i < vm.daysPerPeriod; i++) {
           displayedWeekdays.push({
-            'label': dummyDay.format('ddd'),
-            'date': dummyDay.format('Y-MM-DD')
+            'label': loopDate.format('ddd'),
+            'date': loopDate.format('Y-MM-DD')
           })
+          loopDate = loopDate.add(1, 'days')
         }
         vm.displayedWeekdays = displayedWeekdays
-        console.log('setCurrentWeekBookings :: displayedWeekdays: ', vm.displayedWeekdays)
-
-        dummy = vm.currentMoment.clone()
-        vm.displayedRangeStart = dummy.startOf('week')
-        dummy = vm.currentMoment.clone()
-        vm.displayedRangeEnd = dummy.endOf('week')
 
         // reset schedule
-        for (var k = 0; k < 7; k++) {
+        for (var k = 0; k < vm.daysPerPeriod; k++) {
           vm.weekSchedule[k] = []
         }
-        // console.log('setCurrentWeekBookings :: weekSchedule: ', vm.weekSchedule)
+        // console.log('setCurrentPeriodBookings :: weekSchedule: ', vm.weekSchedule)
 
         let loopBookings = []
         let loopBooking = null
         let loop = 0
         let needle = 0
+        let index = 0
         // filter bookings
 
-        // console.log('=====> setCurrentWeekBookings:before :: weekSchedule:', vm.weekSchedule)
-        console.log('setCurrentWeekBookings :: vm.rooms: ', vm.rooms)
-        console.log('setCurrentWeekBookings :: vm.rooms.length = ' + vm.rooms.length)
+        // console.log('=====> setCurrentPeriodBookings:before :: weekSchedule:', vm.weekSchedule)
+        // console.log('setCurrentPeriodBookings :: vm.rooms: ', vm.rooms)
+        // console.log('setCurrentPeriodBookings :: vm.rooms.length = ' + vm.rooms.length)
+        //
+        // console.log('setCurrentPeriodBookings :: vm.room :' + JSON.stringify(room))
+        // console.log('setCurrentPeriodBookings :: check any booking within : ' +
+        //   vm.displayedRangeStart.toString() + ' to ' +
+        //   vm.displayedRangeEnd.toString())
+        //
+        // console.log('setCurrentPeriodBookings :: before find bookings, vm.weekSchedule: ', vm.weekSchedule)
 
-        console.log('setCurrentWeekBookings :: vm.room :' + JSON.stringify(room))
-        console.log('setCurrentWeekBookings :: check any booking within : ' +
-          vm.displayedRangeStart.toString() + ' to ' +
-          vm.displayedRangeEnd.toString())
-
-        console.log('setCurrentWeekBookings :: before find bookings, vm.weekSchedule: ', vm.weekSchedule)
+        console.log('setCurrentPeriodBookings :; displayedRangeStart: ', vm.displayedRangeStart.toString())
+        console.log('setCurrentPeriodBookings :; displayedEndStart: ', vm.displayedRangeEnd.toString())
 
         for (var j = 0; j < vm.bookings.length; j++) {
-          console.log('setCurrentWeekBookings :: vm.bookings[' + j + '].meeting_room_id = ' + vm.bookings[j].meeting_room_id)
+          console.log('setCurrentPeriodBookings :: vm.bookings[' + j + '].meeting_room_id = ' + vm.bookings[j].meeting_room_id)
           if (typeof room === 'undefined') {
             alert('room is undefined')
           }
           if (vm.bookings[j].meeting_room_id !== room.id) {
             continue
           }
-          console.log('setCurrentWeekBookings :: found booking of room')
+          // console.log('setCurrentPeriodBookings :: found booking of room')
           var booking = vm.bookings[j]
           var bookingMoment = vm.$moment(booking.started_at)
 //        console.log('#' + j + ': bookingMoment = ' + bookingMoment.format('Y-MM-DD HH:mm:ss'))
 
           if (bookingMoment >= vm.displayedRangeStart &&
             bookingMoment <= vm.displayedRangeEnd) {
-            console.log('the booking within range')
+            // console.log('the booking within range')
 //          var weekday = Math.floor(bookingMoment.diff(vm.displayedRangeStart, 'day'))
 
-            loopBookings = vm.weekSchedule[booking.weekday]
-            console.log('weekday = ' + booking.weekday)
+            index = bookingMoment.date() - vm.displayedRangeStart.date()
+            console.log('bookingMoment.toString = ' + bookingMoment.toString())
+            console.log('currentMoment.toString = ' + vm.currentMoment.toString())
+            console.log('index = ' + index)
+
+            loopBookings = vm.weekSchedule[index]
+            // console.log('weekday = ' + booking.weekday)
 
             loop = loopBookings.length - 1
             needle = -1
@@ -330,21 +347,21 @@
               loop--
             }
             if (needle === -1) {
-              vm.weekSchedule[booking.weekday].push(booking)
+              vm.weekSchedule[index].push(booking)
             } else {
-              vm.weekSchedule[booking.weekday].splice(needle, 0, booking)
+              vm.weekSchedule[index].splice(needle, 0, booking)
             }
             vm.outputWeekSchedule()
           }
         }
-        // console.log('=====> setCurrentWeekBookings:after :: weekSchedule:', vm.weekSchedule)
+        // console.log('=====> setCurrentPeriodBookings:after :: weekSchedule:', vm.weekSchedule)
 
         // adjust top position of schedule item region
-        // console.log('setCurrentWeekBookings :: adjust top position')
+        // console.log('setCurrentPeriodBookings :: adjust top position')
         vm.setupScheduleSlotByQuarter()
         // console.log('before sort')
         vm.setScheduleRegionTop()
-        // console.log('setCurrentWeekBookings :: scheduleSlotByQuarter: ', vm.scheduleSlotByQuarter)
+        // console.log('setCurrentPeriodBookings :: scheduleSlotByQuarter: ', vm.scheduleSlotByQuarter)
       },
 
       setupScheduleSlotByQuarter () {
@@ -422,13 +439,9 @@
 
       initBookingInfos () {
         let vm = this
-        console.log('YoovRoomBookingSchedule :: initBookingInfos')
-        console.log('YoovRoomBookingSchedule :: bookings:', vm.bookings)
         for (var i = 0; i < vm.bookings.length; i++) {
           var bookingStartMoment = vm.$moment(vm.bookings[i].started_at)
           var bookingEndMoment = vm.$moment(vm.bookings[i].ended_at)
-          console.log('initBookingInfos i=' + i + ': vm.bookings[i] bookingStartMoment: ' + bookingStartMoment.toString())
-
           var bookingStartMomentClone = vm.$moment(bookingStartMoment.toString())
           var weekStart = bookingStartMomentClone.startOf('week')
 
@@ -491,7 +504,7 @@
         console.log('setScheduleRegionTop :: scheduleSlotByQuarter: ', vm.scheduleSlotByQuarter)
         let items = []
         let overlapped = 0
-        for (weekdayIndex = 0; weekdayIndex < 7; weekdayIndex++) {
+        for (weekdayIndex = 0; weekdayIndex < vm.daysPerPeriod; weekdayIndex++) {
           items = vm.weekSchedule[weekdayIndex]
           // console.log('setScheduleRegionTop i=' + i + ' items.length=' + items.length)
           for (j = items.length - 1; j > 0; j--) {
@@ -507,7 +520,7 @@
         }
 
         // check if gap in between two sequential events
-        for (weekdayIndex = 0; weekdayIndex < 7; weekdayIndex++) {
+        for (weekdayIndex = 0; weekdayIndex < vm.daysPerPeriod; weekdayIndex++) {
           items = vm.weekSchedule[weekdayIndex]
           console.log('checkGapBetween weekdayIndex=' + weekdayIndex + ' items.length=' + items.length)
           for (j = items.length - 1; j > 0; j--) {
@@ -546,7 +559,7 @@
       },
       newSchedule (columnIndex) {
         let vm = this
-        let cloneMoment = vm.currentMoment.clone()
+        let cloneMoment = vm.displayedRangeStart.clone()
         let bookingTemplate = vm.bookingTemplate
         console.log('newSchedule :: bookingTemplate: ', bookingTemplate)
         vm.editBooking = JSON.parse(JSON.stringify(bookingTemplate))
@@ -554,7 +567,7 @@
         vm.editBooking.applicant = vm.user
         vm.editBooking.meeting_room_id = vm.currentRoom.id
         vm.editBooking.meeting_room = vm.currentRoom
-        vm.selectedMoment = cloneMoment.day(columnIndex)
+        vm.selectedMoment = cloneMoment.add(columnIndex, 'days')
         vm.showingYoovTimelineSelectionModal = true
       },
       /*
@@ -661,7 +674,7 @@
         }
         if (vm.currentRoom) {
           console.log('refreshCalendar :: currentRoom: ', currentRoom)
-          this.setCurrentWeekBookings(currentRoom)
+          this.setCurrentPeriodBookings(currentRoom)
         } else {
           console.log('refreshCalendar :: currentRoom is undefined')
         }

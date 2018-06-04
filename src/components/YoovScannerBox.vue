@@ -1,7 +1,7 @@
 <template>
   <b-card id="scanner-block" no-body class="p-0" v-if="scanner">
-    <b-card-body class="p-2">
-      <table>
+    <b-card-body class="p-2 text-center">
+      <table class="d-inline">
         <tr>
           <td style="padding-right:5px;">
               <img src="/static/img/scanner.png" class="office-scanner">
@@ -23,7 +23,7 @@
           </td>
         </tr>
         <!-- down arrow -->
-        <tr>
+        <tr v-if="user">
           <td class="text-center" style="line-height: 0.5;">
               <i style="line-height: 0.5;"
                :class="{'text-success':scanner.occupied_by===user.id,'text-black-20':scanner.occupied_by===0,'text-black-50':(scanner.occupied_by!==0 && scanner.occupied_by!==user.id)}"
@@ -32,14 +32,14 @@
           <td colspan="2"></td>
         </tr>
         <!-- user folder -->
-        <tr v-if="scanner.occupied_by!==0 && scanner.occupied_by!==user.id">
+        <tr v-if="user && scanner.occupied_by!==0 && scanner.occupied_by!==user.id">
           <td colspan="3" class="text-center">
             <span class="badge badge-danger">Held by {{ scanner.occupied_by_user.name }}</span>
             <hr/>
           </td>
         </tr>
         <!-- occupied by current user -->
-        <tr>
+        <tr v-if="user">
           <td>
             <scanner-folder
               :scanner="scanner"

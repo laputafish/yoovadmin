@@ -132,7 +132,7 @@
         return vm.$store.getters.selectedFolderIds
       },
       allSelected () {
-        return (this.documents.length === this.selectedDocumentIds.length) &&
+        return this.documents && this.folders && (this.documents.length === this.selectedDocumentIds.length) &&
           (this.folders.length === this.selectedFolderIds.length && this.folders.length > 0)
       }
     },

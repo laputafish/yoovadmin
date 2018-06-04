@@ -49,14 +49,17 @@ const getters = {
     return result
   },
   publicScanFolder (state) {
-    console.log('userScanFolder :: folders:', state.publicFolders)
+    console.log('publicScanFolder :: folders:', state.publicFolders)
     let result = null
     for (var i = 0; i < state.publicFolders.length; i++) {
+      console.log('publicScanFolder i=' + i + ': publicFolders[i].name = ' + state.publicFolders[i].name)
       if (state.publicFolders[i].name === 'scan') {
         result = state.publicFolders[i]
         break
       }
     }
+    console.log('publicScanFolder :: result.id = ' + result.id)
+    console.log('publicScanFolder :: result.name = ' + result.name)
     return result
   },
   userScanFolder (state) {

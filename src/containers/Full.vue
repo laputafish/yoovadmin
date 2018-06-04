@@ -1,11 +1,12 @@
 <template>
-  <div class="app">
+  <div class="app"
+    :class="{'mobile':isMobile}">
     <app-header
       :user="user"/>
     <div class="app-body">
       <sidebar :navItems="nav"/>
       <main class="main">
-        <breadcrumb :list="list"/>
+        <breadcrumb :list="list" class="mb-xs-1 mb-sm-3"/>
         <div class="container-fluid">
           <router-view></router-view>
         </div>
@@ -55,6 +56,9 @@ export default {
     })
   },
   computed: {
+    isMobile () {
+      return this.$mq === 'mobile'
+    },
     token () {
       return this.$store.getters.token
     },
@@ -71,3 +75,9 @@ export default {
   }
 }
 </script>
+
+<style>
+  .app.mobile .app-footer {
+    font-size: 14px;
+  }
+</style>

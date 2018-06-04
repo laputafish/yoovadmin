@@ -102,5 +102,19 @@ ul.dropdown-menu > li > a:hover {
 }
 
 .modal-container {
-  margin-top: 70px !important;
+  margin-top: 60px !important;
+}
+
+.dashboard-panel {
+  display: none;
+}
+
+.dashboard-panel.active-panel {
+  display: flex;
+}
+
+@media(min-width: 576px) {
+  .dashboard-panel {
+    display: flex;
+  }
 }
