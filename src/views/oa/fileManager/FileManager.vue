@@ -1,73 +1,70 @@
 <template>
   <div class="file-manager animated fadeIn">
-    <div class="container-fluid">
-      <div class="d-flex flex-column" v-if="currentFolder">
-        <path-links
-          :ancestors="currentFolder.ancestors"></path-links>
-        <div class="file-manager-toolbar text-right d-flex flex-row">
-          <!-- Select All -->
-          <!--<a href="#"-->
-             <!--class="btn btn-sm btn-default dropdown-toggle"-->
-             <!--data-toggle="dropdown"-->
-             <!--role="button"-->
-             <!--aria-haspopup="true"-->
-             <!--aria-expanded="false">Save & Load <span class="caret"></span></a>-->
-          <!--<ul class="dropdown-menu">-->
-            <!--<li><a href="#">Action</a></li>-->
-            <!--<li><a href="#">Another action</a></li>-->
-          <!--</ul>-->
-          <button v-tooltip="allSelected ? 'Clear All' : 'Select All'" class="btn-default btn btn-sm" @click="selectClear()">
-            <!--<i class="fa"-->
-              <!--:class="{'fa-check-square':!allSelected, 'fa-square':allSelected}"></i>-->
-            <i class="fa" :class="{'fa-square':allSelected, 'fa-check-square':!allSelected}"></i>
-          </button>
-          <button v-tooltip="'New Folder'" class="btn btn-sm btn-default"
-                  style="position:relative;"
-                  @click="newFolder()">
-            <i class="fa fa-folder"></i>
-          </button>
+    <div class="d-flex flex-column" v-if="currentFolder">
+      <path-links
+        :ancestors="currentFolder.ancestors"></path-links>
+      <div class="file-manager-toolbar text-right d-flex flex-row">
+        <!-- Select All -->
+        <!--<a href="#"-->
+           <!--class="btn btn-sm btn-default dropdown-toggle"-->
+           <!--data-toggle="dropdown"-->
+           <!--role="button"-->
+           <!--aria-haspopup="true"-->
+           <!--aria-expanded="false">Save & Load <span class="caret"></span></a>-->
+        <!--<ul class="dropdown-menu">-->
+          <!--<li><a href="#">Action</a></li>-->
+          <!--<li><a href="#">Another action</a></li>-->
+        <!--</ul>-->
+        <button v-tooltip="allSelected ? 'Clear All' : 'Select All'" class="btn-default btn btn-sm" @click="selectClear()">
+          <!--<i class="fa"-->
+            <!--:class="{'fa-check-square':!allSelected, 'fa-square':allSelected}"></i>-->
+          <i class="fa" :class="{'fa-square':allSelected, 'fa-check-square':!allSelected}"></i>
+        </button>
+        <button v-tooltip="'New Folder'" class="btn btn-sm btn-default"
+                style="position:relative;"
+                @click="newFolder()">
+          <i class="fa fa-folder"></i>
+        </button>
 
-          <button v-tooltip="'Move'" class="btn btn-sm btn-default"
-                  :disabled="selectionCount===0"
-                  @click="move()">
-            <i class="fa fa-arrows"></i>
-          </button>
-          <button v-tooltip="'Copy'" class="btn btn-sm btn-default"
-                  :disabled="selectionCount===0"
-                  @click="copy()">
-            <i class="fa fa-copy"></i>
-          </button>
-          <button v-tooltip="'Delete'" class="btn btn-sm btn-default"
-                  :disabled="selectionCount===0"
-                  @click="deleteSelected()">
-            <i class="fa fa-close"></i>
-          </button>
-          <!-- Select None -->
-          <!--<button class="btn btn-sm btn-info" @click="selectNone()">-->
-            <!--<i class="fa fa-square"></i>&nbsp;Clear-->
-          <!--</button>-->
-          <!-- Download -->
-          <a v-tooltip="'Download'" :href="downloadLink" class="btn btn-sm btn-default ml-auto no-anchor-style">
-            <i class="fa fa-download"></i>
-          </a>
-          <!-- Delete -->
-        </div>
-        <div v-if="currentFolder">
-          <folder-item
-            @updateSelected="updateSelectedFolderHandler"
-            @refresh="refreshFolder"
-            :folder="folder"
-            :key="index"
-            v-for="(folder,index) in folders"></folder-item>
-        </div>
-        <div v-if="currentFolder">
-          <document-item
-            @updateSelected="updateSelectedDocumentHandler"
-            @refresh="refreshFolder"
-            :document="document"
-            :key="index"
-            v-for="(document,index) in documents"></document-item>
-        </div>
+        <button v-tooltip="'Move'" class="btn btn-sm btn-default"
+                :disabled="selectionCount===0"
+                @click="move()">
+          <i class="fa fa-arrows"></i>
+        </button>
+        <button v-tooltip="'Copy'" class="btn btn-sm btn-default"
+                :disabled="selectionCount===0"
+                @click="copy()">
+          <i class="fa fa-copy"></i>
+        </button>
+        <button v-tooltip="'Delete'" class="btn btn-sm btn-default"
+                :disabled="selectionCount===0"
+                @click="deleteSelected()">
+          <i class="fa fa-close"></i>
+        </button>
+        <!-- Select None -->
+        <!--<button class="btn btn-sm btn-info" @click="selectNone()">-->
+          <!--<i class="fa fa-square"></i>&nbsp;Clear-->
+        <!--</button>-->
+        <!-- Download -->
+        <a v-tooltip="'Download'" :href="downloadLink" class="btn-toolbar btn btn-sm btn-default ml-auto no-anchor-style"
+           :class="{'disabled':selectionCount===0}">
+          <i class="fa fa-download"></i>
+        </a>
+        <!-- Delete -->
+      </div>
+      <div v-if="currentFolder">
+        <folder-item
+          @updateSelected="updateSelectedFolderHandler"
+          @refresh="refreshFolder"
+          :folder="folder"
+          :key="'folder_'+index"
+          v-for="(folder,index) in folders"></folder-item>
+        <document-item
+          @updateSelected="updateSelectedDocumentHandler"
+          @refresh="refreshFolder"
+          :document="document"
+          :key="'document_'+index"
+          v-for="(document,index) in documents"></document-item>
       </div>
     </div>
     <folder-tree-dialog v-if="showingFolderTreeDialog"
@@ -107,7 +104,7 @@
       downloadLink () {
         let vm = this
         let idString = vm.selectedDocumentIds.join(',')
-        return constants.apiUrl + '/media/download_documents/' + idString
+        return vm.selectionCount === 0 ? '#' : constants.apiUrl + '/media/download_documents/' + idString
       },
       user () {
         return this.$store.getters.user
@@ -288,4 +285,12 @@
   border-radius: 5px;
 }
 
+.file-manager a.btn-toolbar {
+  padding: 7px;
+}
+
+.file-manager a.btn-toolbar:disabled:hover {
+  pointer: default;
+  color: darkgray;
+}
 </style>

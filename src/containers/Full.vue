@@ -77,6 +77,9 @@ export default {
 </script>
 
 <style>
+  .app.mobile .container-fluid {
+    padding: 0 5px;
+  }
   .app.mobile .app-footer {
     font-size: 14px;
   }

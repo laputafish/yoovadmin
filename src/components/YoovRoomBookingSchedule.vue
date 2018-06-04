@@ -253,7 +253,7 @@
         }
         let vm = this
         let dummy = null
-        let dummyDay = null
+        // let dummyDay = null
 
         if (vm.isMobile) {
           dummy = vm.currentMoment.clone()

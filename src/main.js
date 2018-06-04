@@ -10,6 +10,7 @@
 import $ from 'jquery'
 import Vue from 'vue'
 import VueMq from 'vue-mq'
+import Vue2TouchEvents from 'vue2-touch-events'
 import VeeValidate from 'vee-validate'
 import 'vue-tree-halower/dist/halower-tree.min.css'
 import {VTree} from 'vue-tree-halower'
@@ -61,6 +62,13 @@ Vue.use(VueMq, {
     laptop: 1250,
     desktop: Infinity
   }
+})
+Vue.use(Vue2TouchEvents, {
+  disableClick: false,
+  touchClass: '',
+  tapTolerance: 10,
+  swipeTolerance: 30,
+  longTapTimeInterval: 400
 })
 Vue.use(VModal, {dynamic: true})
 Vue.use(VuejsDialog)

@@ -45,9 +45,6 @@
         </div>
       </div>
     </div>
-    <div>
-      Token: <input type="text" :value="token" @input="setToken($event.target.value)"/>
-    </div>
   </div>
 </template>
 

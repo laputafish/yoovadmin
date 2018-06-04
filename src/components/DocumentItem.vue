@@ -7,6 +7,8 @@
          :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
     </div>
     <img class="document-icon"
+        :draggable="true"
+         @dragStart.stop="handleDragStart"
          @click="onImageClicked"
          :src="getIconSrc(document.media_id)"/><br/>
     <input v-if="editing"
@@ -26,6 +28,7 @@
     <yoov-image-dialog
       v-if="showingImageDialog"
       @close="showingImageDialog=false"
+      :title="document.filename"
       :imageUrl="imageUrl"></yoov-image-dialog>
   </div>
 </template>
@@ -63,6 +66,9 @@
       }
     },
     computed: {
+      draggingItem () {
+        return this.$store.getters.draggingItem
+      },
       haveSelection () {
         return this.$store.getters.haveFileSelected
       },
@@ -78,6 +84,38 @@
       // }
     },
     methods: {
+      handleDragStart () {
+        let vm = this
+        this.$store.dispatch('SET_DRAGGABLE_ITEM', {
+          vm: vm,
+          name: vm.document.filename,
+          type: 'document',
+          data: vm.document
+        })
+        this.$el.classList.add('dragging-node')
+      },
+      isAllowedToDrop () {
+        let vm = this
+        const { draggingVm } = vm.draggingItem
+
+        // limitation 1: this cannot be the parent of the dragging node
+        if (vm === draggingVm.$parent) {
+          return false
+        }
+
+        // limitation 2: this cannot be the adjacent empty node of the dragging node
+        if (vm.$parent === draggingVm.$parent && Math.abs(vm.vmIdx - draggingVm.vmIdx) === 1) {
+          return false
+        }
+
+        // limitation 3: this cannot be the dragging node itself or its descendant
+        while (vm) {
+          if (vm === draggingVm) return false
+          vm = vm.$parent.$options.name === 'TreeNode' ? vm.$parent : null
+        }
+
+        return true
+      },
       onEdited () {
         alert('onEdited')
         let vm = this
@@ -108,6 +146,12 @@
         let vm = this
         let imageTypes = ['png', 'gif', 'jpg', 'jpeg']
         return imageTypes.indexOf(vm.document.file_type.toLowerCase()) >= 0
+      },
+      onLongTap () {
+//       alert('onLongTap')
+      },
+      onTap () {
+//        alert('onTap')
       },
       onImageClicked () {
         this.showDocument()

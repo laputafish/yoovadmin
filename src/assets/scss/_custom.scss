@@ -88,7 +88,8 @@ ul.dropdown-menu > li > a:hover {
   text-align: center;
 }
 
-.modal-footer > div > button {
+.modal-footer button,
+.modal-header button {
   min-width: 80px;
 
 }

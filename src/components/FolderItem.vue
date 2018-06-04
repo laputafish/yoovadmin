@@ -7,7 +7,14 @@
                :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
         </div>
         <img class="folder-icon"
-             @click="enterFolder"
+            :draggable="true"
+             @drop.stop="handleDrop"
+             @dragover.stop="handleDragOver"
+             @dragenter.stop="handleDragEnter"
+             @dragleave.stop="handleDragLeave"
+             v-touch:tap="onTap"
+             v-touch:longtap="onLongTap"
+             @click.prevent.stop="onImageClicked"
              :src="getIconSrc()"/><br/>
         <input v-if="editing"
                ref="folderName"
@@ -86,6 +93,9 @@
       }
     },
     computed: {
+      draggingItem () {
+        return this.$store.getters.draggingItem
+      },
       haveSelection () {
         return this.$store.getters.haveFileSelected
       },
@@ -101,14 +111,61 @@
       // }
     },
     methods: {
+      isAllowedToDrop () {
+        // let vm = this
+
+        // limitation 1: this cannot be the parent of the dragging node
+        // if (vm === vm.draggingItem.$parent) {
+        //   return false
+        // }
+
+        // limitation 2: this cannot be the adjacent empty node of the dragging node
+        // if (vm.$parent === draggingVm.$parent && Math.abs(vm.vmIdx - draggingVm.vmIdx) === 1) {
+        //   return false
+        // }
+
+        // limitation 3: this cannot be the dragging node itself or its descendant
+        // while (vm) {
+        //   if (vm === vm.draggingItem.vm) return false
+        //   vm = vm.$parent.$options.name === 'TreeNode' ? vm.$parent : null
+        // }
+
+        return true
+      },
+
+      handleDragStart () {
+        let vm = this
+        this.$store.dispatch('SET_DRAGGABLE_ITEM', {
+          vm: vm,
+          name: vm.folder.name,
+          type: 'folder',
+          data: vm.folder
+        })
+        this.$el.classList.add('dragging-node')
+      },
+      handleDragOver (e) {
+        let vm = this
+        console.log('handleDragOver')
+        e.preventDefault() // must!!!
+        e.dataTransfer.dropEffect = this.isAllowedToDrop() ? 'move' : 'none'
+      },
+      handleDragEnter () {
+
+      },
+      handleDragLeave () {
+        console.log('handleDragLeave')
+      },
+      handleDrop () {
+        console.log('handleDrop')
+      },
       menuItemSelected () {
         alert('menuItemSelected')
       },
-      enterFolder () {
-        console.log('FolderItem :: enterFolder this.folder: ', this.folder)
-        this.$store.dispatch('SET_CURRENT_FOLDER', this.folder.id)
-        this.$router.replace('/folders/' + this.folder.id)
-      },
+      // enterFolder () {
+      //   console.log('FolderItem :: enterFolder this.folder: ', this.folder)
+      //   this.$store.dispatch('SET_CURRENT_FOLDER', this.folder.id)
+      //   this.$router.replace('/folders/' + this.folder.id)
+      // },
       onKeyUp (event) {
         if (event.key === 'Enter') {
           this.onEdited()
@@ -149,8 +206,19 @@
         let imageTypes = ['png', 'gif', 'jpg', 'jpeg']
         return imageTypes.indexOf(vm.folder.file_type.toLowerCase()) >= 0
       },
-      onImageClicked () {
-        this.showDocument()
+      onLongTap () {
+        // console.log('onLongTap')
+      },
+      onTap () {
+        // console.log('onTap')
+      },
+      onImageClicked (event) {
+        // console.log('onImageClicked :: event: ', event)
+        // console.log('onImageClicked')
+        // this.showDocument()
+        // console.log('FolderItem :: enterFolder this.folder: ', this.folder)
+        this.$store.dispatch('SET_CURRENT_FOLDER', this.folder.id)
+        this.$router.replace('/folders/' + this.folder.id)
       },
       deleteFile () {
         let vm = this

@@ -1,10 +1,12 @@
 <template>
   <yoov-modal id="yoovImageDialog">
-    <!--<div slot="header" class="header" style="position:relative;">-->
-      <!--<h3 class="dialog-title d-inline">-->
-        <!--Image-->
-      <!--</h3>-->
-    <!--</div>-->
+    <div slot="header" class="text-left header flex-grow-1" style="position:relative;">
+      <button class="btn btn-primary pull-right"
+              @click="$emit('close')">Close</button>
+      <h3 class="dialog-title d-inline">
+        {{ title }}
+      </h3>
+    </div>
     <div slot="body">
       <img :src="imageSrc"/>
     </div>
@@ -27,6 +29,10 @@
       imageUrl: {
         type: String,
         default: ''
+      },
+      title: {
+        type: String,
+        default: 'Image'
       }
     },
     computed: {
