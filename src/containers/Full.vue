@@ -55,6 +55,16 @@ export default {
       }
     })
   },
+  mounted () {
+    let vm = this
+    console.log('Full.vue mounted')
+    vm.$store.dispatch('GET_EQUIPMENTS').then(function () {
+      console.log('finished: get equipments')
+    })
+    vm.$store.dispatch('GET_PUBLIC_FOLDERS').then(function () {
+      console.log('finished: get public folders')
+    })
+  },
   computed: {
     isMobile () {
       return this.$mq === 'mobile'

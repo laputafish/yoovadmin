@@ -28,12 +28,12 @@
 
         <button v-tooltip="'Move'" class="btn btn-sm btn-default"
                 :disabled="selectionCount===0"
-                @click="move()">
+                @click="moveSelection()">
           <i class="fa fa-arrows"></i>
         </button>
         <button v-tooltip="'Copy'" class="btn btn-sm btn-default"
                 :disabled="selectionCount===0"
-                @click="copy()">
+                @click="copySelection()">
           <i class="fa fa-copy"></i>
         </button>
         <button v-tooltip="'Delete'" class="btn btn-sm btn-default"
@@ -55,6 +55,7 @@
       <div v-if="currentFolder">
         <file-item
           @updateSelected="updateSelectedFolderHandler"
+          @onAction="onActionHandler"
           @refresh="refreshFolder"
           fileType="folder"
           :fileItem="folder"
@@ -82,8 +83,10 @@
       </div>
     </div>
     <folder-tree-dialog v-if="showingFolderTreeDialog"
-                        :disabledFolderId="currentFolder.id"
+                        :disabledFolderIds="disabledFolderIds"
                         :command="currentCommand"
+                        :fileItem="activeFileItem"
+                        :fileType="activeFileType"
                         @ok="onTargetFolderSelected"
       @close="showingFolderTreeDialog=false">
 
@@ -106,7 +109,10 @@
         pusher: null,
         currentCommand: 'move',
         currentFolderId: null,
-        showingFolderTreeDialog: false
+        disabledFolderIds: [],
+        showingFolderTreeDialog: false,
+        activeFileItem: null,
+        activeFileType: 'folder'
       }
     },
     components: {
@@ -117,6 +123,9 @@
       'folder-tree-dialog': FolderTreeDialog
     },
     computed: {
+      publicFolder () {
+        return this.$store.getters.publicFolder
+      },
       personalFolders () {
         return this.$store.getters.personalFolders
       },
@@ -156,6 +165,16 @@
       }
     },
     watch: {
+      publicFolder: {
+        handler: function (value) {
+          let vm = this
+          if (vm.$route.params.folderId === 'public' && value) {
+            vm.currentFolderId = value.id
+            vm.refreshFolder()
+          }
+        },
+        deep: true
+      },
       currentFolder: {
         handler: function (value) {
           console.log('FileManager :: watch(currentFolder) : value:', value)
@@ -164,7 +183,10 @@
       },
       user: {
         handler: function (value) {
-          this.initFolder()
+          console.log('user.handler: value: ', value)
+          if (value) {
+            this.initFolder()
+          }
         },
         deep: true
       }
@@ -183,31 +205,81 @@
     },
     methods: {
       onTargetFolderSelected (payload) {
-        let selectedFolderId = payload.folderId
-        let command = payload.command
-        alert('command=' + command + ', selectedFolderId = ' + selectedFolderId)
         this.showingFolderTreeDialog = false
+        switch (payload.command) {
+          case 'MOVE_SELECTION':
+          case 'COPY_SELECTION':
+            this.$store.dispatch('PROCESS_SELECTION', {
+              command: payload.command,
+              targetFolderId: payload.folderId
+            })
+            break
+          case 'MOVE_ITEM':
+          case 'COPY_ITEM':
+            this.$store.dispatch('PROCESS_FILE_ITEM', {
+              command: payload.command,
+              targetFolderId: payload.folderId,
+              fileType: payload.fileType,
+              fileItem: payload.fileItem
+            })
+        }
       },
       newFolder () {
         this.$store.dispatch('NEW_FOLDER')
       },
-      move () {
-        this.currentCommand = 'move'
+      // Process on single item
+      onActionHandler (payload) {
+        let vm = this
+        this.currentCommand = payload.command
+        switch (this.currentCommand) {
+          case 'MOVE_ITEM':
+          case 'COPY_ITEM':
+            let fileType = payload.fileType
+            let fileItem = payload.fileItem
+            if (fileType === 'folder') {
+              vm.disabledFolderIds = [fileItem.id]
+            } else {
+              vm.disabledFolderIds = []
+            }
+            vm.activeFileItem = payload.fileItem
+            vm.activeFileType = payload.fileType
+            vm.showingFolderTreeDialog = true
+            break
+          case 'LOCK_ITEM':
+            break
+        }
+      },
+      moveSelection () {
+        this.currentCommand = 'MOVE_SELECTION'
         this.showingFolderTreeDialog = true
       },
-      copy () {
-        this.currentCommand = 'copy'
+      copySelection () {
+        this.currentCommand = 'COPY_SELECTION'
         this.showingFolderTreeDialog = true
       },
       initFolder () {
         let vm = this
         if (vm.$route.params.folderId) {
-          if (vm.$route.params.folderId === 0) {
-            let folderName = vm.$route.params.folderName
-            console.log('mounted :: route.params: ', vm.$route.params)
-            vm.currentFolderId = vm.getUserFolderId(folderName)
-          } else {
-            vm.currentFolderId = vm.$route.params.folderId
+          alert('params.folderId = ' + vm.$route.params.folderId)
+          switch (vm.$route.params.folderId) {
+            case 'public':
+              console.log('initFolder(public) :: vm.$store.getters.publicFolder: ', vm.$store.getters.publicFolder.name)
+              vm.currentFolderId = vm.$store.getters.publicFolder.id
+              break
+            case 'personal':
+              vm.currentFolderId = vm.user.folder.id
+              break
+            case 'shared':
+              vm.currentFolderId = 0
+              break
+            default:
+              if (vm.$route.params.folderId === 0) {
+                let folderName = vm.$route.params.folderName
+                console.log('mounted :: route.params: ', vm.$route.params)
+                vm.currentFolderId = vm.getUserFolderId(folderName)
+              } else {
+                vm.currentFolderId = vm.$route.params.folderId
+              }
           }
         } else {
           vm.currentFolderId = vm.user.folder.id

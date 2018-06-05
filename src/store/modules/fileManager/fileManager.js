@@ -208,6 +208,45 @@ const actions = {
     await axios.get(apiUrl, {params: data}).then(function (response) {
       commit('setUserAllFolders', response.data)
     })
+  },
+
+  async [types.PROCESS_SELECTION] ({dispatch, state}, payload) {
+    let command = payload.command
+    let targetFolderId = payload.targetFolderId
+    let apiUrl = constants.apiUrl + '/folders'
+    let data = {
+      command: command,
+      targetFolderId: targetFolderId,
+      documentIds: state.selectedDocumentIds.join(','),
+      folderIds: state.selectedFolderIds.join(',')
+    }
+    await axios.post(apiUrl, data).then(function (response) {
+      dispatch(types.REFRESH_FOLDER)
+    })
+  },
+
+  async [types.PROCESS_FILE_ITEM] ({dispatch}, payload) {
+    let command = payload.command
+    let targetFolderId = payload.targetFolderId
+    let documentIds = []
+    let folderIds = []
+    if (payload.fileType === 'folder') {
+      folderIds = [payload.fileItem.id]
+    } else {
+      documentIds = [payload.fileItem.id]
+    }
+
+    let apiUrl = constants.apiUrl + '/folders'
+    console.log('process file item : payload: ', payload)
+    let data = {
+      command: command,
+      targetFolderId: targetFolderId,
+      documentIds: documentIds.join(','),
+      folderIds: folderIds.join(',')
+    }
+    await axios.post(apiUrl, data).then(function (response) {
+      dispatch(types.REFRESH_FOLDER)
+    })
   }
 
 }
