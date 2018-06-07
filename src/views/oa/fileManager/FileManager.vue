@@ -185,18 +185,21 @@
       onTargetFolderSelected (payload) {
         let selectedFolderId = payload.folderId
         let command = payload.command
-        alert('command=' + command + ', selectedFolderId = ' + selectedFolderId)
         this.showingFolderTreeDialog = false
+        this.$store.dispatch('PROCESS_SELECTION', {
+          command: command,
+          targetFolderId: selectedFolderId
+        })
       },
       newFolder () {
         this.$store.dispatch('NEW_FOLDER')
       },
       move () {
-        this.currentCommand = 'move'
+        this.currentCommand = 'MOVE'
         this.showingFolderTreeDialog = true
       },
       copy () {
-        this.currentCommand = 'copy'
+        this.currentCommand = 'COPY'
         this.showingFolderTreeDialog = true
       },
       initFolder () {

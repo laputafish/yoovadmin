@@ -208,6 +208,21 @@ const actions = {
     await axios.get(apiUrl, {params: data}).then(function (response) {
       commit('setUserAllFolders', response.data)
     })
+  },
+
+  async [types.PROCESS_SELECTION] ({commit, state, dispatch}, payload) {
+    let command = payload.command
+    let targetFolderId = payload.targetFolderId
+    let apiUrl = constants.apiUrl + '/folders'
+    let data = {
+      documentIds: state.selectedDocumentIds.join(','),
+      folderIds: state.selectedFolderIds.join(','),
+      command: command,
+      targetFolderId: targetFolderId
+    }
+    await axios.post(apiUrl, data).then(function (response) {
+      dispatch(types.REFRESH_FOLDER)
+    })
   }
 
 }
