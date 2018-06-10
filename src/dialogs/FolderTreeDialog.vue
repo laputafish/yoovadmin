@@ -40,7 +40,7 @@
                     @click="$emit('close')">Cancel</button>
             <button class="btn btn-primary"
                     :disabled="selectedNodes[activeTab]===0"
-                    @click="$emit('ok', {command:command, folderId:selectedNodes[activeTab]})"
+                    @click="onConfirmed"
             >OK</button>
         </div>
     </yoov-modal>
@@ -51,8 +51,15 @@
 
   export default {
     props: {
-      disableNodeId: 0,
-      command: ''
+      disabledFolderIds: {
+        type: Array,
+        default: () => {
+          return []
+        }
+      },
+      command: '',
+      fileItem: null,
+      fileType: ''
     },
     components: {
       'yoov-modal': YoovModal
@@ -116,24 +123,62 @@
       }
     },
     methods: {
+      onConfirmed () {
+        let vm = this
+        this.$emit('ok', {
+          command: vm.command,
+          folderId: vm.selectedNodes[vm.activeTab],
+          fileItem: vm.fileItem,
+          fileType: vm.fileType
+        })
+      },
+      markDisabled (folders, disabled) {
+        if (typeof disabled === 'undefined') {
+          disabled = false
+        }
+        let vm = this
+        if (folders) {
+          for (var i = 0; i < folders.length; i++) {
+            folders[i].disabled = disabled || vm.disabledFolderIds.indexOf(folders[i].id) >= 0
+            if (folders[i].children) {
+              vm.markDisabled(folders[i].children, folders[i].disabled)
+            }
+          }
+        }
+        return folders
+      },
       refreshUserAllFolders () {
         let vm = this
-        vm.publicFolders = JSON.parse(JSON.stringify(vm.userAllFolders.publicFolders))
-        vm.personalFolders = JSON.parse(JSON.stringify(vm.userAllFolders.personalFolders))
-        vm.sharedFolders = JSON.parse(JSON.stringify(vm.userAllFolders.sharedFolders))
-        console.log('refreshUserAllFolders :: publicFolders:', vm.publicFolders)
-        console.log('refreshUserAllFolders :: personalFolders:', vm.personalFolders)
-        console.log('refreshUserAllFolders :: sharedFolders:', vm.sharedFolders)
+        let publicFolders = JSON.parse(JSON.stringify(vm.userAllFolders.publicFolders))
+        let personalFolders = JSON.parse(JSON.stringify(vm.userAllFolders.personalFolders))
+        let sharedFolders = JSON.parse(JSON.stringify(vm.userAllFolders.sharedFolders))
+        vm.publicFolders = vm.markDisabled(publicFolders)
+        vm.personalFolders = vm.markDisabled(personalFolders)
+        vm.sharedFolders = vm.markDisabled(sharedFolders)
+
+        // console.log('refreshUserAllFolders :: publicFolders:', vm.publicFolders)
+        // console.log('refreshUserAllFolders :: personalFolders:', vm.personalFolders)
+        // console.log('refreshUserAllFolders :: sharedFolders:', vm.sharedFolders)
       },
       tpl (node, ctx) {
         let vm = this
+        let isNodeDisabled = node.disabled // vm.disabledFolderIds.indexOf(node.id) >= 0
+        let wrapperClass = isNodeDisabled ? 'node-disabled' : ''
         let titleClass = node.selected ? 'node-title node-selected bg-primary' : 'node-title'
-        if (node.searched) titleClass += ' node-searched'
-        return <span>
+        // console.log('disabledFolderIds = ' + vm.disabledFolderIds[0])
+        // console.log('refreshUserAllFolders :: node.id = ' + node.id + ', node.name=' + node.name + ': ')
+        if (node.searched) {
+          titleClass += ' node-searched'
+        }
+        // console.log('node.name = ' + node.name)
+        // console.log('ctx: ', ctx)
+        return <span class={wrapperClass}>
         <span class={titleClass} domPropsInnerHTML={node.name} onClick={() => {
-          ctx.parent.nodeSelected(ctx.props.node)
-          vm.selectedNodes[vm.activeTab] = ctx.parent.getSelectedNodes()[0].id
-          console.log(ctx.parent.getSelectedNodes())
+          if (!isNodeDisabled) {
+            ctx.parent.nodeSelected(ctx.props.node)
+            vm.selectedNodes[vm.activeTab] = ctx.parent.getSelectedNodes()[0].id
+            // console.log(ctx.parent.getSelectedNodes())
+          }
         }}></span>
         </span>
       },
@@ -159,4 +204,26 @@
         height: 400px;
         overflow-y: auto;
     }
+    #folderTreeDialog span.node-disabled:hover {
+        background-color: transparent;
+    }
+    #folderTreeDialog span.node-disabled:hover > span {
+        background-color: transparent;
+        cursor: default;
+        color: lightgray;
+    }
+
+    #folderTreeDialog .node-disabled {
+        cursor: default;
+        color: lightgray;
+    }
+
+    .halo-tree .tree-close:after {
+      padding-left: 1px;
+    }
+    .tree-node-el span.tree-open,
+    .tree-node-el span.tree-close {
+      line-height: 0.8;
+    }
+
 </style>

@@ -109,8 +109,22 @@ const actions = {
     })
   },
 
-  async [types.SET_CURRENT_FOLDER] ({state, commit, dispatch}, payload) {
-    console.log('SET_CURRENT_FOLDER :: payload:', payload)
+  async [types.SET_CURRENT_FOLDER_BY_TYPE] ({commit}, payload) {
+    let folderType = payload.folderName
+    let folderName = payload.subFolderName
+    let apiUrl = constants.apiUrl + '/folders'
+    let data = {
+      type: folderType
+    }
+    if (folderName) {
+      data.folderName = folderName
+    }
+    await axios.get(apiUrl, {params: data}).then(function (response) {
+      commit('setCurrentFolder', response.data)
+    })
+  },
+
+  async [types.SET_CURRENT_FOLDER] ({commit}, payload) {
     let folderId = payload
     if (typeof folderId === 'undefined') {
       folderId = 0
@@ -147,13 +161,16 @@ const actions = {
   async [types.DELETE_FOLDER] ({state, commit, dispatch}, payload) {
     let folderId = payload
     let apiUrl = constants.apiUrl + '/folders/' + folderId
+    alert('state.currentFolder.id=' + state.currentFolder.id)
     await axios.delete(apiUrl).then(function (response) {
+      dispatch('SET_CURRENT_FOLDER', state.currentFolder.id)
     })
   },
   async [types.DELETE_DOCUMENT] ({state, commit, dispatch}, payload) {
     let documentId = payload
     let apiUrl = constants.apiUrl + '/documents/' + documentId
     await axios.delete(apiUrl).then(function (response) {
+      dispatch('SET_CURRENT_FOLDER', state.currentFolder.id)
     })
   },
   async [types.DELETE_SELECTED] ({state, commit, dispatch}, payload) {
@@ -210,19 +227,58 @@ const actions = {
     })
   },
 
-  async [types.PROCESS_SELECTION] ({commit, state, dispatch}, payload) {
+  async [types.PROCESS_SELECTION] ({dispatch, state}, payload) {
     let command = payload.command
     let targetFolderId = payload.targetFolderId
     let apiUrl = constants.apiUrl + '/folders'
     let data = {
-      documentIds: state.selectedDocumentIds.join(','),
-      folderIds: state.selectedFolderIds.join(','),
       command: command,
-      targetFolderId: targetFolderId
+      targetFolderId: targetFolderId,
+      documentIds: state.selectedDocumentIds.join(','),
+      folderIds: state.selectedFolderIds.join(',')
     }
     await axios.post(apiUrl, data).then(function (response) {
       dispatch(types.REFRESH_FOLDER)
     })
+  },
+
+  async [types.PROCESS_FILE_ITEM] ({dispatch}, payload) {
+    let command = payload.command
+    let targetFolderId = payload.targetFolderId
+    let documentIds = []
+    let folderIds = []
+    if (payload.fileType === 'folder') {
+      folderIds = [payload.fileItem.id]
+    } else {
+      documentIds = [payload.fileItem.id]
+    }
+
+    let apiUrl = constants.apiUrl + '/folders'
+    console.log('process file item : payload: ', payload)
+    let data = {
+      command: command,
+      targetFolderId: targetFolderId,
+      documentIds: documentIds.join(','),
+      folderIds: folderIds.join(',')
+    }
+    await axios.post(apiUrl, data).then(function (response) {
+      dispatch(types.REFRESH_FOLDER)
+    })
+  },
+
+  async [types.FETCH_FOLDER] ({dispatch}, payload) {
+    if (payload.folderId) {
+      await dispatch('SET_CURRENT_FOLDER', payload.folderId)
+    } else {
+      let folderName = payload.folderName
+      if (isNaN(folderName)) {
+        // if not number, i.e. folderName
+        dispatch('SET_CURRENT_FOLDER_BY_TYPE', payload)
+      } else {
+        let folderId = folderName
+        await dispatch('SET_CURRENT_FOLDER', folderId)
+      }
+    }
   }
 
 }

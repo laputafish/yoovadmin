@@ -39,8 +39,8 @@
         console.log('PathLinks.vue :: enterFolder :: folder:', folder)
         if (folder) {
           console.log('PathLinks.vue folder.id = ' + folder.id)
-          vm.$store.dispatch('SET_CURRENT_FOLDER', folder.id).then(function () {
-            vm.$router.replace('/folders/' + folder.id)
+          vm.$store.dispatch('FETCH_FOLDER', {folderId: folder.id}).then(function () {
+            history.pushState({}, null, '/folders/' + folder.id)
           })
         }
       }

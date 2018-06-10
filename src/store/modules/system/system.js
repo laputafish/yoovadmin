@@ -11,7 +11,7 @@ const state = {
   token: null,
   user: null,
   activeMenu: '',
-  publicFolders: []
+  publicFolder: null
 }
 
 const transformFolders = folders => {
@@ -48,18 +48,25 @@ const getters = {
     }]
     return result
   },
+  publicFolder (state) {
+    return state.publicFolder
+  },
   publicScanFolder (state) {
-    console.log('publicScanFolder :: folders:', state.publicFolders)
+    console.log('publicScanFolder :: publicFolder:', state.publicFolder)
     let result = null
-    for (var i = 0; i < state.publicFolders.length; i++) {
-      console.log('publicScanFolder i=' + i + ': publicFolders[i].name = ' + state.publicFolders[i].name)
-      if (state.publicFolders[i].name === 'scan') {
-        result = state.publicFolders[i]
-        break
+    let childFolder = null
+    if (state.publicFolder) {
+      if (state.publicFolder.children) {
+        for (var i = 0; i < state.publicFolder.children.length; i++) {
+          childFolder = state.publicFolder.children[i]
+          console.log('publicFolder.children[' + i + ']: publicFolder.children[i].name = ' + childFolder.name)
+          if (childFolder.name === 'scan') {
+            result = childFolder
+            break
+          }
+        }
       }
     }
-    console.log('publicScanFolder :: result.id = ' + result.id)
-    console.log('publicScanFolder :: result.name = ' + result.name)
     return result
   },
   userScanFolder (state) {
@@ -226,8 +233,8 @@ const mutations = {
     }
     parent.children.splice(index, 0, item)
   },
-  setPublicFolders (state, payload) {
-    state.publicFolders = payload
+  setPublicFolder (state, payload) {
+    state.publicFolder = payload
   }
 
 }
@@ -476,7 +483,7 @@ const actions = {
       type: 'public'
     }
     await axios.get(apiUrl, {params: data}).then(function (response) {
-      commit('setPublicFolders', response.data)
+      commit('setPublicFolder', response.data)
     })
   },
 

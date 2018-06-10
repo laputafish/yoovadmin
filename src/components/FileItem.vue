@@ -7,15 +7,16 @@
                 <i class="fa fa-fw"
                    :class="{'fa-check-square text-info':selected,'fa-square text-black-20':!selected}"></i>
             </div>
-            <div class="file-item-summary"
-                 @click.prevent.stop="onImageClicked">
-                <div class="file-folder-count">
-                    {{ fileItem.children.length }}
-                </div>
-                <div class="file-document-count">
-                    {{ fileItem.documents.length }}
-                </div>
-            </div>            <!--<div class="file-item-status-item">-->
+            <!--<div class="file-item-summary"-->
+                 <!--@click.prevent.stop="onImageClicked">-->
+                <!--<div class="file-folder-count">-->
+                    <!--{{ fileItem.children.length }}-->
+                <!--</div>-->
+                <!--<div class="file-document-count">-->
+                    <!--{{ fileItem.documents ? fileItem.documents.length : 0 }}-->
+                <!--</div>-->
+            <!--</div> -->
+            <!--<div class="file-item-status-item">-->
                 <!--<i class="fa fa-fw fa-folder"></i><br/>-->
                 <!--<span class="badge badge-primary">-->
                     <!--{{ fileItem.children.length }}-->
@@ -45,7 +46,7 @@
                @focus="$event.target.select()"
                class="filename-editing" v-model="currentName"/>
         <div v-else @click="editName(fileItem.name)"
-             class="file-item-label">{{ fileItem.name }}
+             class="file-item-label">{{ fileType === 'folder' ? fileItem.name : fileItem.filename }}
         </div>
         <div class="file-item-action" v-if="!editing">
             <a :href="downloadLink" class="btn btn-primary btn-xs xx">
@@ -64,13 +65,13 @@
             <!--<i class="fa fa-fw fa-ellipsis-h"></i>-->
             <!--</button>-->
             <!--<div class="dropdown-menu show" aria-labelledby="dropdownFileMenuButton">-->
-            <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected">
+            <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected('MOVE_ITEM')">
                 <i class="fa fa-fw fa-arrows"></i>
             </a><br/>
-            <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected">
+            <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected('COPY_ITEM')">
                 <i class="fa fa-fw fa-copy"></i>
             </a><br/>
-            <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected">
+            <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected('LOCK_ITEM')">
                 <i class="fa fa-fw fa-lock"></i>
             </a>
             <!--</div>-->
@@ -143,9 +144,9 @@
         // }
       }
     },
-    mounted () {
-      console.log('fileItem: ', this.fileItem)
-    },
+    // mounted () {
+    //   console.log('fileItem: ', this.fileItem)
+    // },
     methods: {
       isAllowedToDrop () {
         // let vm = this
@@ -193,8 +194,13 @@
       handleDrop () {
         console.log('handleDrop')
       },
-      menuItemSelected () {
-        alert('menuItemSelected')
+      menuItemSelected (command) {
+        let vm = this
+        vm.$emit('onAction', {
+          command: command,
+          fileType: vm.fileType,
+          fileItem: vm.fileItem
+        })
       },
       // enterfileItem () {
       //   console.log('fileItemItem :: enterfileItem this.fileItem: ', this.fileItem)
@@ -259,16 +265,30 @@
         // console.log('onImageClicked')
         // this.showDocument()
         // console.log('fileItemItem :: enterfileItem this.fileItem: ', this.fileItem)
-        this.$store.dispatch('SET_CURRENT_FOLDER', this.fileItem.id)
-        this.$router.replace('/folders/' + this.fileItem.id)
+        // this.$store.dispatch('SET_CURRENT_FOLDER', this.fileItem.id)
+        let vm = this
+        if (vm.fileType === 'folder') {
+          vm.$store.dispatch('FETCH_FOLDER', {
+            folderId: vm.fileItem.id
+          }).then(function () {
+            history.pushState({}, null, '/folders/' + vm.fileItem.id)
+          })
+        } else {
+          vm.showDocument();
+        }
       },
+
       deleteFile () {
         let vm = this
         this.$dialog.confirm('Delete the fileItem "' + vm.fileItem.name + '"?', {
           okText: 'Yes',
           cancelText: 'No'
         }).then(function (dialog) {
-          vm.$store.dispatch('DELETE_fileItem', vm.fileItem.id).then(function () {
+          let action = 'DELETE_DOCUMENT'
+          if (vm.fileType === 'folder') {
+            action = 'DELETE_FOLDER'
+          }
+          vm.$store.dispatch(action, vm.fileItem.id).then(function () {
             vm.$emit('refresh')
           })
         })
@@ -281,7 +301,9 @@
       getIconSrc () {
         let vm = this
         if (vm.fileType === 'folder') {
-          return (this.fileItem.documents.length + this.fileItem.children.length) > 0
+          return (
+            (this.fileItem.documents ? this.fileItem.documents.length : 0) +
+            (this.fileItem.children ? this.fileItem.children.length : 0)) > 0
             ? '/static/img/folder_48/Empty-folder-icon.png'
             : '/static/img/folder_48/Open-folder-icon.png'
         } else {

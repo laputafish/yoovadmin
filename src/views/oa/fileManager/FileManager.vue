@@ -1,6 +1,6 @@
 <template>
   <div class="file-manager animated fadeIn">
-    <div class="d-flex flex-column" v-if="currentFolder">
+    <div class="d-flex flex-column" v-if="currentFolder && !loading" >
       <path-links
         :ancestors="currentFolder.ancestors"></path-links>
       <div class="file-manager-toolbar text-right d-flex flex-row">
@@ -28,12 +28,12 @@
 
         <button v-tooltip="'Move'" class="btn btn-sm btn-default"
                 :disabled="selectionCount===0"
-                @click="move()">
+                @click="moveSelection()">
           <i class="fa fa-arrows"></i>
         </button>
         <button v-tooltip="'Copy'" class="btn btn-sm btn-default"
                 :disabled="selectionCount===0"
-                @click="copy()">
+                @click="copySelection()">
           <i class="fa fa-copy"></i>
         </button>
         <button v-tooltip="'Delete'" class="btn btn-sm btn-default"
@@ -55,6 +55,7 @@
       <div v-if="currentFolder">
         <file-item
           @updateSelected="updateSelectedFolderHandler"
+          @onAction="onActionHandler"
           @refresh="refreshFolder"
           fileType="folder"
           :fileItem="folder"
@@ -82,8 +83,10 @@
       </div>
     </div>
     <folder-tree-dialog v-if="showingFolderTreeDialog"
-                        :disabledFolderId="currentFolder.id"
+                        :disabledFolderIds="disabledFolderIds"
                         :command="currentCommand"
+                        :fileItem="activeFileItem"
+                        :fileType="activeFileType"
                         @ok="onTargetFolderSelected"
       @close="showingFolderTreeDialog=false">
 
@@ -103,10 +106,14 @@
   export default {
     data () {
       return {
+        loading: true,
         pusher: null,
         currentCommand: 'move',
         currentFolderId: null,
-        showingFolderTreeDialog: false
+        disabledFolderIds: [],
+        showingFolderTreeDialog: false,
+        activeFileItem: null,
+        activeFileType: 'folder'
       }
     },
     components: {
@@ -117,6 +124,9 @@
       'folder-tree-dialog': FolderTreeDialog
     },
     computed: {
+      publicFolder () {
+        return this.$store.getters.publicFolder
+      },
       personalFolders () {
         return this.$store.getters.personalFolders
       },
@@ -132,6 +142,7 @@
         return this.$store.getters.user
       },
       currentFolder () {
+        this.loading = false
         return this.$store.getters.currentFolder
       },
       folders () {
@@ -155,7 +166,33 @@
           (this.folders.length === this.selectedFolderIds.length && this.folders.length > 0)
       }
     },
+    mounted () {
+      this.loading = true
+      console.log('FileManager.vue :: mounted')
+      this.$store.dispatch('FETCH_FOLDER', {
+        folderName: this.$route.params.folderId,
+        subFolderName: this.$route.params.folderName
+      })
+    },
+
     watch: {
+      '$route.params.folderId': function (folderId) {
+        this.$store.dispatch('FETCH_FOLDER', {
+          folderName: this.$route.params.folderId,
+          subFolderName: this.$route.params.folderName
+        })
+      },
+      // publicFolder: {
+      //   handler: function (value) {
+      //     console.log('FileManger :: watch(publicFolder) : vaue: ', value)
+      //     let vm = this
+      //     if (vm.$route.params.folderId === 'public' && value) {
+      //       vm.currentFolderId = value.id
+      //       vm.refreshFolder()
+      //     }
+      //   },
+      //   deep: true
+      // },
       currentFolder: {
         handler: function (value) {
           console.log('FileManager :: watch(currentFolder) : value:', value)
@@ -164,15 +201,12 @@
       },
       user: {
         handler: function (value) {
-          this.initFolder()
+          // console.log('FileManager.vue :: watch(user) : handler: value: ', value)
+          // if (value) {
+          //   this.initFolder()
+          // }
         },
         deep: true
-      }
-    },
-    mounted () {
-      let vm = this
-      if (vm.user) {
-        vm.initFolder()
       }
     },
     created () {
@@ -183,34 +217,81 @@
     },
     methods: {
       onTargetFolderSelected (payload) {
-        let selectedFolderId = payload.folderId
-        let command = payload.command
         this.showingFolderTreeDialog = false
-        this.$store.dispatch('PROCESS_SELECTION', {
-          command: command,
-          targetFolderId: selectedFolderId
-        })
+        switch (payload.command) {
+          case 'MOVE_SELECTION':
+          case 'COPY_SELECTION':
+            this.$store.dispatch('PROCESS_SELECTION', {
+              command: payload.command,
+              targetFolderId: payload.folderId
+            })
+            break
+          case 'MOVE_ITEM':
+          case 'COPY_ITEM':
+            this.$store.dispatch('PROCESS_FILE_ITEM', {
+              command: payload.command,
+              targetFolderId: payload.folderId,
+              fileType: payload.fileType,
+              fileItem: payload.fileItem
+            })
+        }
       },
       newFolder () {
         this.$store.dispatch('NEW_FOLDER')
       },
-      move () {
-        this.currentCommand = 'MOVE'
+      // Process on single item
+      onActionHandler (payload) {
+        let vm = this
+        this.currentCommand = payload.command
+        switch (this.currentCommand) {
+          case 'MOVE_ITEM':
+          case 'COPY_ITEM':
+            let fileType = payload.fileType
+            let fileItem = payload.fileItem
+            if (fileType === 'folder') {
+              vm.disabledFolderIds = [fileItem.id]
+            } else {
+              vm.disabledFolderIds = []
+            }
+            vm.activeFileItem = payload.fileItem
+            vm.activeFileType = payload.fileType
+            vm.showingFolderTreeDialog = true
+            break
+          case 'LOCK_ITEM':
+            break
+        }
+      },
+      moveSelection () {
+        this.currentCommand = 'MOVE_SELECTION'
         this.showingFolderTreeDialog = true
       },
-      copy () {
-        this.currentCommand = 'COPY'
+      copySelection () {
+        this.currentCommand = 'COPY_SELECTION'
         this.showingFolderTreeDialog = true
       },
       initFolder () {
         let vm = this
+        console.log('FileManager :: initFolder')
         if (vm.$route.params.folderId) {
-          if (vm.$route.params.folderId === 0) {
-            let folderName = vm.$route.params.folderName
-            console.log('mounted :: route.params: ', vm.$route.params)
-            vm.currentFolderId = vm.getUserFolderId(folderName)
-          } else {
-            vm.currentFolderId = vm.$route.params.folderId
+          switch (vm.$route.params.folderId) {
+            case 'public':
+              console.log('initFolder(public) :: vm.$store.getters.publicFolder: ', vm.$store.getters.publicFolder.name)
+              vm.currentFolderId = vm.$store.getters.publicFolder.id
+              break
+            case 'personal':
+              vm.currentFolderId = vm.user.folder.id
+              break
+            case 'shared':
+              vm.currentFolderId = 0
+              break
+            default:
+              if (vm.$route.params.folderId === 0) {
+                let folderName = vm.$route.params.folderName
+                console.log('mounted :: route.params: ', vm.$route.params)
+                vm.currentFolderId = vm.getUserFolderId(folderName)
+              } else {
+                vm.currentFolderId = vm.$route.params.folderId
+              }
           }
         } else {
           vm.currentFolderId = vm.user.folder.id
@@ -241,13 +322,16 @@
           cancelText: 'No'
         }).then(function (response) {
           vm.$store.dispatch('DELETE_SELECTED').then(function () {
-            vm.refreshFolder()
+//            vm.refreshFolder()
           })
         })
       },
       refreshFolder () {
+        console.log('FileManager :: refreshFolder')
         let vm = this
-        vm.$store.dispatch('SET_CURRENT_FOLDER', vm.currentFolderId)
+        vm.$store.dispatch('FETCH_FOLDER', {
+          folderId: vm.currentFolderId
+        })
       },
       unSubscribe () {
         this.pusher.disconnect()

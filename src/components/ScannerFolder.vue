@@ -43,11 +43,9 @@
         let vm = this
         // public scan folder
         if (vm.mode === 'scanner') {
-          let publicScanFolderId = vm.$store.getters.publicScanFolder.id
-          vm.$router.push('/folders/' + publicScanFolderId)
+          vm.$router.push('/folders/public/scan')
         } else {
-          // let userScanFolderId = vm.$store.getters.userScanFolder.id
-          vm.$router.push('/folders')
+          vm.$router.push('/folders/personal/scan')
         }
       }
     }

@@ -44,8 +44,7 @@
       }
     },
     mounted () {
-      this.$store.dispatch('GET_EQUIPMENTS')
-      this.$store.dispatch('GET_PUBLIC_FOLDERS')
+      console.log('dashboard.vue mounted')
     }
   }
 </script>

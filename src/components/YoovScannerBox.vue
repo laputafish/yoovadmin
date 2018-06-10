@@ -1,7 +1,7 @@
 <template>
   <b-card id="scanner-block" no-body class="p-0" v-if="scanner">
     <b-card-body class="p-2 text-center">
-      <table class="d-inline">
+      <table style="margin-left:auto;margin-right:auto;">
         <tr>
           <td style="padding-right:5px;">
               <img src="/static/img/scanner.png" class="office-scanner">
