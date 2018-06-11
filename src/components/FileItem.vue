@@ -29,9 +29,23 @@
                 <!--</span>-->
             <!--</div>-->
         </div>
-        <img class="file-item-icon"
+        <a v-if="fileType==='document' && !isSupportedFileType"
+           :href="downloadLink"
+           v-touch:tap="onTap"
+             v-touch:longtap="onLongTap">
+            <img class="file-item-icon"
+                 :draggable="true"
+                 @drop.stop="handleDrop"
+                 @dragover.stop="handleDragOver"
+                 @dragenter.stop="handleDragEnter"
+                 @dragleave.stop="handleDragLeave"
+                 :src="getIconSrc()"/><br/>
+        </a>
+        <img v-else
+             class="file-item-icon"
              :draggable="true"
              @drop.stop="handleDrop"
+             @dragstart.stop="handleDragStart"
              @dragover.stop="handleDragOver"
              @dragenter.stop="handleDragEnter"
              @dragleave.stop="handleDragLeave"
@@ -120,6 +134,16 @@
       }
     },
     computed: {
+      isSupportedFileType () {
+        let vm = this
+        let result = false
+        let supportedTypes = ['txt', 'jpg', 'gif', 'jpeg', 'png', 'png']
+        if (vm.fileType === 'document' &&
+          supportedTypes.indexOf(vm.fileItem.file_type.toLowerCase()) >= 0) {
+          result = true
+        }
+        return result
+      },
       draggingItem () {
         return this.$store.getters.draggingItem
       },
@@ -166,8 +190,8 @@
         //   if (vm === vm.draggingItem.vm) return false
         //   vm = vm.$parent.$options.name === 'TreeNode' ? vm.$parent : null
         // }
-
-        return true
+        // console.log('isAllowedToDrop :: fileType = ' + this.fileType)
+        return this.fileType === 'folder'
       },
 
       handleDragStart () {
@@ -175,8 +199,8 @@
         this.$store.dispatch('SET_DRAGGABLE_ITEM', {
           vm: vm,
           name: vm.fileItem.name,
-          type: 'fileItem',
-          data: vm.fileItem
+          fileType: vm.fileType,
+          fileItem: vm.fileItem
         })
         this.$el.classList.add('dragging-node')
       },
@@ -192,7 +216,12 @@
         console.log('handleDragLeave')
       },
       handleDrop () {
-        console.log('handleDrop')
+        let vm = this
+        this.$store.dispatch('DROP_FILEITEM', {
+          target: vm.fileItem
+        }).then(function () {
+          this.$store.dispatch('REFRESH_FOLDER')
+        })
       },
       menuItemSelected (command) {
         let vm = this
@@ -245,7 +274,7 @@
           vm.imageUrl = '/media/image/' + vm.fileItem.media_id
           vm.showingImageDialog = true
         } else {
-          let url = constants.apiUrl + '/media/fileItem/' + vm.fileItem.media_id
+          let url = constants.apiUrl + '/media/document/' + vm.fileItem.media_id
           window.open(url, '_blank')
         }
       },
@@ -274,7 +303,7 @@
             history.pushState({}, null, '/folders/' + vm.fileItem.id)
           })
         } else {
-          vm.showDocument();
+          vm.showDocument()
         }
       },
 
