@@ -66,9 +66,6 @@
       }
     },
     computed: {
-      draggingItem () {
-        return this.$store.getters.draggingItem
-      },
       haveSelection () {
         return this.$store.getters.haveFileSelected
       },
@@ -96,23 +93,23 @@
       },
       isAllowedToDrop () {
         let vm = this
-        const { draggingVm } = vm.draggingItem
-
-        // limitation 1: this cannot be the parent of the dragging node
-        if (vm === draggingVm.$parent) {
-          return false
-        }
-
-        // limitation 2: this cannot be the adjacent empty node of the dragging node
-        if (vm.$parent === draggingVm.$parent && Math.abs(vm.vmIdx - draggingVm.vmIdx) === 1) {
-          return false
-        }
-
-        // limitation 3: this cannot be the dragging node itself or its descendant
-        while (vm) {
-          if (vm === draggingVm) return false
-          vm = vm.$parent.$options.name === 'TreeNode' ? vm.$parent : null
-        }
+        // const { draggingVm } = vm.draggingItem
+        //
+        // // limitation 1: this cannot be the parent of the dragging node
+        // if (vm === draggingVm.$parent) {
+        //   return false
+        // }
+        //
+        // // limitation 2: this cannot be the adjacent empty node of the dragging node
+        // if (vm.$parent === draggingVm.$parent && Math.abs(vm.vmIdx - draggingVm.vmIdx) === 1) {
+        //   return false
+        // }
+        //
+        // // limitation 3: this cannot be the dragging node itself or its descendant
+        // while (vm) {
+        //   if (vm === draggingVm) return false
+        //   vm = vm.$parent.$options.name === 'TreeNode' ? vm.$parent : null
+        // }
 
         return true
       },

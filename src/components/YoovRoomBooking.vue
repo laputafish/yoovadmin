@@ -6,7 +6,7 @@
              v-if="processing">
           <i class="fa fa-spinner fa-spin"></i>
         </div>
-        MMMM
+        Room Booking
       </h3>
       <form class="form-line" v-if="rooms">
         <select v-model="selectedRoomId"

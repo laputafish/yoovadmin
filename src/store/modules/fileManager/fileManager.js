@@ -161,7 +161,6 @@ const actions = {
   async [types.DELETE_FOLDER] ({state, commit, dispatch}, payload) {
     let folderId = payload
     let apiUrl = constants.apiUrl + '/folders/' + folderId
-    alert('state.currentFolder.id=' + state.currentFolder.id)
     await axios.delete(apiUrl).then(function (response) {
       dispatch('SET_CURRENT_FOLDER', state.currentFolder.id)
     })
@@ -244,22 +243,34 @@ const actions = {
 
   async [types.PROCESS_FILE_ITEM] ({dispatch}, payload) {
     let command = payload.command
-    let targetFolderId = payload.targetFolderId
-    let documentIds = []
-    let folderIds = []
-    if (payload.fileType === 'folder') {
-      folderIds = [payload.fileItem.id]
-    } else {
-      documentIds = [payload.fileItem.id]
-    }
 
     let apiUrl = constants.apiUrl + '/folders'
-    console.log('process file item : payload: ', payload)
-    let data = {
-      command: command,
-      targetFolderId: targetFolderId,
-      documentIds: documentIds.join(','),
-      folderIds: folderIds.join(',')
+
+    let data = {}
+    switch (command) {
+      case 'RENAME':
+        data = {
+          command: command,
+          fileType: payload.fileType,
+          fileItemId: payload.fileItem.id,
+          newName: payload.newName
+        }
+        break
+      default:
+        let targetFolderId = payload.targetFolderId
+        let documentIds = []
+        let folderIds = []
+        if (payload.fileType === 'folder') {
+          folderIds = [payload.fileItem.id]
+        } else {
+          documentIds = [payload.fileItem.id]
+        }
+        data = {
+          command: command,
+          targetFolderId: targetFolderId,
+          documentIds: documentIds.join(','),
+          folderIds: folderIds.join(',')
+        }
     }
     await axios.post(apiUrl, data).then(function (response) {
       dispatch(types.REFRESH_FOLDER)

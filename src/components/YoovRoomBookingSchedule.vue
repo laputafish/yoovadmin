@@ -8,10 +8,11 @@
         <i class="fa fa-fw fa-caret-left"></i>
       </button>
       <h5 class="mx-auto bg-default">{{ currentRoom.name }}&nbsp;
-        <span class="badge badge-success">
-          <i class="fa fa-user"></i>
-        &nbsp;  x&nbsp;{{ currentRoom.capacity }}
-        </span>
+        <h6 style="margin:0;display:inline-block;">
+          <span class="badge badge-success">
+            Capacity: {{ currentRoom.capacity }}
+          </span>
+        </h6>
       </h5>
       <button type="button"
               @click="onNextButtonClicked"
@@ -49,7 +50,6 @@
                   <span class="badge badge-dark"><i class="fa fa-user"></i>&nbsp;{{ item.applicant_name }}</span>
                 </h6>
                 <div class="booking-description">
-                  #{{ item.id }}
                   {{ item.description }}
                 </div>
                 <div class="booking-status">

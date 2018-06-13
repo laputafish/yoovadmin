@@ -41,14 +41,21 @@
                  @dragleave.stop="handleDragLeave"
                  :src="getIconSrc()"/><br/>
         </a>
-        <img v-else
-             class="file-item-icon"
+        <div v-else-if="fileType==='folder'"
              :draggable="true"
+             @click.prevent.stop="enterFolder"
              @drop.stop="handleDrop"
              @dragstart.stop="handleDragStart"
+             @dragend.stop="handleDragEnd"
              @dragover.stop="handleDragOver"
              @dragenter.stop="handleDragEnter"
              @dragleave.stop="handleDragLeave"
+             class="folder-dropzone">
+        </div>
+        <img v-else
+             class="file-item-icon"
+             :draggable="true"
+             @dragstart.stop="handleDragStart"
              v-touch:tap="onTap"
              v-touch:longtap="onLongTap"
              @click.prevent.stop="onImageClicked"
@@ -84,6 +91,9 @@
             </a><br/>
             <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected('COPY_ITEM')">
                 <i class="fa fa-fw fa-copy"></i>
+            </a><br/>
+            <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected('RENAME_ITEM')">
+                <i class="fa fa-fw fa-edit"></i>
             </a><br/>
             <a class="btn btn-xs btn-default" href="#" @click="menuItemSelected('LOCK_ITEM')">
                 <i class="fa fa-fw fa-lock"></i>
@@ -145,6 +155,7 @@
         return result
       },
       draggingItem () {
+        console.log('computed (draggingItem) : ')
         return this.$store.getters.draggingItem
       },
       haveSelection () {
@@ -173,7 +184,7 @@
     // },
     methods: {
       isAllowedToDrop () {
-        // let vm = this
+        let vm = this
 
         // limitation 1: this cannot be the parent of the dragging node
         // if (vm === vm.draggingItem.$parent) {
@@ -191,36 +202,70 @@
         //   vm = vm.$parent.$options.name === 'TreeNode' ? vm.$parent : null
         // }
         // console.log('isAllowedToDrop :: fileType = ' + this.fileType)
-        return this.fileType === 'folder'
+    //    console.log('isAllowedToDrop: draggingItem: ', (typeof vm.draggingItem === 'undefined'))
+        if (vm.draggingItem) {
+          console.log('isAllowedToDrop :: vm.draggingItem.fileItem === vm.fileItem: ' +
+            (vm.draggingItem.fileItem === vm.fileItem ? 'yes' : 'no'))
+        }
+        let notSelf = (typeof vm.draggingItem === 'undefined') ||
+          (vm.draggingItem.fileItem !== vm.fileItem)
+        if (typeof vm.draggingItem !== 'undefined') {
+
+        }
+        console.log('isAllowedToDrop :: notSelf: ' + (notSelf ? 'yes' : 'no'))
+        return notSelf && (vm.fileType === 'folder')
+      },
+
+      handleDragEnd () {
+        let vm = this
+        this.$store.dispatch('SET_DRAGGABLE_ITEM', {
+          name: '',
+          fileType: 'none',
+          fileItem: null
+        }).then(function () {
+          vm.$el.classList.remove('dragging-node')
+        })
       },
 
       handleDragStart () {
+  //      console.log('handleDragStart')
         let vm = this
         this.$store.dispatch('SET_DRAGGABLE_ITEM', {
-          vm: vm,
-          name: vm.fileItem.name,
+          name: vm.fileType === 'folder' ? vm.fileItem.name : vm.fileItem.filename,
           fileType: vm.fileType,
           fileItem: vm.fileItem
+        }).then(function () {
+          vm.$el.classList.add('dragging-node')
         })
-        this.$el.classList.add('dragging-node')
       },
       handleDragOver (e) {
-        console.log('handleDragOver')
-        e.preventDefault() // must!!!
-        e.dataTransfer.dropEffect = this.isAllowedToDrop() ? 'move' : 'none'
+        e.preventDefault()
+        let dropEffect = this.isAllowedToDrop() ? 'move' : 'none'
+        console.log('handleDragOver :: dropEffect = ' + dropEffect)
+        e.dataTransfer.dropEffect = dropEffect
+//        console.log('handleDragOver :: e.dataTransfer.dropEffect = ' + e.dataTransfer.dropEffect)
       },
-      handleDragEnter () {
-
+      handleDragEnter (e) {
+        // if (this.isAllowedToDrop()) {
+        //   e.dataTransfer.dropEffect = 'move'
+        //   this.$el.classList.add('dragging-over')
+        // } else {
+        //   e.dataTransfer.dropEffect = 'none'
+        //   return false
+        // }
+        this.$el.classList.add('dragging-over')
       },
-      handleDragLeave () {
-        console.log('handleDragLeave')
+      handleDragLeave (e) {
+        // console.log('handleDragLeave :: e.currentTarget: ', e.currentTarget)
+        this.$el.classList.remove('dragging-over')
       },
       handleDrop () {
         let vm = this
-        this.$store.dispatch('DROP_FILEITEM', {
+        vm.$el.classList.remove('dragging-over')
+        vm.$store.dispatch('DROP_FILEITEM', {
           target: vm.fileItem
         }).then(function () {
-          this.$store.dispatch('REFRESH_FOLDER')
+          vm.$store.dispatch('REFRESH_FOLDER')
         })
       },
       menuItemSelected (command) {
@@ -289,6 +334,14 @@
       onTap () {
         // console.log('onTap')
       },
+      enterFolder () {
+        let vm = this
+        vm.$store.dispatch('FETCH_FOLDER', {
+          folderId: vm.fileItem.id
+        }).then(function () {
+          history.pushState({}, null, '/folders/' + vm.fileItem.id)
+        })
+      },
       onImageClicked (event) {
         // console.log('onImageClicked :: event: ', event)
         // console.log('onImageClicked')
@@ -297,11 +350,7 @@
         // this.$store.dispatch('SET_CURRENT_FOLDER', this.fileItem.id)
         let vm = this
         if (vm.fileType === 'folder') {
-          vm.$store.dispatch('FETCH_FOLDER', {
-            folderId: vm.fileItem.id
-          }).then(function () {
-            history.pushState({}, null, '/folders/' + vm.fileItem.id)
-          })
+          vm.enterFolder()
         } else {
           vm.showDocument()
         }
@@ -381,7 +430,7 @@
         line-height: 1;
         max-width: 120px;
         padding: 0 3px;
-        margin-top: 5px;
+        margin-top: -5px;
         height: 26px;
         overflow: hidden;
         white-space: normal;
@@ -428,6 +477,13 @@
         width: 48px;
         height: 48px;
         object-fit: contain;
+    }
+
+    .file-item .folder-dropzone {
+        width: 48px;
+        height: 48px;
+        background-image: url("/static/img/folder_48/Close-Folder-icon.png");
+        display: inline-block;
     }
 
     .file-item input.filename-editing {
@@ -489,5 +545,13 @@
         position: absolute;
         line-height: 0.8;
         width: 20px;
+    }
+    .file-item.dragging-over.dragging-node .folder-dropzone {
+        background-color: transparent;
+    }
+
+    .file-item.dragging-over .folder-dropzone {
+        background-image: url("/static/img/folder_48/Open-Folder-icon.png");
+        cursor: pointer;
     }
 </style>

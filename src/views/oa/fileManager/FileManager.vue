@@ -1,57 +1,25 @@
 <template>
-  <div class="file-manager animated fadeIn">
-    <div class="d-flex flex-column" v-if="currentFolder && !loading" >
-      <path-links
-        :ancestors="currentFolder.ancestors"></path-links>
-      <div class="file-manager-toolbar text-right d-flex flex-row">
-        <!-- Select All -->
-        <!--<a href="#"-->
-           <!--class="btn btn-sm btn-default dropdown-toggle"-->
-           <!--data-toggle="dropdown"-->
-           <!--role="button"-->
-           <!--aria-haspopup="true"-->
-           <!--aria-expanded="false">Save & Load <span class="caret"></span></a>-->
-        <!--<ul class="dropdown-menu">-->
-          <!--<li><a href="#">Action</a></li>-->
-          <!--<li><a href="#">Another action</a></li>-->
-        <!--</ul>-->
-        <button v-tooltip="allSelected ? 'Clear All' : 'Select All'" class="btn-default btn btn-sm" @click="selectClear()">
-          <!--<i class="fa"-->
-            <!--:class="{'fa-check-square':!allSelected, 'fa-square':allSelected}"></i>-->
-          <i class="fa" :class="{'fa-square':allSelected, 'fa-check-square':!allSelected}"></i>
-        </button>
-        <button v-tooltip="'New Folder'" class="btn btn-sm btn-default"
-                style="position:relative;"
-                @click="newFolder()">
-          <i class="fa fa-folder"></i>
-        </button>
-
-        <button v-tooltip="'Move'" class="btn btn-sm btn-default"
-                :disabled="selectionCount===0"
-                @click="moveSelection()">
-          <i class="fa fa-arrows"></i>
-        </button>
-        <button v-tooltip="'Copy'" class="btn btn-sm btn-default"
-                :disabled="selectionCount===0"
-                @click="copySelection()">
-          <i class="fa fa-copy"></i>
-        </button>
-        <button v-tooltip="'Delete'" class="btn btn-sm btn-default"
-                :disabled="selectionCount===0"
-                @click="deleteSelected()">
-          <i class="fa fa-close"></i>
-        </button>
-        <!-- Select None -->
-        <!--<button class="btn btn-sm btn-info" @click="selectNone()">-->
-          <!--<i class="fa fa-square"></i>&nbsp;Clear-->
-        <!--</button>-->
-        <!-- Download -->
-        <a v-tooltip="'Download'" :href="downloadLink" class="btn-toolbar btn btn-sm btn-default ml-auto no-anchor-style"
-           :class="{'disabled':selectionCount===0}">
-          <i class="fa fa-download"></i>
-        </a>
-        <!-- Delete -->
+  <div class="example-full file-manager animated fadeIn">
+    <div v-show="$refs.upload && $refs.upload.dropActive" class="drop-active">
+      <h3>Drop files to upload</h3>
+    </div>
+    <div class="d-flex flex-column" v-if="currentFolder && !preparing" >
+      <div class="d-flex flex-row" style="position:relative;">
+        <path-links
+          :ancestors="currentFolder.ancestors"></path-links>
+        <span v-if="loading" class="ml-auto" style="position:absolute;right:5px;top:-14px;">
+          <h3>
+            <i class="fa fa-spinner fa-spin"></i>
+          </h3>
+        </span>
       </div>
+      <file-manager-toolbar
+        :allSelected="allSelected"
+        :noneSelected="selectionCount===0"
+        :downloadLink="downloadLink"
+        @onCommand="onToolbarCommandHandler">
+      </file-manager-toolbar>
+      <full-drag-drop></full-drag-drop>
       <div v-if="currentFolder">
         <file-item
           @updateSelected="updateSelectedFolderHandler"
@@ -63,6 +31,7 @@
           v-for="(folder,index) in folders"></file-item>
         <file-item
           @updateSelected="updateSelectedDocumentHandler"
+          @onAction="onActionHandler"
           @refresh="refreshFolder"
           fileType="document"
           :fileItem="document"
@@ -89,8 +58,12 @@
                         :fileType="activeFileType"
                         @ok="onTargetFolderSelected"
       @close="showingFolderTreeDialog=false">
-
     </folder-tree-dialog>
+    <file-rename-dialog v-if="showingFileRenameDialog"
+                        :oldName="activeFilename"
+                        @ok="onNewNameConfirmed"
+                        @close="showingFileRenameDialog=false">
+    </file-rename-dialog>
   </div>
 </template>
 
@@ -101,19 +74,31 @@
   // import FolderItem from '@/components/FolderItem'
   import Pusher from 'pusher-js' // import Pusher
   import * as constants from '@/store/constants'
+
   import FolderTreeDialog from '@/dialogs/FolderTreeDialog'
+  import FileRenameDialog from '@/dialogs/FileRenameDialog'
+  import FullDragDrop from '@/components/FullDragDrop'
+  import FileManagerToolbar from '@/components/FileManagerToolbar'
 
   export default {
     data () {
       return {
         loading: true,
+        preparing: true,
         pusher: null,
         currentCommand: 'move',
         currentFolderId: null,
         disabledFolderIds: [],
         showingFolderTreeDialog: false,
+        showingFileRenameDialog: false,
         activeFileItem: null,
-        activeFileType: 'folder'
+        activeFileType: 'folder',
+        dropzoneOptions: {
+          url: 'https://httpbin.org/post',
+          thumbnailWidth: 150,
+          maxFilesize: 0.5,
+          headers: { 'My-Awesome-Header': 'header value' }
+        }
       }
     },
     components: {
@@ -121,9 +106,18 @@
       'file-item': FileItem,
       // 'document-item': DocumentItem,
       // 'folder-item': FolderItem,
-      'folder-tree-dialog': FolderTreeDialog
+      'folder-tree-dialog': FolderTreeDialog,
+      'file-rename-dialog': FileRenameDialog,
+      'full-drag-drop': FullDragDrop,
+      'file-manager-toolbar': FileManagerToolbar
     },
     computed: {
+      activeFilename () {
+        let vm = this
+        return vm.activeFileType === 'folder'
+          ? vm.activeFileItem.name
+          : vm.activeFileItem.filename
+      },
       publicFolder () {
         return this.$store.getters.publicFolder
       },
@@ -142,7 +136,7 @@
         return this.$store.getters.user
       },
       currentFolder () {
-        this.loading = false
+        this.preparing = false
         return this.$store.getters.currentFolder
       },
       folders () {
@@ -195,6 +189,7 @@
       // },
       currentFolder: {
         handler: function (value) {
+          this.loading = false
           console.log('FileManager :: watch(currentFolder) : value:', value)
         },
         deep: true
@@ -216,11 +211,24 @@
       this.unSubscribe()
     },
     methods: {
+      onNewNameConfirmed (payload) {
+        let vm = this
+        vm.loading = true
+        vm.$store.dispatch('PROCESS_FILE_ITEM', {
+          command: 'RENAME',
+          fileType: vm.activeFileType,
+          fileItem: vm.activeFileItem,
+          newName: payload.newName
+        })
+        vm.showingFileRenameDialog = false
+      },
+
       onTargetFolderSelected (payload) {
         this.showingFolderTreeDialog = false
         switch (payload.command) {
           case 'MOVE_SELECTION':
           case 'COPY_SELECTION':
+            this.loading = true
             this.$store.dispatch('PROCESS_SELECTION', {
               command: payload.command,
               targetFolderId: payload.folderId
@@ -228,6 +236,7 @@
             break
           case 'MOVE_ITEM':
           case 'COPY_ITEM':
+            this.loading = true
             this.$store.dispatch('PROCESS_FILE_ITEM', {
               command: payload.command,
               targetFolderId: payload.folderId,
@@ -235,9 +244,6 @@
               fileItem: payload.fileItem
             })
         }
-      },
-      newFolder () {
-        this.$store.dispatch('NEW_FOLDER')
       },
       // Process on single item
       onActionHandler (payload) {
@@ -259,15 +265,43 @@
             break
           case 'LOCK_ITEM':
             break
+          case 'RENAME_ITEM':
+            vm.activeFileItem = payload.fileItem
+            vm.activeFileType = payload.fileType
+            vm.showingFileRenameDialog = true
+            break
         }
       },
-      moveSelection () {
-        this.currentCommand = 'MOVE_SELECTION'
-        this.showingFolderTreeDialog = true
-      },
-      copySelection () {
-        this.currentCommand = 'COPY_SELECTION'
-        this.showingFolderTreeDialog = true
+      onToolbarCommandHandler (payload) {
+        let vm = this
+        switch (payload.command) {
+          case 'SELECT_OR_CLEAR_ALL':
+            if (vm.allSelected) {
+              vm.$store.dispatch('CLEAR_ALL_FILES')
+            } else {
+              vm.$store.dispatch('SELECT_ALL_FILES')
+            }
+            break
+          case 'DELETE_SELECTION':
+            vm.$dialog.confirm('Are you sure?', {
+              okText: 'Yes',
+              cancelText: 'No'
+            }).then(function (response) {
+              vm.$store.dispatch('DELETE_SELECTED')
+            })
+            break
+          case 'MOVE_SELECTION':
+            vm.currentCommand = 'MOVE_SELECTION'
+            vm.showingFolderTreeDialog = true
+            break
+          case 'COPY_SELECTION':
+            vm.currentCommand = 'COPY_SELECTION'
+            vm.showingFolderTreeDialog = true
+            break
+          case 'NEW_FOLDER':
+            vm.$store.dispatch('NEW_FOLDER')
+            break
+        }
       },
       initFolder () {
         let vm = this
@@ -312,20 +346,6 @@
         }
         return result ? result.id : 0
       },
-      downloadSelected () {
-        // let vm = this
-      },
-      deleteSelected () {
-        let vm = this
-        vm.$dialog.confirm('Are you sure?', {
-          okText: 'Yes',
-          cancelText: 'No'
-        }).then(function (response) {
-          vm.$store.dispatch('DELETE_SELECTED').then(function () {
-//            vm.refreshFolder()
-          })
-        })
-      },
       refreshFolder () {
         console.log('FileManager :: refreshFolder')
         let vm = this
@@ -344,20 +364,6 @@
           vm.refreshFolder()
           // this.mockReviews.unshift(data.review)
         })
-      },
-      selectClear () {
-        let vm = this
-        if (vm.allSelected) {
-          vm.$store.dispatch('CLEAR_ALL_FILES')
-        } else {
-          vm.$store.dispatch('SELECT_ALL_FILES')
-        }
-      },
-      // selectAll () {
-      //   this.$store.dispatch('SELECT_ALL_FILES')
-      // },
-      selectNone () {
-        this.$store.dispatch('CLEAR_ALL_FILES')
       },
       updateSelectedDocumentHandler () {
         let vm = this
@@ -408,4 +414,30 @@
   pointer: default;
   color: darkgray;
 }
+
+.example-full .drop-active {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  position: fixed;
+  z-index: 9999;
+  opacity: .6;
+  text-align: center;
+  background: #000;
+}
+.example-full .drop-active h3 {
+  margin: -.5em 0 0;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+  font-size: 40px;
+  color: #fff;
+  padding: 0;
+}
+
 </style>
