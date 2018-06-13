@@ -19,7 +19,7 @@
         :downloadLink="downloadLink"
         @onCommand="onToolbarCommandHandler">
       </file-manager-toolbar>
-      <full-drag-drop></full-drag-drop>
+      <full-drag-drop v-if="false"></full-drag-drop>
       <div v-if="currentFolder">
         <file-item
           @updateSelected="updateSelectedFolderHandler"
@@ -57,7 +57,7 @@
                         :fileItem="activeFileItem"
                         :fileType="activeFileType"
                         @ok="onTargetFolderSelected"
-      @close="showingFolderTreeDialog=false">
+                        @close="showingFolderTreeDialog=false">
     </folder-tree-dialog>
     <file-rename-dialog v-if="showingFileRenameDialog"
                         :oldName="activeFilename"

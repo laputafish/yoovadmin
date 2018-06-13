@@ -1,33 +1,38 @@
 <template>
   <div class="full-drag-drop">
     <div class="upload">
-      <ul v-if="files.length">
-        <li v-for="(file, index) in files" :key="file.id">
-          <span>{{file.name}}</span> -
-          <span>{{file.size | formatSize}}</span> -
-          <span v-if="file.error">{{file.error}}</span>
-          <span v-else-if="file.success">success</span>
-          <span v-else-if="file.active">active</span>
-          <span v-else-if="file.active">active</span>
-          <span v-else></span>
-        </li>
-      </ul>
-      <ul v-else>
-          <div class="text-center p-2">
-            <h4>Drop files anywhere to upload<br/>or</h4>
-            <label for="file" class="btn btn-lg btn-primary">Select Files</label>
-          </div>
-      </ul>
+      <table v-if="files.length">
+        <tr v-for="(file, index) in files" :key="file.id">
+          <td>{{file.name}}</td> -
+          <td>{{file.size | formatSize}}</td> -
+          <td v-if="file.error">{{file.error}}</td>
+          <td v-else-if="file.success">success</td>
+          <td v-else-if="file.active">active</td>
+          <td v-else-if="file.active">active</td>
+          <td v-else></td>
+        </tr>
+      </table>
+      <table v-else>
+        <tr>
+          <td>
+            <div class="text-center p-2">
+              <h4>Drop files anywhere to upload<br/>or</h4>
+              <label for="file" class="btn btn-lg btn-primary">Select Files</label>
+            </div>
+          </td>
+        </tr>
+      </table>
 
       <div v-show="$refs.upload && $refs.upload.dropActive" class="drop-active">
         <h3>Drop files to upload</h3>
       </div>
 
-      <div class="example-btn" style="visibility:hidden;height:0;">
+      <div class="example-btn" style="">
         <file-upload
           class="btn btn-primary"
-          post-action="/upload/post"
+          :post-action="uploadUrl"
           :multiple="true"
+          accept="true"
           :drop="true"
           :drop-directory="true"
           v-model="files"
@@ -82,17 +87,35 @@
     color: #fff;
     padding: 0;
   }
+  
+  .full-drag-drop .upload > table {
+    width: 100%;
+  }
 </style>
 
 <script>
+  import * as constants from '@/store/constants'
   import FileUpload from 'vue-upload-component'
+
   export default {
     components: {
-      FileUpload
+      'file-upload': FileUpload
     },
     data () {
       return {
         files: []
+      }
+    },
+    computed: {
+      uploadUrl () {
+        return constants.apiUrl + '/media/upload'
+      }
+    },
+    watch: {
+      '$refs.upload.uploaded': function (newValue, oldValue) {
+        if (newValue) {
+          alert('uploaded')
+        }
       }
     }
   }

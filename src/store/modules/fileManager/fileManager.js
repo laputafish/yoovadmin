@@ -11,6 +11,10 @@ const state = {
     personalFolders: [],
     publicFolders: [],
     sharedFolders: []
+  },
+  lastSelectedFileItem: {
+    fileType: 'none',
+    id: 0
   }
 }
 
@@ -40,6 +44,7 @@ const getters = {
 }
 const mutations = {
   setCurrentFolder: (state, payload) => {
+    console.log('mutations :: setCurrentFolder :: payload: ', payload)
     state.currentFolder = payload
     for (var i = 0; i < state.currentFolder.documents.length; i++) {
       state.currentFolder.documents[i].selected = false
@@ -97,6 +102,10 @@ const mutations = {
   },
   setUserAllFolders: (state, payload) => {
     state.userAllFolders = payload
+  },
+  setLastSelectedFileItem: (state, paylaod) => {
+    state.lastSelectedFileItem.fileType = payload.fileType
+    state.lastSelectedFileItem.id = payload.id
   }
 }
 
@@ -105,6 +114,7 @@ const actions = {
     let apiUrl = constants.apiUrl + '/folders/' + state.currentFolder.id
     console.log('REFRESH_FOLDER :: apiUrl = ' + apiUrl)
     await axios.get(apiUrl).then(function (response) {
+      console.log('actions :: REFRESH_FOLDER => call mutations :: setCurrentFolder')
       commit('setCurrentFolder', response.data)
     })
   },
@@ -140,10 +150,46 @@ const actions = {
   async [types.TOGGLE_FOLDER_SELECTION] ({commit}, payload) {
     await commit('toggleFolderSelection', payload)
   },
-  async [types.TOGGLE_FILE_ITEM_SELECTION] ({dispatch}, payload) {
+  async [types.TOGGLE_FILE_ITEM_SELECTION] ({commit, dispatch}, payload) {
     let fileItem = payload.fileItem
     let fileType = payload.fileType
     if (fileType === 'folder') {
+      dispatch(types.TOGGLE_FOLDER_SELECTION, fileItem).then(function () {
+        commit('setLastSelectedFileItem', {fileType: 'folder', id: fileItem.id})
+      })
+    } else {
+      dispatch(types.TOGGLE_DOCUMENT_SELECTION, fileItem).then(function () {
+        commit('setLastSelectedFileItem', {fileType: 'document', id: fileItem.id})
+      })
+    }
+  },
+  async [types.EXTEND_FILE_ITEM_SELECTION] ({state, dispatch}, payload) {
+    let fileItem = payload.fileItem
+    let fileType = payload.fileType
+    if (fileType === 'folder') {
+      if (state.lastSelectedFileItem.fileType === 'folder') {
+        let lastFolderIndex = folderIndex(state.currentFolder.children, state.lastSelectedFileItem.id)
+        let currFolderIndex = folderIndex(state.currentFolder.children, fileItem.id)
+        if (currFolderIndex < lastFolderIndex) {
+          startIndex = currFolderIndex
+          endIndex = lastFolderIndex - 1
+          for (var i = startIndex; i <= endIndex; i++) {
+            commit('setToggleFolderSelection', state.currentFolder.children[i])
+          }
+        } else if (lastFolderIndex < currFolderIndex) {
+          startIndex = lastFolderIndex + 1
+          endIndex = currFolderIndex
+          for (var i = startIndex; i <= endIndex; i++) {
+            commit('setToggleFolderSelection', state.currentFolder.children[i])
+          }
+        }
+      } else {
+        for (var i = 0; i < state.currentFolder.documents.length; i++) {
+          if (state.selectedDocumentIds.indexOf(state.currentFolder.documents[i].id) >= 0) {
+
+          }
+        }
+      }
       dispatch(types.TOGGLE_FOLDER_SELECTION, fileItem)
     } else {
       dispatch(types.TOGGLE_DOCUMENT_SELECTION, fileItem)
@@ -159,27 +205,53 @@ const actions = {
     await commit('clearFolderSelection')
   },
   async [types.DELETE_FOLDER] ({state, commit, dispatch}, payload) {
+    console.log('actions :: DELETE_FOLDER :: payload: ', payload)
     let folderId = payload
     let apiUrl = constants.apiUrl + '/folders/' + folderId
     await axios.delete(apiUrl).then(function (response) {
-      dispatch('SET_CURRENT_FOLDER', state.currentFolder.id)
+      console.log('actions :: DELETE_FOLDER => actions :: REFRESH_FOLDER')
+      dispatch(types.REFRESH_FOLDER)
+      // dispatch('SET_CURRENT_FOLDER', state.currentFolder.id)
     })
   },
   async [types.DELETE_DOCUMENT] ({state, commit, dispatch}, payload) {
+    console.log('actions :: DELETE_DOCUMENT :: payload: ', payload)
     let documentId = payload
     let apiUrl = constants.apiUrl + '/documents/' + documentId
     await axios.delete(apiUrl).then(function (response) {
-      dispatch('SET_CURRENT_FOLDER', state.currentFolder.id)
+      dispatch(types.REFRESH_FOLDER)
+      // dispatch('SET_CURRENT_FOLDER', state.currentFolder.id)
     })
   },
   async [types.DELETE_SELECTED] ({state, commit, dispatch}, payload) {
-    let apiUrl = constants.apiUrl + '/documents'
-    let data = {
-      command: 'DELETE',
-      ids: state.selectedDocumentIds
-    }
-    await axios.post(apiUrl, data).then(function (response) {})
+    console.log('actions :: DELETE_SELECTED :: payload: ', payload)
+    let promises = []
+
+    promises.push(
+      axios.post(
+        constants.apiUrl + '/documents',
+        {
+          command: 'DELETE',
+          ids: state.selectedDocumentIds
+        }
+      )
+    )
+
+    promises.push(
+      axios.post(
+        constants.apiUrl + '/folders',
+        {
+          command: 'DELETE',
+          ids: state.selectedFolderIds
+        }
+      )
+    )
+
+    await Promise.all(promises).then(function () {
+      dispatch(types.REFRESH_FOLDER)
+    })
   },
+
   async [types.NEW_FOLDER] ({state, commit, dispatch}, payload) {
     let apiUrl = constants.apiUrl + '/folders'
     let data = {
