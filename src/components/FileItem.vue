@@ -3,9 +3,10 @@
        :class="{selected:selected, 'have-selection':haveSelection}">
     <div class="file-item-status">
       <div class="file-item-checkbox"
+           :class="{'last-selected text-info':isLastSelected}"
            @click.prevent.stop="toggleSelection">
         <i class="fa fa-fw"
-           :class="{'fa-check-circle text-info':selected,'fa-circle text-black-20':!selected}"></i>
+           :class="{'fa-check-circle text-default':selected,'fa-circle text-black-20':!selected}"></i>
       </div>
       <div class="file-item-checkbox"
            @click.prevent.stop="extendSelection">
@@ -33,7 +34,7 @@
       <!--</span>-->
       <!--</div>-->
     </div>
-    <a v-if="fileType==='document' && !isSupportedFileType"
+    <a v-if="fileItem.type==='document' && !isSupportedFileType"
        :href="downloadLink"
        v-touch:tap="onTap"
        v-touch:longtap="onLongTap">
@@ -45,7 +46,7 @@
            @dragleave.stop="handleDragLeave"
            :src="getIconSrc()"/><br/>
     </a>
-    <div v-else-if="fileType==='folder'"
+    <div v-else-if="fileItem.type==='folder'"
          :draggable="true"
          @click.prevent.stop="enterFolder"
          @drop.stop="handleDrop"
@@ -70,8 +71,8 @@
            @keyup="onKeyUp"
            @focus="$event.target.select()"
            class="filename-editing" v-model="currentName"/>
-    <div v-else @click="editName(fileItem.name)"
-         class="file-item-label">{{ fileType === 'folder' ? fileItem.name : fileItem.filename }}
+    <div v-else @click="editName(fileItem)"
+         class="file-item-label">{{ fileItemName }}
     </div>
     <div class="file-item-action" v-if="!editing">
       <a :href="downloadLink" class="btn btn-primary btn-xs xx">
@@ -128,14 +129,17 @@
       }
     },
     props: {
-      fileType: {
-        type: String,
-        default: 'folder'
-      },
+      // fileType: {
+      //   type: String,
+      //   default: 'folder'
+      // },
       fileItem: {
         type: Object,
         default () {
-          return null
+          return {
+            type: 'document',
+            data: null
+          }
         }
       }
     },
@@ -148,12 +152,29 @@
       }
     },
     computed: {
+      isLastSelected () {
+        let vm = this
+        let result = false
+        if (vm.fileItem && vm.lastSelectedFileItem) {
+          result = vm.fileItem.type === vm.lastSelectedFileItem.type &&
+            vm.fileItem.data.id === vm.lastSelectedFileItem.data.id
+        }
+        return result
+      },
+      lastSelectedFileItem () {
+        return this.$store.getters.lastSelectedFileItem
+      },
+      fileItemName () {
+        return this.fileItem.type === 'folder'
+          ? this.fileItem.data.name
+          : this.fileItem.data.filename
+      },
       isSupportedFileType () {
         let vm = this
         let result = false
         let supportedTypes = ['txt', 'jpg', 'gif', 'jpeg', 'png', 'png']
-        if (vm.fileType === 'document' &&
-          supportedTypes.indexOf(vm.fileItem.file_type.toLowerCase()) >= 0) {
+        if (vm.fileItem.type === 'document' &&
+          supportedTypes.indexOf(vm.fileItem.data.file_type.toLowerCase()) >= 0) {
           result = true
         }
         return result
@@ -167,14 +188,14 @@
       },
       selected () {
         let vm = this
-        if (vm.fileType === 'folder') {
-          return vm.$store.getters.selectedFolderIds.indexOf(vm.fileItem.id) >= 0
+        if (vm.fileItem.type === 'folder') {
+          return vm.$store.getters.selectedFolderIds.indexOf(vm.fileItem.data.id) >= 0
         } else {
-          return vm.$store.getters.selectedDocumentIds.indexOf(vm.fileItem.id) >= 0
+          return vm.$store.getters.selectedDocumentIds.indexOf(vm.fileItem.data.id) >= 0
         }
       },
       downloadLink () {
-        return constants.apiUrl + '/media/download/' + this.fileItem.media_id
+        return constants.apiUrl + '/media/download/' + this.fileItem.data.media_id
         // ,
         // selectedDocumentIds () {
         //   return this.$store.getters.selectedDocumentIds
@@ -215,7 +236,7 @@
 
         }
         console.log('isAllowedToDrop :: notSelf: ' + (notSelf ? 'yes' : 'no'))
-        return notSelf && (vm.fileType === 'folder')
+        return notSelf && (vm.fileItem.type === 'folder')
       },
 
       handleDragEnd () {
@@ -274,7 +295,6 @@
         let vm = this
         vm.$emit('onAction', {
           command: command,
-          fileType: vm.fileType,
           fileItem: vm.fileItem
         })
       },
@@ -305,9 +325,9 @@
         }
         vm.editing = false
       },
-      editName (name) {
+      editName (fileItem) {
         let vm = this
-        vm.currentName = name
+        vm.currentName = fileItem.type === 'folder' ? fileItem.data.name : fileItem.data.filename
         vm.editing = true
         vm.$nextTick(function () {
           console.log('editName :: refs:', vm.$refs)
@@ -318,10 +338,10 @@
       showDocument () {
         let vm = this
         if (vm.isImage()) {
-          vm.imageUrl = '/media/image/' + vm.fileItem.media_id
+          vm.imageUrl = '/media/image/' + vm.fileItem.data.media_id
           vm.showingImageDialog = true
         } else {
-          let url = constants.apiUrl + '/media/document/' + vm.fileItem.media_id
+          let url = constants.apiUrl + '/media/document/' + vm.fileItem.data.media_id
           window.open(url, '_blank')
         }
       },
@@ -391,10 +411,9 @@
       },
       toggleSelection () {
         let vm = this
-        this.$store.dispatch('TOGGLE_FILE_ITEM_SELECTION', {
-          fileType: vm.fileType,
-          fileItem: vm.fileItem
-        }).then(function (response) {
+        this.$store.dispatch('TOGGLE_FILE_ITEM_SELECTION',
+          {fileItem: vm.fileItem}
+        ).then(function (response) {
           // vm.$nextTick(function () {
           //   vm.$emit('updateSelected')
           // })
@@ -403,15 +422,18 @@
       },
       extendSelection () {
         let vm = this
-        this.$store.dispatch('EXTEND_FILE_ITEM_SELECTION', {
-          fileType: vm.fileType,
-          fileItem: vm.fileItem
-        }).then(function (response) {
-          // vm.$nextTick(function () {
-          //   vm.$emit('updateSelected')
-          // })
-          // console.log('toggleDocument :: after dispatch :: vm.fileItem: ', vm.fileItem)
-        })
+        if (vm.isLastSelected) {
+          this.$store.dispatch('CLEAR_LAST_SELECTION')
+        } else {
+          this.$store.dispatch('EXTEND_FILE_ITEM_SELECTION', {
+            fileItem: vm.fileItem
+          }).then(function (response) {
+            // vm.$nextTick(function () {
+            //   vm.$emit('updateSelected')
+            // })
+            // console.log('toggleDocument :: after dispatch :: vm.fileItem: ', vm.fileItem)
+          })
+        }
       }
     }
   }
@@ -457,7 +479,6 @@
 
   .file-item .file-item-status .file-item-checkbox i {
     font-size: 1.5rem;
-    margin-top: -2px;
   }
 
   .file-item .file-item-status .file-item-checkbox,
@@ -574,7 +595,13 @@
     background-image: url("/static/img/folder_48/Open-Folder-icon.png");
     cursor: pointer;
   }
+  .file-item-checkbox.last-selected {
+
+  }
   .text-lightgray {
     color: lightgray;
+  }
+  .text-darkgray {
+    color: darkgray;
   }
 </style>

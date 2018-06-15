@@ -20,23 +20,31 @@
         @onCommand="onToolbarCommandHandler">
       </file-manager-toolbar>
       <full-drag-drop v-if="false"></full-drag-drop>
-      <div v-if="currentFolder">
+      <div v-if="fileItems">
+        fileItems.length = {{ fileItems.length }}
         <file-item
-          @updateSelected="updateSelectedFolderHandler"
           @onAction="onActionHandler"
           @refresh="refreshFolder"
-          fileType="folder"
-          :fileItem="folder"
-          :key="'folder_'+index"
-          v-for="(folder,index) in folders"></file-item>
-        <file-item
-          @updateSelected="updateSelectedDocumentHandler"
-          @onAction="onActionHandler"
-          @refresh="refreshFolder"
-          fileType="document"
-          :fileItem="document"
-          :key="'document_'+index"
-          v-for="(document,index) in documents"></file-item>
+          :fileItem="fileItem"
+          :key="index"
+          v-for="(fileItem,index) in fileItems"></file-item>
+        <!--<file-item-->
+          <!--@updateSelected="updateSelectedFolderHandler"-->
+          <!--@onAction="onActionHandler"-->
+          <!--@refresh="refreshFolder"-->
+          <!--fileType="folder"-->
+          <!--:fileItem="folder"-->
+          <!--:key="'folder_'+index"-->
+          <!--v-for="(folder,index) in folders"></file-item>-->
+        <!--<file-item-->
+          <!--@updateSelected="updateSelectedDocumentHandler"-->
+          <!--@onAction="onActionHandler"-->
+          <!--@refresh="refreshFolder"-->
+          <!--fileType="document"-->
+          <!--:fileItem="document"-->
+          <!--:key="'document_'+index"-->
+          <!--v-for="(document,index) in documents"></file-item>-->
+
         <!--<folder-item-->
           <!--@updateSelected="updateSelectedFolderHandler"-->
           <!--@refresh="refreshFolder"-->
@@ -49,6 +57,11 @@
           <!--:document="document"-->
           <!--:key="'document_'+index"-->
           <!--v-for="(document,index) in documents"></document-item>-->
+          <!--selectedDocumentIds: {{ selectedDocumentIds }}<br/>-->
+          <!--selectedFolderIds: {{ selectedFolderIds }}<br/>-->
+          <!--allSelected: {{ allSelected ? 'yes' : 'no' }}<br/>-->
+          <!--selectionCount: {{ selectionCount }}<br/>-->
+          <!--lastSelectedFileItem: {{ lastSelectedFileItem ? 'type=' + lastSelectedFileItem.type + ', id=' + lastSelectedFileItem.data.id : 'no' }}-->
       </div>
     </div>
     <folder-tree-dialog v-if="showingFolderTreeDialog"
@@ -112,6 +125,9 @@
       'file-manager-toolbar': FileManagerToolbar
     },
     computed: {
+      lastSelectedFileItem () {
+        return this.$store.getters.lastSelectedFileItem
+      },
       activeFilename () {
         let vm = this
         return vm.activeFileType === 'folder'
@@ -139,25 +155,26 @@
         this.preparing = false
         return this.$store.getters.currentFolder
       },
-      folders () {
-        let vm = this
-        return vm.currentFolder ? vm.currentFolder.children : []
+      fileItems () {
+        this.preparing = false
+        return this.$store.getters.fileItemList
       },
-      documents () {
-        let vm = this
-        return vm.currentFolder ? vm.currentFolder.documents : []
-      },
+      // folders () {
+      //   let vm = this
+      //   return vm.currentFolder ? vm.currentFolder.children : []
+      // },
+      // documents () {
+      //   let vm = this
+      //   return vm.currentFolder ? vm.currentFolder.documents : []
+      // },
       selectedDocumentIds () {
-        let vm = this
-        return vm.$store.getters.selectedDocumentIds
+        return this.$store.getters.selectedDocumentIds
       },
       selectedFolderIds () {
-        let vm = this
-        return vm.$store.getters.selectedFolderIds
+        return this.$store.getters.selectedFolderIds
       },
       allSelected () {
-        return this.documents && this.folders && (this.documents.length === this.selectedDocumentIds.length) &&
-          (this.folders.length === this.selectedFolderIds.length && this.folders.length > 0)
+        return this.$store.getters.allSelected
       }
     },
     mounted () {
@@ -175,6 +192,13 @@
           folderName: this.$route.params.folderId,
           subFolderName: this.$route.params.folderName
         })
+      },
+      fileItems: {
+        handler: function (value) {
+          this.loading = false
+          console.log('FileManager :: watch(fileItems): value: ', value)
+        },
+        deep: true
       },
       // publicFolder: {
       //   handler: function (value) {
@@ -249,25 +273,25 @@
       onActionHandler (payload) {
         let vm = this
         this.currentCommand = payload.command
+        let fileType = payload.fileItem.type
+        let fileItem = payload.fileItem.data
         switch (this.currentCommand) {
           case 'MOVE_ITEM':
           case 'COPY_ITEM':
-            let fileType = payload.fileType
-            let fileItem = payload.fileItem
             if (fileType === 'folder') {
               vm.disabledFolderIds = [fileItem.id]
             } else {
               vm.disabledFolderIds = []
             }
-            vm.activeFileItem = payload.fileItem
-            vm.activeFileType = payload.fileType
+            vm.activeFileItem = fileItem
+            vm.activeFileType = fileType
             vm.showingFolderTreeDialog = true
             break
           case 'LOCK_ITEM':
             break
           case 'RENAME_ITEM':
-            vm.activeFileItem = payload.fileItem
-            vm.activeFileType = payload.fileType
+            vm.activeFileItem = fileItem
+            vm.activeFileType = fileType
             vm.showingFileRenameDialog = true
             break
         }
@@ -365,18 +389,24 @@
           // this.mockReviews.unshift(data.review)
         })
       },
-      updateSelectedDocumentHandler () {
-        let vm = this
-        for (var i = 0; i < vm.currentFolder.documents.length; i++) {
-          vm.currentFolder.documents[i].selected = true
-        }
-      },
-      updateSelectedFolderHandler () {
-        let vm = this
-        for (var i = 0; i < vm.currentFolder.children.length; i++) {
-          vm.currentFolder.children[i].selected = true
-        }
-      },
+      // updateSelectedFileItemHandler () {
+      //   let vm = this
+      //   for (var i = 0; i < vm.currentFolder.documents.length; i++) {
+      //     vm.currentFolder.documents[i].selected = true
+      //   }
+      // },
+      // updateSelectedDocumentHandler () {
+      //   let vm = this
+      //   for (var i = 0; i < vm.currentFolder.documents.length; i++) {
+      //     vm.currentFolder.documents[i].selected = true
+      //   }
+      // },
+      // updateSelectedFolderHandler () {
+      //   let vm = this
+      //   for (var i = 0; i < vm.currentFolder.children.length; i++) {
+      //     vm.currentFolder.children[i].selected = true
+      //   }
+      // },
       getIconSrc (mediaId) {
 
       }

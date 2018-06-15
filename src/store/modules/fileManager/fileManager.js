@@ -12,10 +12,84 @@ const state = {
     publicFolders: [],
     sharedFolders: []
   },
-  lastSelectedFileItem: {
-    fileType: 'none',
-    id: 0
+
+  fileItemList: [],
+  lastSelectedIndex: -1
+}
+
+function getFileItemIndex (fileItem) {
+  let result = -1
+  for (var i = 0; i < state.fileItemList.length; i++) {
+    let item = state.fileItemList[i]
+    if (item.data.id === fileItem.data.id && item.type === fileItem.type) {
+      result = i
+      break
+    }
   }
+  return result
+}
+
+// function getFileIndex (itemList, type, id) {
+//   console.log('getFileIndex: itemList: ', itemList)
+//   console.log('getFileIndex: type = ' + type)
+//   console.log('getFileIndex: id = ' + id)
+//   let result = -1
+//   for (var i = 0; i < itemList.length; i++) {
+//     let item = itemList[i]
+//     if (item.data.id === id && item.type === type) {
+//       result = i
+//       break
+//     }
+//   }
+//   return result
+// }
+//
+function fileItemSelected (index) {
+  let fileItem = state.fileItemList[index]
+  console.log('fileItemSelected(' + index + ') :; fileItem.data.id = ' + fileItem.data.id)
+  let result = false
+  let i
+  if (fileItem.type === 'folder') {
+    i = state.selectedFolderIds.indexOf(fileItem.data.id)
+    console.log('fileItemSelected :: folder  index=' + i)
+    result = i >= 0
+  } else {
+    i = state.selectedDocumentIds.indexOf(fileItem.data.id)
+    console.log('fileItemSelected :: document  index=' + i)
+    result = i >= 0
+  }
+  return result
+}
+
+function allSelected (startIndex, endIndex) {
+  let result = true
+  for (var i = startIndex; i <= endIndex; i++) {
+    if (!fileItemSelected(i)) {
+      result = false
+      break
+    }
+  }
+  return result
+}
+
+function isSelected (fileItem) {
+  let result = false
+  if (fileItem.type === 'folder') {
+    for (var i = 0; i < state.selectedFolderIds.length; i++) {
+      if (state.selectedFolderIds[i] === fileItem.data.id) {
+        result = true
+        break
+      }
+    }
+  } else {
+    for (var i = 0; i < state.selectedDocumentIds.length; i++) {
+      if (state.selectedDocumentIds[i] === fileItem.data.id) {
+        result = true
+        break
+      }
+    }
+  }
+  return result
 }
 
 const getters = {
@@ -39,20 +113,47 @@ const getters = {
   },
   userAllFolders: (state) => {
     return state.userAllFolders
+  },
+  fileItemList: (state) => {
+    return state.fileItemList
+  },
+  lastSelectedFileItem: (state) => {
+    return state.lastSelectedIndex >= 0 ? state.fileItemList[state.lastSelectedIndex] : null
+  },
+  lastSelectedIndex: (state) => {
+    return state.lastSelectedIndex
+  },
+  allSelected: (state) => {
+    return state.fileItemList.length === (state.selectedDocumentIds.length + state.selectedFolderIds.length)
   }
-
 }
 const mutations = {
   setCurrentFolder: (state, payload) => {
     console.log('mutations :: setCurrentFolder :: payload: ', payload)
     state.currentFolder = payload
-    for (var i = 0; i < state.currentFolder.documents.length; i++) {
-      state.currentFolder.documents[i].selected = false
-    }
+    // for (var i = 0; i < state.currentFolder.documents.length; i++) {
+    //   state.currentFolder.documents[i].selected = false
+    // }
     state.selectedDocumentIds = []
     state.selectedFolderIds = []
 
+    state.fileItemList = []
+    let i
+    for (i = 0; i < payload.children.length; i++) {
+      state.fileItemList.push({
+        type: 'folder',
+        data: payload.children[i]
+      })
+    }
+    for (i = 0; i < payload.documents.length; i++) {
+      state.fileItemList.push({
+        type: 'document',
+        data: payload.documents[i]
+      })
+    }
+
     console.log('currentFolder:', state.currentFolder)
+    console.log('fileItemList: ', state.fileItemList)
   },
   toggleDocumentSelection: (state, payload) => {
     let document = payload
@@ -73,6 +174,40 @@ const mutations = {
     } else {
       state.selectedFolderIds.push(folder.id)
     }
+  },
+  toggleFileItemSelection: (state, payload) => {
+    let fileItem = payload.fileItem
+    let i
+    if (fileItem.type === 'folder') {
+      // if not selected, set lastSelected
+      i = state.selectedFolderIds.indexOf(fileItem.data.id)
+      if (i === -1) {
+        state.selectedFolderIds.push(fileItem.data.id)
+        state.lastSelectedIndex = getFileItemIndex(fileItem)
+      } else {
+        state.selectedFolderIds.splice(i, 1)
+      }
+    } else {
+      i = state.selectedDocumentIds.indexOf(fileItem.data.id)
+      if (i === -1) {
+        state.selectedDocumentIds.push(fileItem.data.id)
+        state.lastSelectedIndex = getFileItemIndex(fileItem)
+      } else {
+        state.selectedDocumentIds.splice(i, 1)
+      }
+    }
+
+    // let fileItem = payload.fileItem
+    // let data = fileItem.data
+    // if (fileItem.type === 'folder') {
+    //   dispatch(types.TOGGLE_FOLDER_SELECTION, data).then(function () {
+    //     commit('setLastSelectedFileItem', {fileType: 'folder', id: data.id})
+    //   })
+    // } else {
+    //   dispatch(types.TOGGLE_DOCUMENT_SELECTION, data).then(function () {
+    //     commit('setLastSelectedFileItem', {fileType: 'document', id: data.id})
+    //   })
+    // }
   },
   selectAllDocuments: (state, payload) => {
     console.log('selectAllDocuments')
@@ -103,9 +238,61 @@ const mutations = {
   setUserAllFolders: (state, payload) => {
     state.userAllFolders = payload
   },
-  setLastSelectedFileItem: (state, paylaod) => {
-    state.lastSelectedFileItem.fileType = payload.fileType
-    state.lastSelectedFileItem.id = payload.id
+  setLastSelectedFileItem: (state, payload) => {
+    let fileItem = payload.fileItem
+    for (var i = 0; i < state.fileItemList.length; i++) {
+      let loopFileItem = state.fileItemList[i]
+      if (loopFileItem.type === fileItem.type && loopFileItem.data.id === fileItem.data.id) {
+        state.lastSelectedIndex = i
+        break
+      }
+    }
+  },
+  setSelection: (state, payload) => {
+    console.log('setSelection startIndex=' + payload.startIndex)
+    console.log('setSelection endIndex=' + payload.endIndex)
+    for (var i = payload.startIndex; i <= payload.endIndex; i++) {
+      let fileItem = state.fileItemList[i]
+      let index
+      if (fileItem.type === 'folder') {
+        index = state.selectedFolderIds.indexOf(fileItem.data.id)
+        if (index === -1) {
+          state.selectedFolderIds.push(fileItem.data.id)
+        }
+      } else {
+        index = state.selectedDocumentIds.indexOf(fileItem.data.id)
+        if (index === -1) {
+          state.selectedDocumentIds.push(fileItem.data.id)
+        }
+      }
+    }
+  },
+
+  clearSelection: (state, payload) => {
+    console.log('clearSelection startIndex=' + payload.startIndex)
+    console.log('clearSelection endIndex=' + payload.endIndex)
+    for (var i = payload.startIndex; i <= payload.endIndex; i++) {
+      let fileItem = state.fileItemList[i]
+      let index
+      if (fileItem.type === 'folder') {
+        index = state.selectedFolderIds.indexOf(fileItem.data.id)
+        console.log('clearSelection :: folder #' + fileItem.data.id + ', index = ' + index)
+        if (index >= 0) {
+          state.selectedFolderIds.splice(index, 1)
+          console.log('clearSelection :: after removal: ' + state.selectedFolderIds)
+        }
+      } else {
+        index = state.selectedDocumentIds.indexOf(fileItem.data.id)
+        console.log('clearSelection :: document #' + fileItem.data.id + ', index = ' + index)
+        if (index >= 0) {
+          state.selectedDocumentIds.splice(index, 1)
+        }
+      }
+    }
+  },
+
+  clearLastSelection: (state) => {
+    state.lastSelectedIndex = -1
   }
 }
 
@@ -151,49 +338,86 @@ const actions = {
     await commit('toggleFolderSelection', payload)
   },
   async [types.TOGGLE_FILE_ITEM_SELECTION] ({commit, dispatch}, payload) {
-    let fileItem = payload.fileItem
-    let fileType = payload.fileType
-    if (fileType === 'folder') {
-      dispatch(types.TOGGLE_FOLDER_SELECTION, fileItem).then(function () {
-        commit('setLastSelectedFileItem', {fileType: 'folder', id: fileItem.id})
-      })
-    } else {
-      dispatch(types.TOGGLE_DOCUMENT_SELECTION, fileItem).then(function () {
-        commit('setLastSelectedFileItem', {fileType: 'document', id: fileItem.id})
-      })
-    }
+    await commit('toggleFileItemSelection', payload)
   },
-  async [types.EXTEND_FILE_ITEM_SELECTION] ({state, dispatch}, payload) {
+  async [types.CLEAR_LAST_SELECTION] ({commit}, payload) {
+    commit('clearLastSelection')
+  },
+  async [types.EXTEND_FILE_ITEM_SELECTION] ({state, dispatch, commit}, payload) {
+    console.log('EXTEND_FILE_ITEM_SELECTION :: lastSelectedIndex = ' + state.lastSelectedIndex)
     let fileItem = payload.fileItem
-    let fileType = payload.fileType
-    if (fileType === 'folder') {
-      if (state.lastSelectedFileItem.fileType === 'folder') {
-        let lastFolderIndex = folderIndex(state.currentFolder.children, state.lastSelectedFileItem.id)
-        let currFolderIndex = folderIndex(state.currentFolder.children, fileItem.id)
-        if (currFolderIndex < lastFolderIndex) {
-          startIndex = currFolderIndex
-          endIndex = lastFolderIndex - 1
-          for (var i = startIndex; i <= endIndex; i++) {
-            commit('setToggleFolderSelection', state.currentFolder.children[i])
-          }
-        } else if (lastFolderIndex < currFolderIndex) {
-          startIndex = lastFolderIndex + 1
-          endIndex = currFolderIndex
-          for (var i = startIndex; i <= endIndex; i++) {
-            commit('setToggleFolderSelection', state.currentFolder.children[i])
-          }
-        }
-      } else {
-        for (var i = 0; i < state.currentFolder.documents.length; i++) {
-          if (state.selectedDocumentIds.indexOf(state.currentFolder.documents[i].id) >= 0) {
+    let type = fileItem.type
+    let id = fileItem.data.id
 
-          }
-        }
+    // valid only lastSelected point exists.
+    // if no last selected point
+    if (state.lastSelectedIndex === -1) {
+      if (isSelected(fileItem)) {
+        await commit('setLastSelectedFileItem', {fileItem: fileItem})
+      } else {
+        await commit('toggleFileItemSelection', payload)
       }
-      dispatch(types.TOGGLE_FOLDER_SELECTION, fileItem)
-    } else {
-      dispatch(types.TOGGLE_DOCUMENT_SELECTION, fileItem)
+      return
     }
+
+    console.log('EXTEND_FILE_ITEM_SELECTION :: type = ' + type)
+    console.log('EXTEND_FILE_ITEM_SELECTION :: fileId = ' + id)
+    console.log('EXTEND_FILE_ITEM_SELECTION :: fileItemlist: ', state.fileItemList)
+
+    let fileIndex = getFileItemIndex(fileItem)
+// getFileIndex(state.fileItemList, type, id)
+    console.log('EXTEND_FILE_ITEM_SELECTION :: lastSelectedIndex = ' + state.lastSelectedIndex)
+
+    let startIndex
+    let endIndex
+
+    if (fileIndex < state.lastSelectedIndex) {
+      startIndex = fileIndex
+      endIndex = state.lastSelectedIndex - 1
+    } else if (fileIndex > state.lastSelectedIndex) {
+      startIndex = state.lastSelectedIndex + 1
+      endIndex = fileIndex
+    } else {
+      dispatch(types.TOGGLE_FILE_ITEM_SELECTION, {fileIndex: fileIndex})
+      return
+    }
+
+    if (allSelected(startIndex, endIndex)) {
+      console.log('allSelected : true (startIndex=' + startIndex + ', endIndex=' + endIndex + ')')
+      commit('clearSelection', {startIndex: startIndex, endIndex: endIndex})
+    } else {
+      console.log('allSelected : false (startIndex=' + startIndex + ', endIndex=' + endIndex + ')')
+      commit('setSelection', {startIndex: startIndex, endIndex: endIndex})
+    }
+
+    // if (fileType === 'folder') {
+    //   if (state.lastSelectedFileItem.fileType === 'folder') {
+    //     let lastFolderIndex = folderIndex(state.currentFolder.children, state.lastSelectedFileItem.id)
+    //     let currFolderIndex = folderIndex(state.currentFolder.children, fileItem.id)
+    //     if (currFolderIndex < lastFolderIndex) {
+    //       startIndex = currFolderIndex
+    //       endIndex = lastFolderIndex - 1
+    //       for (var i = startIndex; i <= endIndex; i++) {
+    //         commit('setToggleFolderSelection', state.currentFolder.children[i])
+    //       }
+    //     } else if (lastFolderIndex < currFolderIndex) {
+    //       startIndex = lastFolderIndex + 1
+    //       endIndex = currFolderIndex
+    //       for (var i = startIndex; i <= endIndex; i++) {
+    //         commit('setToggleFolderSelection', state.currentFolder.children[i])
+    //       }
+    //     }
+    //   } else {
+    //     for (var i = 0; i < state.currentFolder.documents.length; i++) {
+    //       if (state.selectedDocumentIds.indexOf(state.currentFolder.documents[i].id) >= 0) {
+    //
+    //       }
+    //     }
+    //   }
+    //   dispatch(types.TOGGLE_FOLDER_SELECTION, fileItem)
+    // } else {
+    //   dispatch(types.TOGGLE_DOCUMENT_SELECTION, fileItem)
+    // }
   },
   async [types.SELECT_ALL_FILES] ({state, commit, dispatch}, payload) {
     console.log('fileManager.js :: SELECT_ALL_FILES')
@@ -226,7 +450,6 @@ const actions = {
   async [types.DELETE_SELECTED] ({state, commit, dispatch}, payload) {
     console.log('actions :: DELETE_SELECTED :: payload: ', payload)
     let promises = []
-
     promises.push(
       axios.post(
         constants.apiUrl + '/documents',
@@ -236,7 +459,6 @@ const actions = {
         }
       )
     )
-
     promises.push(
       axios.post(
         constants.apiUrl + '/folders',
@@ -246,7 +468,6 @@ const actions = {
         }
       )
     )
-
     await Promise.all(promises).then(function () {
       dispatch(types.REFRESH_FOLDER)
     })
